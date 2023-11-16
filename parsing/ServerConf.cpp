@@ -6,7 +6,7 @@
 /*   By: ogorfti <ogorfti@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/11 19:01:46 by ogorfti           #+#    #+#             */
-/*   Updated: 2023/11/16 11:47:34 by ogorfti          ###   ########.fr       */
+/*   Updated: 2023/11/16 17:38:42 by ogorfti          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -39,8 +39,72 @@ void ServerConf::splitLines(const std::string& buffer)
 
 	while ((end = buffer.find('\n', begin)) != std::string::npos)
 	{
-		line_.push_back(buffer.substr(begin, end - begin));
+		lines_.push_back(buffer.substr(begin, end - begin));
 		begin = end + 1;
+	}
+}
+
+int skip(const char* str)
+{
+	int i = 0;
+	while (str[i] && str[i] == 32)
+		i++;
+	return (i);
+}
+
+void ServerConf::parseServer(ConfigData& server, vecIt& it)
+{
+	std::cout << "here 0" << '\n';
+	int check = 0;
+	while (it != lines_.end() && *it != "[[servers]]")
+	{
+		if (!check)
+		{
+			check = 1;			
+			while (it != lines_.end() && !it->empty())
+			{
+				size_t equalPos = it->find('=');
+				if (equalPos != std::string::npos)
+				{
+					std::string key = it->substr(skip(it->c_str()), equalPos - skip(it->c_str()) - 1);
+					std::string value = it->substr(equalPos + 2);
+					if (key == "port")
+						server.port = std::atoi(value.c_str());
+					else if (key == "hostName")
+						server.hostName = value;
+					else if (key == "documentRoot")
+						server.documentRoot = value;
+				}
+				it++;
+			}
+		}
+		else if (it->find("servers.errorPages") != std::string::npos)
+		{	
+			std::cout << "[servers.errorPages]" << '\n';
+		}
+		else if (it->find("servers.locations") != std::string::npos)
+		{
+			std::cout << "[servers.locations]" << '\n';
+		}
+		it++;
+	}
+	it--;
+}
+
+void ServerConf::startParse()
+{
+	vecIt it = lines_.begin();
+
+	for (; it != lines_.end(); it++)
+	{
+		if (*it == "[[servers]]")
+		{
+			it++;
+			ConfigData server;
+			parseServer(server, it);
+			servers.push_back(server);
+			std::cout << "port : " << server.port << '\n'; 
+		}
 	}
 }
 
@@ -48,12 +112,7 @@ ServerConf::ServerConf(const std::string& configPath)
 {
 	std::string buffer = readFile(configPath);
 	splitLines(buffer);
-	// std::cout << buffer << '\n';
-
-	for (std::vector<std::string>::iterator it = line_.begin(); it != line_.end(); it++)
-	{
-		std::cout << *it << '\n';;
-	}
+	startParse();
 }
 
 int main()
