@@ -6,13 +6,15 @@
 /*   By: ogorfti <ogorfti@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/11 18:08:24 by ogorfti           #+#    #+#             */
-/*   Updated: 2023/11/11 18:57:09 by ogorfti          ###   ########.fr       */
+/*   Updated: 2023/11/16 11:47:39 by ogorfti          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #pragma once
 
 #include <iostream>
+#include <fstream>
+#include <sstream>
 #include <vector>
 #include <map>
 
@@ -24,7 +26,8 @@ class Location
 		std::string index;
 };
 
-class ServerConf
+
+class ConfigData
 {
 	public:
 		int port;
@@ -34,11 +37,13 @@ class ServerConf
 		std::vector<Location> locations;
 };
 
-class ConfigFile
+class ServerConf
 {
 	private:
-		std::vector<ServerConf> servers;
+		std::vector<ConfigData> servers;
+		std::vector <std::string> line_;
+		void splitLines(const std::string& buffer);
 	public:
-		ConfigFile(const std::string& configPath);
-		const std::vector<ServerConf>& getServers();
+		ServerConf(const std::string& configPath);
+		const std::vector<ConfigData>& getServers();
 };
