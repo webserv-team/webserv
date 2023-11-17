@@ -6,7 +6,7 @@
 /*   By: ogorfti <ogorfti@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/11 18:08:24 by ogorfti           #+#    #+#             */
-/*   Updated: 2023/11/16 17:27:20 by ogorfti          ###   ########.fr       */
+/*   Updated: 2023/11/17 11:22:23 by ogorfti          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -45,8 +45,11 @@ class ServerConf
 		std::vector<ConfigData> servers;
 		std::vector <std::string> lines_;
 		void splitLines(const std::string& buffer);
-		void startParse();
-		void parseServer(ConfigData& server, vecIt& it);
+		void handleSrv(ConfigData& server, vecIt& it);
+		void serverParams(ConfigData& server, vecIt& it);
+		void serverErrors(ConfigData& server, vecIt& it);
+		void serverLocations(ConfigData& server, vecIt& it);
+
 	public:
 		ServerConf(const std::string& configPath);
 		const std::vector<ConfigData>& getServers();
