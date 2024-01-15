@@ -6,15 +6,12 @@
 /*   By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/24 14:56:22 by hoigag            #+#    #+#             */
-/*   Updated: 2023/12/25 15:59:12 by hoigag           ###   ########.fr       */
+/*   Updated: 2024/01/15 12:21:58 by hoigag           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <iostream>
 
-
-#define SERVER_PORT 3030
-#define LEN 1024
 #include "WebServer.hpp"
 int main()
 {
@@ -30,17 +27,4 @@ int main()
     {
         std::cerr << e.what() << '\n';
     }
-    
-//     int serverFd, connFd;
-//     struct sockaddr_in servaddr;
-    // char res[LEN];
-    //* creating the socket
-
-
-    //*setting up the server
-
-
-    //     // close(connFd);
-    // }
-    // close(serverFd);
 }

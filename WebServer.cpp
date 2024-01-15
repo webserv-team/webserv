@@ -6,7 +6,7 @@
 /*   By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/25 13:25:34 by hoigag            #+#    #+#             */
-/*   Updated: 2024/01/06 12:34:21 by hoigag           ###   ########.fr       */
+/*   Updated: 2024/01/15 12:24:54 by hoigag           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,7 +16,7 @@
 
 WebServer::WebServer()
 {
-    this->port = 3030;
+    this->port = SERVER_PORT;
     this->ip = 0x7f000001;
 }
 
@@ -68,7 +68,7 @@ void WebServer::listenForConnections()
     {
         struct sockaddr_in addr;
         socklen_t addr_len;
-        // std::cout << "listening on port " << this->port << std::endl;
+        std::cout << "listening on port " << this->port << std::endl;
         connFd = accept(this->listenFD,  (struct sockaddr *)&addr, (socklen_t *) &addr_len);
         if (connFd < 0)
         {
