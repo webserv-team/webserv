@@ -6,7 +6,7 @@
 /*   By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/24 14:56:22 by hoigag            #+#    #+#             */
-/*   Updated: 2024/01/15 12:21:58 by hoigag           ###   ########.fr       */
+/*   Updated: 2024/01/15 12:36:51 by hoigag           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,7 +21,6 @@ int main()
         server.createSocket();
         server.bindSocket();
         server.listenForConnections();
-        /* code */
     }
     catch(const std::exception& e)
     {

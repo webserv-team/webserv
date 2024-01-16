@@ -6,13 +6,49 @@
 /*   By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/25 13:25:34 by hoigag            #+#    #+#             */
-/*   Updated: 2024/01/15 12:24:54 by hoigag           ###   ########.fr       */
+/*   Updated: 2024/01/16 17:55:20 by hoigag           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "WebServer.hpp"
 #include <iostream>
 #include <fstream>
+
+std::string loadFile(std::string file)
+{
+    std::ifstream inFile(file);
+    if (!inFile.is_open())
+    {
+        std::cerr << "could not open file" << std::endl;
+        exit(1);
+    }
+    std::string outputString = "";
+    while (inFile)
+    {
+        std::string line;
+        std::getline(inFile, line);
+        line += "\n";
+        outputString += line;
+    }
+    return outputString;
+}
+
+void	sendResponse(Request req, int sock)
+{
+    std::string content = loadFile(req.getURL());
+	std::string response = "HTTP/1.1 200 OK\r\n";
+    response += "Content-Type: text/html\r\n";
+    response += "Content-Length: " + std::to_string(content.length()) + "\r\n";
+    response += "\r\n";
+    response += content;
+
+	if (send(sock, response.c_str(), strlen(response.c_str()), 0) < 0)
+	{
+		std::cerr << "error: Could not send data" << std::endl;
+		exit(1);
+	}
+    close(sock);
+}
 
 WebServer::WebServer()
 {
@@ -39,29 +75,11 @@ void WebServer::bindSocket()
         throw std::runtime_error("could not bind to socket");
 }
 
-std::string loadFile(std::string file)
-{
-    std::ifstream inFile(file);
-    if (!inFile.is_open())
-    {
-        std::cerr << "could not open file" << std::endl;
-        exit(1);
-    }
-    std::string outputString = "";
-    while (inFile)
-    {
-        std::string line;
-        std::getline(inFile, line);
-        line += "\n";
-        outputString += line;
-    }
-    return outputString;
-}
 
 void WebServer::listenForConnections()
 {
     int connFd;
-    std::string html = loadFile("index.html");
+    // std::string html = loadFile("index.html");
     if ((listen(this->listenFD, 3)) < 0)
         std::runtime_error("error happened during listening for requests");
     while (true)
@@ -75,27 +93,17 @@ void WebServer::listenForConnections()
             std::cout << "could not accept the connection" << std::endl;
             exit(1);
         }
-        std::string response = "HTTP/1.1 200 OK\nContent-Type: text/html\nContent-Length: ";
-        response += std::to_string(html.length()) + "\n\n";
-        response += html;
-        char request[2048];
-        int n = read(connFd, request, 2048);
-        // calss test(request);
+        char request[REQUEST_LENGTH];
+        int n = read(connFd, request, REQUEST_LENGTH);
         if (n  < 0)
         {
             std::cout << "could not read the request" << std::endl;
             exit (1);
         }
         request[n] = '\0';
-        //  this.parseRequest();
-        // if (!got[0])
-            // std::cout << "no message was sent" << std::endl;
         std::cout << request << std::endl;
-        if (send(connFd, response.c_str(), response.length(), 0) < 0)
-        {
-            std::cout << "could not send message to client" << std::endl;
-            exit(1);
-        }
+        Request req(request);
+        sendResponse(req, connFd);
         close(connFd);
     }
 }

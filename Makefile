@@ -4,9 +4,9 @@ CXXFLAGS = -Wall -Wextra -Werror -std=c++98
 
 NAME = server
 
-SRCS = main.cpp WebServer.cpp
+SRCS = main.cpp WebServer.cpp parsing/Request.cpp parsing/ServerConf.cpp
 
-HEADERS = 
+HEADERS = parsing/Request.hpp parsing/ServerConf.hpp WebServer.hpp
 
 OBJS = $(SRCS:.cpp=.o)
 
