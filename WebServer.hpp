@@ -6,7 +6,7 @@
 /*   By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/25 13:25:40 by hoigag            #+#    #+#             */
-/*   Updated: 2024/01/16 16:54:08 by hoigag           ###   ########.fr       */
+/*   Updated: 2024/01/19 17:21:11 by hoigag           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,22 +20,22 @@
 #include <string>
 #include <unistd.h>
 #include "parsing/Request.hpp"
-#define SERVER_PORT 3030
+#include "parsing/ServerConf.hpp"
+// #define SERVER_PORT 3030
 #define REQUEST_LENGTH 1024
-
 class WebServer
 {
 	public:
-		WebServer();
+		WebServer(ConfigData server);
 		~WebServer();
 		void createSocket();
 		void listenForConnections();
 		void bindSocket();
+		void sendResponse(Request req, int sock);
 		// WebServer(const WebServer& other);
 		// WebServer& operator=(const WebServer& other);
 	private:
-		short port;
-		int ip;
+		ConfigData server;
 		int listenFD;
 		struct sockaddr_in servaddr;
 };

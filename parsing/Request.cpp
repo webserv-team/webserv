@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Request.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ogorfti <ogorfti@student.42.fr>            +#+  +:+       +#+        */
+/*   By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/08 09:47:33 by ogorfti           #+#    #+#             */
-/*   Updated: 2023/11/08 18:05:12 by ogorfti          ###   ########.fr       */
+/*   Updated: 2024/01/17 15:08:16 by hoigag           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -75,7 +75,7 @@ const std::string& Request::getMethod() const
 
 const std::string& Request::getURL() const
 {
-	return (url_);
+	return ( url_);
 }
 
 const std::string& Request::getProtocol() const
