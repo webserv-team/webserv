@@ -27,6 +27,6 @@ fclean: clean
 re: fclean all
 
 run: all
-	./$(NAME)
+	./$(NAME) default.toml
 
 .PHONY: all clean fclean re

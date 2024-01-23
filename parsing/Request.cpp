@@ -6,7 +6,7 @@
 /*   By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/08 09:47:33 by ogorfti           #+#    #+#             */
-/*   Updated: 2024/01/17 15:08:16 by hoigag           ###   ########.fr       */
+/*   Updated: 2024/01/20 14:54:34 by hoigag           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,6 +28,8 @@ void    Request::splitLines()
 
 void	Request::parseFirstLine()
 {
+	if (lines_.empty())
+		return;
 	std::string firstLine = lines_[0];
 	size_t methodEnd = firstLine.find(" ");
 	size_t urlEnd = firstLine.find(" ", methodEnd + 1);
