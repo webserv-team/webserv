@@ -6,7 +6,7 @@
 /*   By: emohamed <emohamed@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/23 11:26:17 by emohamed          #+#    #+#             */
-/*   Updated: 2024/01/23 13:27:30 by emohamed         ###   ########.fr       */
+/*   Updated: 2024/01/23 15:57:18 by emohamed         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -39,7 +39,9 @@ std::string Response( std::string filename) {
     std::string line;
     std::string content;
     
-    file.open(filename, std::ios::in | std::ios::binary);
+    file.open(filename);
+    std::cout << "-----------------" << std::endl;
+    std::cout << "--> : "  << filename << std::endl;
     
     if (!file.is_open()) {
 
@@ -54,10 +56,15 @@ std::string Response( std::string filename) {
         return response;
     }
 
-    while (getline(file, line)) {
-        content += line;
-    }
+    // while (getline(file, line)) {
+    //     content += line;
+    // }
 
+    std::stringstream tmp;
+    tmp << file.rdbuf();
+    content = tmp.str();
+    file.close();
+    
     std::string file_size = std::to_string(content.size());
 
     std::string file_extension = GetFileExtension(filename);
@@ -66,7 +73,7 @@ std::string Response( std::string filename) {
         if (file_extension == "html") {
         content_type = "text/html";
     } else if (file_extension == "jpg") {
-        content_type = "image/jpg";
+        content_type = "image/jpeg";
     } else if (file_extension == "mp4") {
         content_type = "video/mp4";
     } else {
@@ -127,11 +134,17 @@ int main(){
             // path.erase(0, 1);
             // std::cout << path << std::endl;
 
-            std::cout << "Requested file: " << path << std::endl;
-
+            if(path == "/"){
+                path = path + "index.html";
+            }
+            // std::cout << "Requested file: " << path << std::endl;
             std::string response = Response("assets" + path);
-            const char *res = response.c_str();
-            write(new_socket, res, strlen(res));
+            // const char *res = response.c_str();
+            if (send(new_socket, response.c_str(), response.length(), 0) < 0)
+            {
+                std::cerr << "\n\nERROR**\n\n"; 
+            }
+            // write(new_socket, res, strlen(res));
 
             close(new_socket);
         }
