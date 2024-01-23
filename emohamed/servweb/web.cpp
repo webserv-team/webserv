@@ -1,3 +1,16 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   web.cpp                                            :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: emohamed <emohamed@student.42.fr>          +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2024/01/23 11:26:17 by emohamed          #+#    #+#             */
+/*   Updated: 2024/01/23 11:27:02 by emohamed         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+
 #include <stdio.h>
 #include <sys/socket.h>
 #include <unistd.h>
@@ -12,21 +25,7 @@
 #define port 8080
 struct sockaddr_in address;
 
-// std::string Response() {
-//     std::fstream file;
-//     std::string line;
-//     std::string html;
-//     file.open("index.html");
-//     if(file.is_open()){
-//         while(getline(file, line)){
-//             html += line;
-//         }
-//     }
-//     std::string file_size = std::to_string(html.size());
-//     std::string header = "HTTP/1.1 200 OK\nContent-Type: text/html\nContent-Length: " + file_size + "\n\n";
-//     std::string response = header + html;
-//     return response;
-// }
+
 std::string GetFileExtension(std::string filename) {
     size_t dotIndex = filename.find_last_of(".");
     if (dotIndex != std::string::npos) {
