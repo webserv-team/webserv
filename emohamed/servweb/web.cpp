@@ -6,7 +6,7 @@
 /*   By: emohamed <emohamed@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/23 11:26:17 by emohamed          #+#    #+#             */
-/*   Updated: 2024/01/23 11:27:02 by emohamed         ###   ########.fr       */
+/*   Updated: 2024/01/23 13:27:30 by emohamed         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -63,7 +63,7 @@ std::string Response( std::string filename) {
     std::string file_extension = GetFileExtension(filename);
     std::string content_type;
     
-    if (file_extension == "html") {
+        if (file_extension == "html") {
         content_type = "text/html";
     } else if (file_extension == "jpg") {
         content_type = "image/jpg";
@@ -124,12 +124,12 @@ int main(){
             request >> method >> path >> protocol;
             std::cout << request.str() << std::endl;
 
-            path.erase(0, 1);
+            // path.erase(0, 1);
             // std::cout << path << std::endl;
 
             std::cout << "Requested file: " << path << std::endl;
 
-            std::string response = Response("assets/" + path);
+            std::string response = Response("assets" + path);
             const char *res = response.c_str();
             write(new_socket, res, strlen(res));
 
