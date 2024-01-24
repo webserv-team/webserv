@@ -1,15 +1,15 @@
 [[servers]]
   port = 3035
   hostName = "localhost"
-  documentRoot = ./htdocs
+  documentRoot = htdocs
 
   [servers.errorPages]
-    not_found = ./htdocs/404.html
-    server_error = "./htdocs/500.html"
+    not_found = ./htdocs/error_pages/404.html
+    server_error = "./htdocs/error_pages/500.html"
 
   [[servers.locations]]
     path = "/"
-    root = "./htdocs"
+    root = "htdocs"
     index = "index.html"
 
   [[servers.locations]]
