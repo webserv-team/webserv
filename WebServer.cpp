@@ -6,7 +6,7 @@
 /*   By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/25 13:25:34 by hoigag            #+#    #+#             */
-/*   Updated: 2024/01/24 18:45:29 by hoigag           ###   ########.fr       */
+/*   Updated: 2024/01/25 17:35:36 by hoigag           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,65 +16,10 @@
 #include "unistd.h"
 #include "fcntl.h"
 #include "unistd.h"
-
+#include "Cgi.hpp"
 using namespace std;
 
-std::string readfromFd(int fd)
-{
-    int r = 1;
-    int readSize = 1024;
-    char buffer[readSize + 1];
-    std::string result = "";
-    while (r)
-    {
-        r = read(fd, buffer, readSize);
-        if (r < 0)
-            break;
-        buffer[r] = '\0';
-        std::string line = std::string(buffer);
-        result += line;
-    }
-    close(fd);
-    return result;
-}
-std::string executeScript(char **command)
-{
-    std::string output = "error";
-    int pipes[2];
-    if (pipe(pipes) < 0)
-    {
-        std::cerr << "could not pipe" << std::endl;
-        exit(1);
-    }
-    int pid = fork();
-    if (pid < 0)
-    {
-        std::cerr << "problem forking" << std::endl;
-        exit(1);
-    }
-    else if (pid == 0)
-    {
-        if (dup2(pipes[1], 1) < 0)
-        {
-            std::cerr << "error while duppingg" << std::endl;
-            exit(1);
-        }
-        if (close(pipes[0]) < 0 || close(pipes[1]) < 0) 
-        {
-            std::cerr << "error while closing pipes" << std::endl;
-            exit(1);
-        }
-        execve(command[0], (char * const *)command, NULL);       
-    }
-    else
-    {
-        waitpid(pid, NULL, 0);
-        close(pipes[1]);
-        output = readfromFd(pipes[0]);
-        // std::cout << output << std::endl;
-    }
-    return output;
-}
+
 
 std::string loadFile(const std::string& path)
 {
@@ -115,9 +60,18 @@ void	WebServer::sendResponse(Request req, int sock)
             content = loadFile(this->server.documentRoot + "/index.html");
         else if (req.getURL().find(".py") != std::string::npos || req.getURL().find(".cgi") != std::string::npos)
         {
-            std::cout << "file : " << (this->server.documentRoot + req.getURL()) << std::endl;
-            const char *command[3] = {"/Users/hoigag/.brew/bin/python3", (this->server.documentRoot + req.getURL()).c_str(), "NULL"};
-            content = executeScript((char **) command);
+            Cgi cgi(req);
+            // std::cout << "file : " << (this->server.documentRoot + req.getURL()) << std::endl;
+            size_t pos = req.getURL().find("?");
+            std::string url = this->server.documentRoot;
+            if (pos != std::string::npos)
+                url += req.getURL().substr(0, pos);
+            else
+                url += req.getURL();
+            std::cout << url << std::endl;
+            const char *command[3] = {"/Users/hoigag/.brew/bin/python3", url.c_str(), "NULL"};
+            content = cgi.executeScript((char **) command);
+            // std::cout << content << std::endl;
         }
         else
             content = loadFile(this->server.documentRoot + req.getURL());
@@ -202,7 +156,7 @@ void WebServer::listenForConnections()
     {
         struct sockaddr_in addr;
         socklen_t addr_len;
-        std::cout << "listening on port " << this->server.port << std::endl;
+        // std::cout << "listening on port " << this->server.port << std::endl;
         connFd = accept(this->listenFD,  (struct sockaddr *)&addr, (socklen_t *) &addr_len);
         if (connFd < 0)
         {
@@ -210,9 +164,9 @@ void WebServer::listenForConnections()
             exit(1);
         }
         std::string request = getRequest(connFd);
-        std::cout << request << std::endl;
+        // std::cout << request << std::endl;
         Request req(request);
-        std::cout << "body: " << req.getBody() << std::endl;;
+        std::cout << req;
         sendResponse(req, connFd);
     }
 }
@@ -221,6 +175,8 @@ WebServer::~WebServer()
 {
 
 }
+
+
 
 // WebServer::WebServer(const WebServer& other)
 // {

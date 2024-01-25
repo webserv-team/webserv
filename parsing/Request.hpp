@@ -6,13 +6,14 @@
 /*   By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/08 09:36:38 by ogorfti           #+#    #+#             */
-/*   Updated: 2024/01/16 16:48:43 by hoigag           ###   ########.fr       */
+/*   Updated: 2024/01/25 17:53:00 by hoigag           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <iostream>
 #include <vector>
 #include <map>
+#include <ostream>
 
 class Request
 {
@@ -30,13 +31,19 @@ class Request
 		void parseBody();
 		void parseRequest();
 	public:
+		Request();
 		Request(std::string request) : request_(request)
 		{
 			parseRequest();
 		}
+		void printHeaders();
+		Request(Request& reaquest);
+		Request& operator=(Request& reaquest);
 		const std::string& getMethod() const;
 		const std::string& getURL() const;
 		const std::string& getProtocol() const;
 		const std::string& getBody() const;
 		const std::map<std::string, std::string>& getHeaders() const;
 };
+
+std::ostream& operator<<(std::ostream& stream, Request& req);

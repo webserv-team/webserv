@@ -6,7 +6,7 @@
 /*   By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/08 09:47:33 by ogorfti           #+#    #+#             */
-/*   Updated: 2024/01/20 14:54:34 by hoigag           ###   ########.fr       */
+/*   Updated: 2024/01/25 17:53:22 by hoigag           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -94,8 +94,45 @@ const std::map<std::string, std::string>& Request::getHeaders() const
 	return (headers_);
 }
 
+
+void Request::printHeaders()
+{
+	std::map<std::string, std::string>::iterator it = this->headers_.begin();
+	while (it != this->headers_.end())
+	{
+		std::cout << it->first << std::endl;
+		std::cout << it->second << std::endl;
+		it++;
+	}
+}
+std::ostream& operator<<(std::ostream& stream, Request& req)
+{
+    stream << req.getMethod() << " " << req.getURL() << " " << req.getProtocol() << std::endl;
+    stream << req.getBody() << std::endl;
+	return stream;
+}
 /*-------------------- Tmp --------------------*/
 
+
+Request::Request(Request& request)
+{
+	*this = request;
+}
+Request::Request()
+{
+}
+
+Request& Request::operator=(Request& request)
+{
+	this->request_ = request.request_;
+	this->lines_ = request.lines_;
+	this->method_ = request.method_;
+	this->url_ = request.url_;
+	this->protocol_ = request.protocol_;
+	this->headers_ = request.headers_;
+	this->body_ = request.body_;
+	return *this;
+}
 // int main()
 // {
 // 	std::string host = "api.example.com";
