@@ -6,7 +6,7 @@
 /*   By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/25 10:51:02 by hoigag            #+#    #+#             */
-/*   Updated: 2024/01/25 18:43:25 by hoigag           ###   ########.fr       */
+/*   Updated: 2024/01/26 18:29:36 by hoigag           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,7 +16,6 @@ Cgi::Cgi()
 Cgi::Cgi(Request& req)
 {
     this->req = req;
-    std::cout << req;
     // std::cout << "body : " << req.getBody() << std::endl;
     // this->REQUEST_URI = req.getURL();
     this->vars["REQUEST_URI"] = req.getURL();
@@ -32,35 +31,37 @@ Cgi::Cgi(Request& req)
         size_t pos = req.getURL().find("?");
         if (pos != std::string::npos)
             this->vars["QUERY_STRING"] = req.getURL().substr(pos + 1);
+        else
+            this->vars["QUERY_STRING"] = "";
             // this->QUERY_STRING = req.getURL().substr(pos + 1);
     }
     else if (this->vars["REQUEST_METHOD"] == "POST")
-        this->vars["QUERY_STRING"] = req.getBody(); 
+        this->vars["QUERY_STRING"] = ""; 
         // this->QUERY_STRING = req.getBody();
 
     // std::cout << "REQUEST_URI" << "=" << this->vars["REQUEST_URI"] << std::endl;
     // std::cout << "REQUEST_METHOD" << "=" << this->vars["REQUEST_METHOD"] << std::endl;
     // std::cout << "SERVER_PORT" << "=" << this->vars["SERVER_PORT"] << std::endl;
     // std::cout << "QUERY_STRING" << "=" << this->vars["QUERY_STRING"] << std::endl;
+
 }
 
-char **Cgi::getEnv()
+void Cgi::setEnv()
 {
     int size = this->vars.size();
-    char **env = new char *[size + 1];
+    this->env = new char *[size + 1];
     std::map<std::string, std::string>::iterator it = this->vars.begin();
     int i = 0;
     while (it != this->vars.end())
     {
-        env[i] = NULL;
+        this->env[i] = NULL;
         std::string value = it->first + "=" + it->second;
-        env[i] = new char[value.size() + 1];
-        std::strcpy(env[i], value.c_str());
+        this->env[i] = new char[value.size() + 1];
+        std::strcpy(this->env[i], value.c_str());
         i++;
         it++;
     }
-    env[size] = NULL;
-    return env;
+    this->env[size] = NULL;
 }
 
 std::string readfromFd(int fd)
@@ -84,7 +85,6 @@ std::string readfromFd(int fd)
 
 std::string Cgi::executeScript(char **command)
 {
-    char **env = this->getEnv();
     std::string output = "error";
     int pipes[2];
     if (pipe(pipes) < 0)
@@ -92,8 +92,6 @@ std::string Cgi::executeScript(char **command)
         std::cerr << "could not pipe" << std::endl;
         exit(1);
     }
-    // if (req.getMethod() == "POST")
-    //     write(pipes[1], this->req.getBody().c_str(), this->req.getBody().size());
     int pid = fork();
     if (pid < 0)
     {
@@ -102,7 +100,15 @@ std::string Cgi::executeScript(char **command)
     }
     else if (pid == 0)
     {
-        // std::cout << "child reading body: " << readfromFd(pipes[0]) << std::endl;
+        if (this->vars["REQUEST_METHOD"] == "POST")
+        {
+            char msg[this->req.getContentLength() + 1];
+            read(pipes[0], msg, this->req.getContentLength());
+            msg[this->req.getContentLength()] = '\0';
+            // std::cout << "read from input: " << msg << std::endl;
+            this->vars["QUERY_STRING"] = msg;
+        }
+        this->setEnv();
         if (dup2(pipes[1], 1) < 0)
         {
             std::cerr << "error while duppingg" << std::endl;
@@ -113,14 +119,18 @@ std::string Cgi::executeScript(char **command)
             std::cerr << "error while closing pipes" << std::endl;
             exit(1);
         }
-        execve(command[0], (char * const *)command, env);       
+        if (execve(command[0], (char * const *)command, this->env) < 0)
+        {
+            exit(1);
+        }
     }
     else
     {
-        waitpid(pid, NULL, 0);
+        // close(pipes[0]);
+        write(pipes[1], this->req.getBody().c_str(), this->req.getContentLength());
         close(pipes[1]);
+        waitpid(pid, NULL, 0);
         output = readfromFd(pipes[0]);
-        // std::cout << output << std::endl;
     }
     return output;
 }

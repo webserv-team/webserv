@@ -6,7 +6,7 @@
 /*   By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/25 10:11:55 by hoigag            #+#    #+#             */
-/*   Updated: 2024/01/25 17:43:25 by hoigag           ###   ########.fr       */
+/*   Updated: 2024/01/26 12:53:44 by hoigag           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -56,7 +56,7 @@ class Cgi
 		std::map<std::string, std::string> getVars();
 		std::string executeScript(char **command);
 		
-		char ** getEnv();
+		void setEnv();
 		// Cgi(const Cgi& other);
 		// Cgi& operator=(const Cgi& other);
 	private:
@@ -66,7 +66,7 @@ class Cgi
 		std::string QUERY_STRING;
 		std::string REQUEST_URI;
 		std::string REQUEST_METHOD;
-		// char **env;
+		char **env;
 };
 
 std::ostream& operator<<(std::ostream& stream, Cgi& cgi);

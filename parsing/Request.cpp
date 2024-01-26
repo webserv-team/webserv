@@ -6,7 +6,7 @@
 /*   By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/08 09:47:33 by ogorfti           #+#    #+#             */
-/*   Updated: 2024/01/25 17:53:22 by hoigag           ###   ########.fr       */
+/*   Updated: 2024/01/26 15:47:18 by hoigag           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -109,6 +109,7 @@ std::ostream& operator<<(std::ostream& stream, Request& req)
 {
     stream << req.getMethod() << " " << req.getURL() << " " << req.getProtocol() << std::endl;
     stream << req.getBody() << std::endl;
+    stream << "length = " << req.getContentLength() << std::endl;
 	return stream;
 }
 /*-------------------- Tmp --------------------*/
@@ -133,6 +134,13 @@ Request& Request::operator=(Request& request)
 	this->body_ = request.body_;
 	return *this;
 }
+
+int Request::getContentLength()
+{
+	std::string length = this->headers_["Content-Length"];
+	return atoi(length.c_str());
+}
+
 // int main()
 // {
 // 	std::string host = "api.example.com";

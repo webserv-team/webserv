@@ -6,7 +6,7 @@
 /*   By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/25 13:25:34 by hoigag            #+#    #+#             */
-/*   Updated: 2024/01/25 17:35:36 by hoigag           ###   ########.fr       */
+/*   Updated: 2024/01/26 15:47:35 by hoigag           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -61,6 +61,7 @@ void	WebServer::sendResponse(Request req, int sock)
         else if (req.getURL().find(".py") != std::string::npos || req.getURL().find(".cgi") != std::string::npos)
         {
             Cgi cgi(req);
+            // content = "cgi execution";
             // std::cout << "file : " << (this->server.documentRoot + req.getURL()) << std::endl;
             size_t pos = req.getURL().find("?");
             std::string url = this->server.documentRoot;
@@ -69,9 +70,9 @@ void	WebServer::sendResponse(Request req, int sock)
             else
                 url += req.getURL();
             std::cout << url << std::endl;
+            // std::cout << "url: " <<  this->server.documentRoot + req.getURL().c_str() << std::endl;
             const char *command[3] = {"/Users/hoigag/.brew/bin/python3", url.c_str(), "NULL"};
             content = cgi.executeScript((char **) command);
-            // std::cout << content << std::endl;
         }
         else
             content = loadFile(this->server.documentRoot + req.getURL());
