@@ -6,7 +6,7 @@
 /*   By: emohamed <emohamed@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/23 11:26:17 by emohamed          #+#    #+#             */
-/*   Updated: 2024/01/27 14:49:36 by emohamed         ###   ########.fr       */
+/*   Updated: 2024/01/27 20:30:51 by emohamed         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,6 +21,7 @@
 #include <sstream>
 #include <fstream>
 #include <vector>
+#include <fcntl.h>
 #include "../parsing/ServerConf.hpp"
 #include "../parsing/Request.hpp"
 struct sockaddr_in address;
@@ -200,7 +201,13 @@ int main(){
     while(true){
         std::cout << "          \033[1;32m 🛠 ...... SERVER ON ...... 🛠\033[0m" << std::endl;
         new_socket = accept(server, (struct sockaddr *)&address, (socklen_t*)&addrlen);
-        if(l < 0 || new_socket < 0){
+		if (new_socket < 0) {
+			std::cerr << "Accept error: " << strerror(errno) << std::endl;
+			continue;  // Skip to the next iteration of the loop
+		}
+		// int flags = fcntl(new_socket, F_GETFL, 0);
+		// fcntl(new_socket, F_SETFL, flags | O_NONBLOCK);
+		if(l < 0 || new_socket < 0){
             std::cerr << "cant accept or lestining .." << std::endl;
         }
         char *buff = new char[BUFFER_SIZE];

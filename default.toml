@@ -1,16 +1,16 @@
 [[servers]]
   port = 8080
   hostName = localhost
-  documentRoot = htdoc
+  documentRoot = ../htdoc
 
   [servers.errorPages]
-    not_found = htdoc/404.html
-    server_error = htdoc/404.html
+    not_found = ../htdoc/404.html
+    server_error = ../htdoc/404.html
 
   [[servers.locations]]
     path = /
-    root = htdoc
-    index = index.html
+    root = ../htdoc
+    index = home.html
 
   [[servers.locations]]
     path = /images
