@@ -6,32 +6,16 @@
 /*   By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/25 13:25:34 by hoigag            #+#    #+#             */
-/*   Updated: 2024/01/26 15:47:35 by hoigag           ###   ########.fr       */
+/*   Updated: 2024/01/27 12:24:50 by hoigag           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "WebServer.hpp"
 #include <iostream>
 #include <fstream>
-#include "unistd.h"
-#include "fcntl.h"
-#include "unistd.h"
+#include "helpers.hpp"
 #include "Cgi.hpp"
 using namespace std;
-
-
-
-std::string loadFile(const std::string& path)
-{
-    std::ifstream inFile;
-    inFile.open(path.c_str());
-    if (!inFile.is_open())
-        throw std::runtime_error("could not open file");
-	std::ostringstream buffer;
-	buffer << inFile.rdbuf();
-	inFile.close();
-	return buffer.str();
-}
 
 // std::string loadFile(std::string file)
 // {
@@ -58,10 +42,10 @@ void	WebServer::sendResponse(Request req, int sock)
     {
         if (req.getURL() == "/")
             content = loadFile(this->server.documentRoot + "/index.html");
-        else if (req.getURL().find(".py") != std::string::npos || req.getURL().find(".cgi") != std::string::npos)
+        else if (isSupportedCgiScript(req.getURL()))
         {
+            std::cout << "cgi execution" << std::endl;
             Cgi cgi(req);
-            // content = "cgi execution";
             // std::cout << "file : " << (this->server.documentRoot + req.getURL()) << std::endl;
             size_t pos = req.getURL().find("?");
             std::string url = this->server.documentRoot;
@@ -69,10 +53,11 @@ void	WebServer::sendResponse(Request req, int sock)
                 url += req.getURL().substr(0, pos);
             else
                 url += req.getURL();
-            std::cout << url << std::endl;
             // std::cout << "url: " <<  this->server.documentRoot + req.getURL().c_str() << std::endl;
-            const char *command[3] = {"/Users/hoigag/.brew/bin/python3", url.c_str(), "NULL"};
-            content = cgi.executeScript((char **) command);
+            // const char *command[3] = {"/Users/hoigag/cursus/webserv/htdocs/cgi/php-cgi", url.c_str(), "NULL"};
+
+            content = cgi.executeScript(url);
+            std::cout << "output = " << content << std::endl;
         }
         else
             content = loadFile(this->server.documentRoot + req.getURL());
@@ -82,12 +67,7 @@ void	WebServer::sendResponse(Request req, int sock)
         content = loadFile(this->server.errorPages["not_found"]);
         statusLine = "HTTP/1.1 404 KO\r\n";
     }
-    if (req.getURL().find(".css") != std::string::npos)
-        contentType = "text/css";
-    else if (req.getURL().find(".png") != std::string::npos)
-        contentType = "image/png";
-    else if (req.getURL().find(".jpg") != std::string::npos)
-        contentType = "image/jpeg";
+    contentType = getContentType(getFileExtension(req.getURL()));
 	std::string response = "" + statusLine;
     response += "Content-Type: ";
     response += contentType;

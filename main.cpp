@@ -6,7 +6,7 @@
 /*   By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/24 14:56:22 by hoigag            #+#    #+#             */
-/*   Updated: 2024/01/23 17:18:46 by hoigag           ###   ########.fr       */
+/*   Updated: 2024/01/27 12:25:25 by hoigag           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,13 +14,16 @@
 #include "parsing/ServerConf.hpp"
 
 #include "WebServer.hpp"
-int main(int argc, char **argv)
+#include "helpers.hpp"
+
+int main(int argc, char __unused **argv)
 {
     if (argc != 2)
     {
         std::cout << "please provide a config file" << std::endl;
         return 1;
     }
+    // getContentType("hassan");
     try
     {
         std::string configFile = argv[1];

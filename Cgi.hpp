@@ -6,7 +6,7 @@
 /*   By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/25 10:11:55 by hoigag            #+#    #+#             */
-/*   Updated: 2024/01/26 12:53:44 by hoigag           ###   ########.fr       */
+/*   Updated: 2024/01/27 10:54:21 by hoigag           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -39,9 +39,7 @@
 #include <ostream>
 #include <map>
 #include <string>
-#include "unistd.h"
-#include "fcntl.h"
-#include "unistd.h"
+#include "helpers.hpp"
 class Request;
 class Cgi
 {
@@ -54,7 +52,7 @@ class Cgi
 		std::string getRequestUri();
 		std::string getRequestMethod();
 		std::map<std::string, std::string> getVars();
-		std::string executeScript(char **command);
+		std::string executeScript(std::string script);
 		
 		void setEnv();
 		// Cgi(const Cgi& other);

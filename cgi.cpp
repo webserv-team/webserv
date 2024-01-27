@@ -6,19 +6,26 @@
 /*   By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/25 10:51:02 by hoigag            #+#    #+#             */
-/*   Updated: 2024/01/26 18:29:36 by hoigag           ###   ########.fr       */
+/*   Updated: 2024/01/27 10:59:44 by hoigag           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Cgi.hpp"
 Cgi::Cgi()
-{}
+{
+    
+}
+
+
 Cgi::Cgi(Request& req)
 {
     this->req = req;
     // std::cout << "body : " << req.getBody() << std::endl;
     // this->REQUEST_URI = req.getURL();
     this->vars["REQUEST_URI"] = req.getURL();
+    this->vars["REDIRECT_STATUS"] = "200";
+    this->vars["SCRIPT_NAME"] = "htdocs/submit.php";
+    this->vars["SCRIPT_FILENAME"] = "/Users/hoigag/cursus/webserv/htdocs/submit.php";    
     // this->REQUEST_METHOD = req.getMethod();
     this->vars["REQUEST_METHOD"] = req.getMethod();
     std::map<std::string, std::string> headers = req.getHeaders();
@@ -64,28 +71,19 @@ void Cgi::setEnv()
     this->env[size] = NULL;
 }
 
-std::string readfromFd(int fd)
-{
-    int r = 1;
-    int readSize = 1024;
-    char buffer[readSize + 1];
-    std::string result = "";
-    while (r)
-    {
-        r = read(fd, buffer, readSize);
-        if (r < 0)
-            break;
-        buffer[r] = '\0';
-        std::string line = std::string(buffer);
-        result += line;
-    }
-    close(fd);
-    return result;
-}
 
-std::string Cgi::executeScript(char **command)
+
+std::string Cgi::executeScript(std::string script)
 {
     std::string output = "error";
+    const char *command[3];
+
+    if (getFileExtension(script) == ".py")
+        command[0] = "/Users/hoigag/.brew/bin/python3";
+    else
+        command[0] = "/Users/hoigag/cursus/webserv/htdocs/cgi/php-cgi";
+    command[1] = script.c_str();
+    command[2] = NULL;
     int pipes[2];
     if (pipe(pipes) < 0)
     {
