@@ -6,7 +6,7 @@
 /*   By: emohamed <emohamed@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/23 11:26:17 by emohamed          #+#    #+#             */
-/*   Updated: 2024/01/27 12:22:18 by emohamed         ###   ########.fr       */
+/*   Updated: 2024/01/27 12:54:45 by emohamed         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,23 +20,136 @@
 #include <string.h>
 #include <sstream>
 #include <fstream>
+#include <vector>
 #include "../parsing/ServerConf.hpp"
 #include "../parsing/Request.hpp"
 struct sockaddr_in address;
 #define BUFFER_SIZE 4096
 
-std::string Response(std::string filename){
-    std::fstream file;
-    std::string line;
-    std::string content;
+#define GREEN "\033[1;32m"
+#define RED "\033[1;31m"
+#define RESET "\033[0m"
 
-    
+std::string getContentType(const std::string& filePath)
+{
+	std::string extension = filePath.substr(filePath.find_last_of(".") + 1);
+	if (extension == "jpg" || extension == "jpeg")
+		return "image/jpeg";
+	else if (extension == "png")
+		return "image/png";
+	else if (extension == "gif")
+		return "image/gif";
+	else if (extension == "html")
+		return "text/html";
+	else
+		return "application/octet-stream";
+}
+void defaultError(int socket, int statusCode)
+{
+	std::string errorResponse = "HTTP/1.1 " + std::to_string(statusCode) + " Internal Server Error\r\n";
+	errorResponse += "Content-Type: text/html\r\n\r\n";
+	errorResponse += "<!DOCTYPE html>"
+		"<html>"
+		"<head>"
+			"<title>Error</title>"
+			"<style>"
+				"*{"
+					"transition: all 0.6s;"
+				"}"
+				"html {"
+					"height: 100%;"
+				"}"
+				"body{"
+					"font-family: 'Lato', sans-serif;"
+					"color: #888;"
+					"margin: 0;"
+				"}"
+				"#main{"
+					"display: table;"
+					"width: 100%;"
+					"height: 100vh;"
+					"text-align: center;"
+				"}"
+				".fof{"
+					"display: table-cell;"
+					"vertical-align: middle;"
+				"}"
+				".fof h1{"
+					"font-size: 50px;"
+					"display: inline-block;"
+					"padding-right: 12px;"
+					"animation: type .5s alternate infinite;"
+				"}"
+				"@keyframes type{"
+					"from{box-shadow: inset -3px 0px 0px #888;}"
+					"to{box-shadow: inset -3px 0px 0px transparent;}"
+				"}"
+			"</style>"
+		"</head>"
+		"<body>"
+			"<div id=\"main\">"
+				"<div class=\"fof\">"
+					"<h1>Error " + std::to_string(statusCode) + "</h1>"
+				"</div>"
+			"</div>"
+		"</body>"
+		"</html>";
+	if (send(socket, errorResponse.c_str(), errorResponse.length(), 0) < 0)
+		std::cerr << RED << "Error sending error response: " << strerror(errno) << RESET << std::endl;
+}
+void error500(int socket, std::string& filePath)
+{
+	std::ifstream file(filePath);
+	if (!file.is_open())
+	{
+		std::cerr << "Error page not found" << std::endl;
+		defaultError(socket, 500);
+		return ;
+	}
+	std::stringstream fileContent;
+	fileContent << file.rdbuf();
+	std::string content = fileContent.str();
+	file.close();
+	std::string response = "HTTP/1.1 500 Internal Server Error\r\nContent-Type: text/html\r\nContent-Length: ";
+	response += std::to_string(content.length()) + "\r\n\r\n" + content;
+	if (send(socket, response.c_str(), response.length(), 0) < 0)
+	{
+		std::cerr << "Send error: " << strerror(errno) << std::endl;
+		return ;
+	}
+}
+void sendResponse(int socket, Request& request, ConfigData& server)
+{
+	std::string filePath = server.documentRoot;
+	if (request.getURL() == "/")
+		filePath += "/index.html";
+	else
+		filePath += request.getURL();
+
+    // std::cout <<  "---->   " <<filePath << std::endl;
+	std::ifstream file(filePath);
+	if (file.is_open())
+	{
+		std::stringstream fileContent;
+		fileContent << file.rdbuf();
+		std::string content = fileContent.str();
+		file.close();
+		
+		std::string response = "HTTP/1.1 200 OK\r\nContent-Type: " + getContentType(filePath) + "\r\nContent-Length: ";
+		response += std::to_string(content.length()) + "\r\n\r\n" + content;
+		if (send(socket, response.c_str(), response.length(), 0) < 0)
+		{
+			std::cerr << RED << "Send error: " << strerror(errno) << RESET << std::endl;
+			error500(socket, server.errorPages["server_error"]);
+			return;
+		}	
+		std::cout << GREEN << "Response sent : " << RESET << RED << request.getURL() << RESET << std::endl;
+	}
 }
 
 int main(){
     ServerConf data("../default.toml");
     int port = data.getServers()[0].port;
-    std::cout << port << std::endl;
     int new_socket;
     int server = socket(AF_INET, SOCK_STREAM, 0);
     if(server < 0){
@@ -59,7 +172,7 @@ int main(){
     }
     int l = listen(server, 20);
     int addrlen = sizeof(address);
-    
+    std::vector<ConfigData> servers = data.getServers();
     while(true){
         std::cout << "          \033[1;32m 🛠 ...... SERVER ON ...... 🛠\033[0m" << std::endl;
         new_socket = accept(server, (struct sockaddr *)&address, (socklen_t*)&addrlen);
@@ -76,6 +189,15 @@ int main(){
         Request req(buff);
         req.parseRequest();
         std::string path = req.getURL();
-        std::cout << path << std::endl;
+        for (size_t i = 0; i < servers.size(); i++)
+		{
+			if (servers[i].port == port)
+			{
+				sendResponse(new_socket, req, servers[i]);
+			}
+		}
+		close(new_socket);
     }
+	close(server);
+
 }
