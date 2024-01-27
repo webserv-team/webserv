@@ -15,22 +15,3 @@
   [[servers.locations]]
     path = "/images"
     root = "/path/to/server1/images"
-
-[[servers]]
-  port = 9090
-  hostName = "example.net"
-  documentRoot = "/path/to/server2/htdocs"
-
-  [servers.errorPages]
-    not_found = "/path/to/server2/error_pages/404.html"
-    server_error = "/path/to/server2/error_pages/500.html"
-
-  [[servers.locations]]
-    path = "/"
-    root = "/path/to/server2/htdocs"
-    index = "index.html"
-
-  [[servers.locations]]
-    path = "/static"
-    root = "/path/to/server2/static"
-    index = "index.html"

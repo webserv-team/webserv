@@ -6,7 +6,7 @@
 /*   By: emohamed <emohamed@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/23 11:26:17 by emohamed          #+#    #+#             */
-/*   Updated: 2024/01/27 11:22:05 by emohamed         ###   ########.fr       */
+/*   Updated: 2024/01/27 12:22:18 by emohamed         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,13 +25,18 @@
 struct sockaddr_in address;
 #define BUFFER_SIZE 4096
 
-// std::string Response(std::string filename){
+std::string Response(std::string filename){
+    std::fstream file;
+    std::string line;
+    std::string content;
+
     
-// }
+}
 
 int main(){
-    ConfigData data;
-    int port = data.port;
+    ServerConf data("../default.toml");
+    int port = data.getServers()[0].port;
+    std::cout << port << std::endl;
     int new_socket;
     int server = socket(AF_INET, SOCK_STREAM, 0);
     if(server < 0){
@@ -56,7 +61,7 @@ int main(){
     int addrlen = sizeof(address);
     
     while(true){
-        std::cout << "          \033[1;32mSERVER ON ......🛠\033[0m" << std::endl;
+        std::cout << "          \033[1;32m 🛠 ...... SERVER ON ...... 🛠\033[0m" << std::endl;
         new_socket = accept(server, (struct sockaddr *)&address, (socklen_t*)&addrlen);
         if(l < 0 || new_socket < 0){
             std::cerr << "cant accept or lestining .." << std::endl;
@@ -67,8 +72,10 @@ int main(){
             std::cerr << "cant read from the socket" << std::endl;
         }
         buff[r] = '\0';
+        std::cout << buff << std::endl;
         Request req(buff);
+        req.parseRequest();
         std::string path = req.getURL();
-        std::cout << "---->" << path << std::endl;
+        std::cout << path << std::endl;
     }
 }
