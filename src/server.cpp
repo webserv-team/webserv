@@ -6,7 +6,7 @@
 /*   By: emohamed <emohamed@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/23 11:26:17 by emohamed          #+#    #+#             */
-/*   Updated: 2024/01/27 12:54:45 by emohamed         ###   ########.fr       */
+/*   Updated: 2024/01/27 13:18:36 by emohamed         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,6 +28,7 @@ struct sockaddr_in address;
 
 #define GREEN "\033[1;32m"
 #define RED "\033[1;31m"
+#define YELLOW "\033[1;33m"
 #define RESET "\033[0m"
 
 std::string getContentType(const std::string& filePath)
@@ -126,7 +127,7 @@ void sendResponse(int socket, Request& request, ConfigData& server)
 	else
 		filePath += request.getURL();
 
-    // std::cout <<  "---->   " <<filePath << std::endl;
+    std::cout <<  "---->   " <<filePath << std::endl;
 	std::ifstream file(filePath);
 	if (file.is_open())
 	{
@@ -144,6 +145,30 @@ void sendResponse(int socket, Request& request, ConfigData& server)
 			return;
 		}	
 		std::cout << GREEN << "Response sent : " << RESET << RED << request.getURL() << RESET << std::endl;
+	}
+    else
+	{
+		std::string tmp = server.errorPages["not_found"];
+		file.open(tmp);
+		if (!file.is_open())
+		{
+			std::cerr << RED << "Error page not found: " << strerror(errno) << RESET << std::endl;
+			error500(socket, server.errorPages["server_error"]);
+			return ;
+		}
+		std::stringstream fileContent;
+		fileContent << file.rdbuf();
+		std::string content = fileContent.str();
+		file.close();
+		std::string response = "HTTP/1.1 404 Not Found\r\nContent-Type: text/html\r\nContent-Length: ";
+		response += std::to_string(content.length()) + "\r\n\r\n" + content;
+		
+		if (send(socket, response.c_str(), response.length(), 0) < 0)
+		{
+			std::cerr << RED << "Send error: " << strerror(errno) << RESET << std::endl;
+			error500(socket, server.errorPages["server_error"]);
+			return ;
+		}
 	}
 }
 
@@ -185,7 +210,8 @@ int main(){
             std::cerr << "cant read from the socket" << std::endl;
         }
         buff[r] = '\0';
-        std::cout << buff << std::endl;
+        // std::cout << buff << std::endl;
+        std::cout << YELLOW << buff << RESET<< std::endl;
         Request req(buff);
         req.parseRequest();
         std::string path = req.getURL();

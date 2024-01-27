@@ -6,7 +6,7 @@
 /*   By: emohamed <emohamed@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/20 10:16:59 by ogorfti           #+#    #+#             */
-/*   Updated: 2024/01/27 12:29:16 by emohamed         ###   ########.fr       */
+/*   Updated: 2024/01/27 13:15:40 by emohamed         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -235,7 +235,7 @@ int main()
 	char buffer[BUFFER_SIZE];
 	int new_socket, valread;
 	
-	ServerConf tmp("default.toml");
+	ServerConf tmp("../default.toml");
 	vector<ConfigData> servers = tmp.getServers();
 	signal(SIGPIPE, SIG_IGN); // this mean ignore the signal SIGPIPE because 
 	while (true)

@@ -1,17 +1,17 @@
 [[servers]]
   port = 8080
-  hostName = "example.com"
-  documentRoot = "/path/to/server1/htdocs"
+  hostName = localhost
+  documentRoot = htdoc
 
   [servers.errorPages]
-    not_found = "/path/to/server1/error_pages/404.html"
-    server_error = "/path/to/server1/error_pages/500.html"
+    not_found = htdoc/404.html
+    server_error = htdoc/404.html
 
   [[servers.locations]]
-    path = "/"
-    root = "/path/to/server1/htdocs"
-    index = "index.html"
+    path = /
+    root = htdoc
+    index = index.html
 
   [[servers.locations]]
-    path = "/images"
-    root = "/path/to/server1/images"
+    path = /images
+    root = htdoc
