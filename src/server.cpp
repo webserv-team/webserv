@@ -6,7 +6,7 @@
 /*   By: emohamed <emohamed@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/23 11:26:17 by emohamed          #+#    #+#             */
-/*   Updated: 2024/01/27 13:18:36 by emohamed         ###   ########.fr       */
+/*   Updated: 2024/01/27 14:49:36 by emohamed         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -127,7 +127,7 @@ void sendResponse(int socket, Request& request, ConfigData& server)
 	else
 		filePath += request.getURL();
 
-    std::cout <<  "---->   " <<filePath << std::endl;
+    std::cout <<  "---->   " << filePath << std::endl;
 	std::ifstream file(filePath);
 	if (file.is_open())
 	{
@@ -151,8 +151,7 @@ void sendResponse(int socket, Request& request, ConfigData& server)
 		std::string tmp = server.errorPages["not_found"];
 		file.open(tmp);
 		if (!file.is_open())
-		{
-			std::cerr << RED << "Error page not found: " << strerror(errno) << RESET << std::endl;
+		{		std::cerr << RED << "Error page not found: " << strerror(errno) << RESET << std::endl;
 			error500(socket, server.errorPages["server_error"]);
 			return ;
 		}

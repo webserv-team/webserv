@@ -6,7 +6,7 @@
 /*   By: emohamed <emohamed@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/20 10:16:59 by ogorfti           #+#    #+#             */
-/*   Updated: 2024/01/27 13:15:40 by emohamed         ###   ########.fr       */
+/*   Updated: 2024/01/27 14:33:10 by emohamed         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -144,7 +144,7 @@ void sendResponse(int socket, Request& request, ConfigData& server)
 		filePath += "/index.html";
 	else
 		filePath += request.getURL();
-
+	std::cout << "filePath: " << filePath << std::endl;
 	// Try to open the file
 	ifstream file(filePath);
 	if (file.is_open())
