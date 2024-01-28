@@ -22,7 +22,7 @@
   documentRoot = "/path/to/server2/htdocs"
 
   [servers.errorPages]
-    not_found = "/path/to/server2/error_pages/404.html"
+    not_found = "/path/to/server2/error_pages/404.html" 
     server_error = "/path/to/server2/error_pages/500.html"
 
   [[servers.locations]]

@@ -6,7 +6,7 @@
 /*   By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/08 09:47:33 by ogorfti           #+#    #+#             */
-/*   Updated: 2024/01/26 15:47:18 by hoigag           ###   ########.fr       */
+/*   Updated: 2024/01/27 12:47:48 by hoigag           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -114,7 +114,10 @@ std::ostream& operator<<(std::ostream& stream, Request& req)
 }
 /*-------------------- Tmp --------------------*/
 
-
+std::string Request::getContentType()
+{
+	return this->headers_["Content-Type"];
+}
 Request::Request(Request& request)
 {
 	*this = request;

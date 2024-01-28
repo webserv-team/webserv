@@ -6,7 +6,7 @@
 /*   By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/25 10:51:02 by hoigag            #+#    #+#             */
-/*   Updated: 2024/01/27 10:59:44 by hoigag           ###   ########.fr       */
+/*   Updated: 2024/01/28 17:10:23 by hoigag           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,37 +20,30 @@ Cgi::Cgi()
 Cgi::Cgi(Request& req)
 {
     this->req = req;
-    // std::cout << "body : " << req.getBody() << std::endl;
-    // this->REQUEST_URI = req.getURL();
+    this->REQUEST_URI = req.getURL();
+    this->vars["DOCUMENT_ROOT"] = "/htdocs";
     this->vars["REQUEST_URI"] = req.getURL();
     this->vars["REDIRECT_STATUS"] = "200";
-    this->vars["SCRIPT_NAME"] = "htdocs/submit.php";
-    this->vars["SCRIPT_FILENAME"] = "/Users/hoigag/cursus/webserv/htdocs/submit.php";    
-    // this->REQUEST_METHOD = req.getMethod();
+    this->vars["SCRIPT_NAME"] = "submit.php";
+    this->vars["SCRIPT_FILENAME"] = "htdocs/submit.php";
+    if (req.getContentType() != "")
+        this->vars["CONTENT_TYPE"] = req.getContentType();
+    if (req.getContentLength() > 0)
+        this->vars["CONTENT_LENGTH"] = std::to_string(req.getContentLength());  
+    this->vars["SERVER_SOFTWARE"] = "webserv/1.0";
+	this->vars["GATEWAY_INTERFACE"] = "CGI/1.1";
     this->vars["REQUEST_METHOD"] = req.getMethod();
     std::map<std::string, std::string> headers = req.getHeaders();
     std::string host = headers.find("Host")->second;
     size_t pos = host.find(":");
-    // this->SERVER_PORT = host.substr(pos + 1);
     this->vars["SERVER_PORT"] = host.substr(pos + 1);
     if (this->vars["REQUEST_METHOD"] == "GET")
     {
         size_t pos = req.getURL().find("?");
         if (pos != std::string::npos)
             this->vars["QUERY_STRING"] = req.getURL().substr(pos + 1);
-        else
-            this->vars["QUERY_STRING"] = "";
-            // this->QUERY_STRING = req.getURL().substr(pos + 1);
     }
-    else if (this->vars["REQUEST_METHOD"] == "POST")
-        this->vars["QUERY_STRING"] = ""; 
-        // this->QUERY_STRING = req.getBody();
-
-    // std::cout << "REQUEST_URI" << "=" << this->vars["REQUEST_URI"] << std::endl;
-    // std::cout << "REQUEST_METHOD" << "=" << this->vars["REQUEST_METHOD"] << std::endl;
-    // std::cout << "SERVER_PORT" << "=" << this->vars["SERVER_PORT"] << std::endl;
-    // std::cout << "QUERY_STRING" << "=" << this->vars["QUERY_STRING"] << std::endl;
-
+    this->setEnv();
 }
 
 void Cgi::setEnv()
@@ -77,12 +70,11 @@ std::string Cgi::executeScript(std::string script)
 {
     std::string output = "error";
     const char *command[3];
-
     if (getFileExtension(script) == ".py")
-        command[0] = "/Users/hoigag/.brew/bin/python3";
+        command[0] = strdup("/Users/hoigag/.brew/bin/python3");
     else
-        command[0] = "/Users/hoigag/cursus/webserv/htdocs/cgi/php-cgi";
-    command[1] = script.c_str();
+        command[0] = strdup("htdocs/cgi-bin/php-cgi");
+    command[1] = script.c_str();     
     command[2] = NULL;
     int pipes[2];
     if (pipe(pipes) < 0)
@@ -99,14 +91,11 @@ std::string Cgi::executeScript(std::string script)
     else if (pid == 0)
     {
         if (this->vars["REQUEST_METHOD"] == "POST")
-        {
-            char msg[this->req.getContentLength() + 1];
-            read(pipes[0], msg, this->req.getContentLength());
-            msg[this->req.getContentLength()] = '\0';
-            // std::cout << "read from input: " << msg << std::endl;
-            this->vars["QUERY_STRING"] = msg;
-        }
-        this->setEnv();
+            if (dup2(pipes[0], 0) < 0)
+            {
+                std::cerr << "error while duppingg" << std::endl;
+                exit(1);
+            }
         if (dup2(pipes[1], 1) < 0)
         {
             std::cerr << "error while duppingg" << std::endl;
@@ -119,35 +108,26 @@ std::string Cgi::executeScript(std::string script)
         }
         if (execve(command[0], (char * const *)command, this->env) < 0)
         {
+            std::cerr << "error while executing the cgi script" << std::endl;
             exit(1);
         }
     }
     else
     {
-        // close(pipes[0]);
-        write(pipes[1], this->req.getBody().c_str(), this->req.getContentLength());
+        if (this->vars["REQUEST_METHOD"] == "POST")
+            write(pipes[1], this->req.getBody().c_str(), this->req.getContentLength());
         close(pipes[1]);
         waitpid(pid, NULL, 0);
         output = readfromFd(pipes[0]);
     }
     return output;
 }
-// std::ostream& operator<<(std::ostream& stream, Cgi& cgi)
-// {
-//     std::map<std::string, std::string>::iterator it = cgi.getVars().begin();
-
-//         stream << it->first<< std::endl;
-
-//     // stream << "REQUEST_URI=" << cgi.getRequestUri() << std::endl;
-//     // stream << "REQUEST_METHOD=" << cgi.getRequestMethod() << std::endl;
-//     // stream << "SERVER_PORT=" << cgi.getServerPort() << std::endl;
-//     // stream << "QUERY_STRING=" << cgi.getQueryString() << std::endl;
-//     return stream;
-// }
 
 Cgi::~Cgi()
 {
-
+    for (int i = 0; this->env[i]; i++)
+        delete this->env[i];
+    delete this->env;
 }
 std::string Cgi::getServerPort()
 {
@@ -181,3 +161,5 @@ std::map<std::string, std::string> Cgi::getVars()
 
 // }
 
+
+// username=asdfasdf&password=adsfadsf

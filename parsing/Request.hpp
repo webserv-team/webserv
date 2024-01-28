@@ -6,7 +6,7 @@
 /*   By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/08 09:36:38 by ogorfti           #+#    #+#             */
-/*   Updated: 2024/01/26 15:47:02 by hoigag           ###   ########.fr       */
+/*   Updated: 2024/01/27 12:46:42 by hoigag           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,6 +40,7 @@ class Request
 		Request(Request& reaquest);
 		Request& operator=(Request& reaquest);
 		int getContentLength();
+		std::string getContentType();
 		const std::string& getMethod() const;
 		const std::string& getURL() const;
 		const std::string& getProtocol() const;

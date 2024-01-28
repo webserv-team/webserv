@@ -6,7 +6,7 @@
 /*   By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/25 13:25:34 by hoigag            #+#    #+#             */
-/*   Updated: 2024/01/27 12:24:50 by hoigag           ###   ########.fr       */
+/*   Updated: 2024/01/28 17:36:32 by hoigag           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,24 +40,22 @@ void	WebServer::sendResponse(Request req, int sock)
     std::string statusLine = "HTTP/1.1 200\r\n";
     try
     {
+        size_t pos = req.getURL().find("?");
+        std::string url = this->server.documentRoot;
+        if (pos != std::string::npos)
+            url += req.getURL().substr(0, pos);
+        else
+            url += req.getURL();
         if (req.getURL() == "/")
             content = loadFile(this->server.documentRoot + "/index.html");
-        else if (isSupportedCgiScript(req.getURL()))
+        else if (isSupportedCgiScript(url))
         {
             std::cout << "cgi execution" << std::endl;
             Cgi cgi(req);
-            // std::cout << "file : " << (this->server.documentRoot + req.getURL()) << std::endl;
-            size_t pos = req.getURL().find("?");
-            std::string url = this->server.documentRoot;
-            if (pos != std::string::npos)
-                url += req.getURL().substr(0, pos);
-            else
-                url += req.getURL();
-            // std::cout << "url: " <<  this->server.documentRoot + req.getURL().c_str() << std::endl;
-            // const char *command[3] = {"/Users/hoigag/cursus/webserv/htdocs/cgi/php-cgi", url.c_str(), "NULL"};
-
             content = cgi.executeScript(url);
-            std::cout << "output = " << content << std::endl;
+            // size_t pos = content.find("\r\n\r\n");
+            // if (pos != std::string::npos)
+                // content = content.substr(pos);
         }
         else
             content = loadFile(this->server.documentRoot + req.getURL());
