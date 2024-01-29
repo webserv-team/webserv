@@ -6,7 +6,7 @@
 /*   By: emohamed <emohamed@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/23 11:26:17 by emohamed          #+#    #+#             */
-/*   Updated: 2024/01/27 20:30:51 by emohamed         ###   ########.fr       */
+/*   Updated: 2024/01/29 12:13:16 by emohamed         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,7 +25,7 @@
 #include "../parsing/ServerConf.hpp"
 #include "../parsing/Request.hpp"
 struct sockaddr_in address;
-#define BUFFER_SIZE 4096
+#define BUFFER_SIZE 10000
 
 #define GREEN "\033[1;32m"
 #define RED "\033[1;31m"
@@ -124,7 +124,7 @@ void sendResponse(int socket, Request& request, ConfigData& server)
 {
 	std::string filePath = server.documentRoot;
 	if (request.getURL() == "/")
-		filePath += "/index.html";
+		filePath += "/home.html";
 	else
 		filePath += request.getURL();
 
@@ -207,11 +207,13 @@ int main(){
 		}
 		// int flags = fcntl(new_socket, F_GETFL, 0);
 		// fcntl(new_socket, F_SETFL, flags | O_NONBLOCK);
+		// fcntl(fd, F_SETFL, O_NONBLOCK, FD_CLOEXEC);
 		if(l < 0 || new_socket < 0){
             std::cerr << "cant accept or lestining .." << std::endl;
         }
         char *buff = new char[BUFFER_SIZE];
         int r = read(new_socket, buff, BUFFER_SIZE);
+		// int  r = recv(new_socket, buff, BUFFER_SIZE, 0);
         if( r < 0){
             std::cerr << "cant read from the socket" << std::endl;
         }
@@ -231,5 +233,4 @@ int main(){
 		close(new_socket);
     }
 	close(server);
-
 }
