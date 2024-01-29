@@ -6,7 +6,7 @@
 /*   By: emohamed <emohamed@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/23 11:26:17 by emohamed          #+#    #+#             */
-/*   Updated: 2024/01/29 12:13:16 by emohamed         ###   ########.fr       */
+/*   Updated: 2024/01/29 17:02:22 by emohamed         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -186,7 +186,7 @@ int main(){
         std::cerr << "Setsockopt eroor: " << strerror(errno) << std::endl;
         return -1;
     }
-    memset((char *)&address, 0, sizeof(address));
+    // memset((char *)&address, 0, sizeof(address));
     address.sin_family = AF_INET;
     address.sin_addr.s_addr = htonl(INADDR_ANY);
     address.sin_port = htons(port);
@@ -195,15 +195,21 @@ int main(){
         std::cerr << "Bind failed" << std::endl;
         exit(1);
     }
-    int l = listen(server, 20);
-    int addrlen = sizeof(address);
+    int l = listen(server, 3);
+	if(l < 0){
+		std::cerr << "Listen failed" << std::endl;
+		exit(1);
+	}
+    socklen_t addrlen = sizeof(address);
     std::vector<ConfigData> servers = data.getServers();
+	signal(SIGPIPE, SIG_IGN);
+    char buff[BUFFER_SIZE];
     while(true){
         std::cout << "          \033[1;32m 🛠 ...... SERVER ON ...... 🛠\033[0m" << std::endl;
-        new_socket = accept(server, (struct sockaddr *)&address, (socklen_t*)&addrlen);
+        new_socket = accept(server, (struct sockaddr *)&address, &addrlen);
 		if (new_socket < 0) {
 			std::cerr << "Accept error: " << strerror(errno) << std::endl;
-			continue;  // Skip to the next iteration of the loop
+			return (-1);
 		}
 		// int flags = fcntl(new_socket, F_GETFL, 0);
 		// fcntl(new_socket, F_SETFL, flags | O_NONBLOCK);
@@ -211,9 +217,8 @@ int main(){
 		if(l < 0 || new_socket < 0){
             std::cerr << "cant accept or lestining .." << std::endl;
         }
-        char *buff = new char[BUFFER_SIZE];
-        int r = read(new_socket, buff, BUFFER_SIZE);
-		// int  r = recv(new_socket, buff, BUFFER_SIZE, 0);
+        // int r = read(new_socket, buff, BUFFER_SIZE);
+		int  r = recv(new_socket, buff, BUFFER_SIZE, 0);
         if( r < 0){
             std::cerr << "cant read from the socket" << std::endl;
         }
