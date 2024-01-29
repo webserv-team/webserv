@@ -6,7 +6,7 @@
 /*   By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/27 10:37:31 by hoigag            #+#    #+#             */
-/*   Updated: 2024/01/27 12:23:09 by hoigag           ###   ########.fr       */
+/*   Updated: 2024/01/29 15:54:46 by hoigag           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -59,7 +59,7 @@ std::string loadFile(const std::string& path)
 }
 
 
-void parseLine(std::map<std::string, std::string>& extensions, std::string line)
+void parseLine(std::map<std::string, std::string>& extensions, std::string& line)
 {
     std::stringstream stream;
     stream.str(line);
@@ -99,11 +99,16 @@ std::string getContentType(std::string ext)
     return extensions[ext];
 }
 
-
-// std::string getContentType(std::string url)
-// {
-//     std::ifstream mimesFile("mimes.txt");
-//     if (!mimesFile)
-//         throw std::runtime_error("could not open mime file");
-//     while (std::getline(mimesFile))
-// }
+std::string getContentTypeFromCgiOutput(std::string& content)
+{
+    std::stringstream stream;
+    std::string line;
+    stream.str(content);
+    std::getline(stream, line);
+    std::getline(stream, line);
+    size_t semiPos = line.find(";");
+    std::string header = line.substr(0, semiPos);
+    size_t colonPos = header.find(":");
+    std::string contentType = header.substr(colonPos + 2);
+    return contentType;
+}

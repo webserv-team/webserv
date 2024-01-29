@@ -6,7 +6,7 @@
 /*   By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/27 10:37:00 by hoigag            #+#    #+#             */
-/*   Updated: 2024/01/27 12:13:09 by hoigag           ###   ########.fr       */
+/*   Updated: 2024/01/29 13:38:08 by hoigag           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,5 +27,7 @@ std::string getFileExtension(std::string filename);
 bool isSupportedCgiScript(std::string script);
 std::string loadFile(const std::string& path);
 std::string getContentType(std::string file);
+std::string getContentTypeFromCgiOutput(std::string& content);
+
 
 #endif

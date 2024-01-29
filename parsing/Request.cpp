@@ -6,7 +6,7 @@
 /*   By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/08 09:47:33 by ogorfti           #+#    #+#             */
-/*   Updated: 2024/01/27 12:47:48 by hoigag           ###   ########.fr       */
+/*   Updated: 2024/01/29 15:24:04 by hoigag           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -107,9 +107,13 @@ void Request::printHeaders()
 }
 std::ostream& operator<<(std::ostream& stream, Request& req)
 {
-    stream << req.getMethod() << " " << req.getURL() << " " << req.getProtocol() << std::endl;
-    stream << req.getBody() << std::endl;
-    stream << "length = " << req.getContentLength() << std::endl;
+	stream << "----------------------- Request start --------------------------------------" << std::endl;
+    stream << "method        : " << req.getMethod() << std::endl;
+    stream << "url           : " << req.getURL() << std::endl;
+	stream << "content type  : " << req.getContentType() << std::endl;
+    stream << "content length: " << req.getContentLength() << std::endl;
+	stream << "----------------------- Request end --------------------------------------" << std::endl;
+	
 	return stream;
 }
 /*-------------------- Tmp --------------------*/

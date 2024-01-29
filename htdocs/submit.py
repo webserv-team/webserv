@@ -1,36 +1,54 @@
-import os, sys
-import cgitb
+#!/usr/bin/env python3
+import os
 import cgi
 
-cgitb.enable()
-content_length = int(os.environ["CONTENT_LENGTH"])
-post_data = sys.stdin.read(content_length)
+# X-Powered-By: PHP/7.4.10
+# Content-type: text/html; charset=UTF-8
+
+
+# Get the content length from the environment or set it to 0
+content_length = int(os.environ.get("CONTENT_LENGTH", 0))
+
 # Print HTTP headers
-print("Content-type: text/html")
-print()
+print("X-Powered-By: Python/3.8.5")
+print("Content-type: text/html; charset=UTF-8")
+print("\n\r\n\r")
 
 # Print the HTML page
 print("<html>")
 print("<head>")
-print("<title>Python CGI Script - Handling POST Data</title>")
+print("<title>Login Page</title>")
+print('<link rel="stylesheet" type="text/css" href="style.css">')
 print("</head>")
 print("<body>")
 
 # Check if the request method is POST
 if "REQUEST_METHOD" in os.environ and os.environ["REQUEST_METHOD"] == "POST":
-    # Get the input stream and read the POST data
-
     # Parse the POST data using the cgi module
-    form = cgi.FieldStorage(fp=sys.stdin, environ=os.environ)
+    form = cgi.FieldStorage()   
 
-    # Retrieve the value of the 'username' field from the form
-    if "username" in form:
-        username = form["username"].value
+    # Retrieve the value of the 'username' and 'password' fields from the form
+    if "username" in form and "password" in form:
+        username = form.getvalue("username")
+        password = form.getvalue("password")
+
+        # Display a welcome message
+        print('<div class="welcome-container">')
         print(f"<h2>Welcome, {username}!</h2>")
+        print(f"<p>Your password is {password}.</p>")
+        print('</div>')
     else:
-        print("<p>Error: Username not provided.</p>")
+        # Display an error message
+        print('<div class="error-container">')
+        print("<p>Error: Username or password not provided.</p>")
+        print('</div>')
 else:
-    print("<p>Error: This script expects a POST request.</p>")
+    # Display the login form
+    print('<div class="login-form-container">')
+    print('<a href="form.html">LOGIN</a>')
+    print('</div>')
 
 print("</body>")
 print("</html>")
+
+

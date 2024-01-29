@@ -6,7 +6,7 @@
 /*   By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/25 13:25:34 by hoigag            #+#    #+#             */
-/*   Updated: 2024/01/28 17:36:32 by hoigag           ###   ########.fr       */
+/*   Updated: 2024/01/29 15:55:35 by hoigag           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,55 +17,44 @@
 #include "Cgi.hpp"
 using namespace std;
 
-// std::string loadFile(std::string file)
-// {
-//     std::cout << file << std::endl;
-//     std::ifstream inFile(file);
-//     if (!inFile.is_open())
-//         throw std::runtime_error("could not open file");
-//     std::string outputString = "";
-//     while (inFile)
-//     {
-//         std::string line;
-//         std::getline(inFile, line);
-//         outputString += line;
-//     }
-//     return outputString;
-// }
-
 void	WebServer::sendResponse(Request req, int sock)
 {
     std::string content;
+    std::string header;
     std::string contentType = "text/html";
     std::string statusLine = "HTTP/1.1 200\r\n";
+    std::string resourceFullPath = this->server.documentRoot;
+    std::string url = req.getURL();
     try
     {
-        size_t pos = req.getURL().find("?");
-        std::string url = this->server.documentRoot;
+        size_t pos = url.find("?");
         if (pos != std::string::npos)
-            url += req.getURL().substr(0, pos);
+            resourceFullPath += url.substr(0, pos);
         else
-            url += req.getURL();
-        if (req.getURL() == "/")
+            resourceFullPath += url;
+        if (url == "/")
             content = loadFile(this->server.documentRoot + "/index.html");
-        else if (isSupportedCgiScript(url))
+        else if (isSupportedCgiScript(resourceFullPath))
         {
-            std::cout << "cgi execution" << std::endl;
             Cgi cgi(req);
-            content = cgi.executeScript(url);
-            // size_t pos = content.find("\r\n\r\n");
-            // if (pos != std::string::npos)
-                // content = content.substr(pos);
+            content = cgi.executeScript(resourceFullPath);
+            size_t pos = content.find("\r\n\r\n");
+            header = content.substr(0, pos);
+            if (pos != std::string::npos)
+                content = content.substr(pos);
         }
         else
-            content = loadFile(this->server.documentRoot + req.getURL());
+            content = loadFile(this->server.documentRoot + url);
     }
     catch(const std::exception& e)
     {
         content = loadFile(this->server.errorPages["not_found"]);
         statusLine = "HTTP/1.1 404 KO\r\n";
     }
-    contentType = getContentType(getFileExtension(req.getURL()));
+    if (!isSupportedCgiScript(req.getURL()))
+        contentType = getContentType(getFileExtension(req.getURL()));
+    else
+        contentType = getContentTypeFromCgiOutput(header);
 	std::string response = "" + statusLine;
     response += "Content-Type: ";
     response += contentType;

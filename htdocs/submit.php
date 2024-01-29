@@ -33,7 +33,7 @@
 
 <?php
 // Check if the username is provided in the POST data
-    
+
     if (isset($_POST['username']))
     {
         $password = $_POST['password'];
@@ -49,6 +49,7 @@
         {
             echo '<div class="welcome-container">';
             echo '<h1>Wrong password!</h1>';
+            echo '<a href="form.html">Try again</a>';
             echo '</div>';
         }
 
@@ -56,7 +57,7 @@
     else
     {
         echo '<div class="welcome-container">';
-        echo '<h1>Welcome, user!</h1>';
+        echo '<a href="form.html">login</a>';
         echo '</div>';
     }
 ?>
