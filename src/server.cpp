@@ -6,7 +6,7 @@
 /*   By: emohamed <emohamed@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/23 11:26:17 by emohamed          #+#    #+#             */
-/*   Updated: 2024/01/29 17:02:22 by emohamed         ###   ########.fr       */
+/*   Updated: 2024/01/30 13:25:52 by emohamed         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -43,8 +43,11 @@ std::string getContentType(const std::string& filePath)
 		return "image/gif";
 	else if (extension == "html")
 		return "text/html";
+	else if(extension == "mp4"){
+		return "video/mp4";
+	}
 	else
-		return "application/octet-stream";
+		return "text/plain";
 }
 void defaultError(int socket, int statusCode)
 {
