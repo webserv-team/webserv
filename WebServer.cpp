@@ -6,7 +6,7 @@
 /*   By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/25 13:25:34 by hoigag            #+#    #+#             */
-/*   Updated: 2024/01/29 15:55:35 by hoigag           ###   ########.fr       */
+/*   Updated: 2024/01/30 17:16:51 by hoigag           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,15 +25,18 @@ void	WebServer::sendResponse(Request req, int sock)
     std::string statusLine = "HTTP/1.1 200\r\n";
     std::string resourceFullPath = this->server.documentRoot;
     std::string url = req.getURL();
+    std::cout << "url ===== " << url << std::endl;
     try
     {
         size_t pos = url.find("?");
+        if (url == "/")
+            url = "/index.html";
         if (pos != std::string::npos)
             resourceFullPath += url.substr(0, pos);
         else
             resourceFullPath += url;
-        if (url == "/")
-            content = loadFile(this->server.documentRoot + "/index.html");
+        if (isDirectory(resourceFullPath))
+            content = directoryListing(resourceFullPath);
         else if (isSupportedCgiScript(resourceFullPath))
         {
             Cgi cgi(req);
@@ -53,7 +56,7 @@ void	WebServer::sendResponse(Request req, int sock)
     }
     if (!isSupportedCgiScript(req.getURL()))
         contentType = getContentType(getFileExtension(req.getURL()));
-    else
+    else if (isSupportedCgiScript(req.getURL()))
         contentType = getContentTypeFromCgiOutput(header);
 	std::string response = "" + statusLine;
     response += "Content-Type: ";
@@ -132,7 +135,8 @@ void WebServer::listenForConnections()
             exit(1);
         }
         std::string request = getRequest(connFd);
-        // std::cout << request << std::endl;
+        if (request.empty())
+            continue;
         Request req(request);
         std::cout << req;
         sendResponse(req, connFd);

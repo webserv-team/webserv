@@ -6,7 +6,7 @@
 /*   By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/27 10:37:31 by hoigag            #+#    #+#             */
-/*   Updated: 2024/01/29 15:54:46 by hoigag           ###   ########.fr       */
+/*   Updated: 2024/01/30 18:43:42 by hoigag           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -111,4 +111,89 @@ std::string getContentTypeFromCgiOutput(std::string& content)
     size_t colonPos = header.find(":");
     std::string contentType = header.substr(colonPos + 2);
     return contentType;
+}
+
+bool isDirectory(std::string& path)
+{
+    struct stat info;
+    if (stat(path.c_str(), &info) < 0)
+    {
+        std::cerr << "could not open file : " << path << std::endl;
+        return false;
+    }
+    return S_ISDIR(info.st_mode);
+}
+std::string directoryListing(std::string& path)
+{
+    std::string content = "<!DOCTYPE html> <html lang=\"en\" <head>\
+    <meta charset=\"UTF-8\">\
+    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\
+    <title>File List</title>\
+    <style>\
+        body {\
+            font-family: Arial, sans-serif;\
+            margin: 20px;\
+        }\
+        h1 {\
+            color: #333;\
+        }\
+        ul {\
+            list-style-type: none;\
+            padding: 0;\
+        }\
+        li {\
+            margin-bottom: 10px;\
+        }\
+        .file {\
+            text-decoration: none;\
+            color: #007BFF;\
+            font-weight: bold;\
+        }\
+        .direcotry\
+        {\
+            text-decoration: none;\
+            color: #ff0000;\
+            font-weight: bold;\
+        }\
+        a:hover {\
+            color: #0056b3;\
+        }\
+    </style>\
+</head>\
+<body>\
+    <h1>File List</h1>\
+    <ul>";
+    struct dirent *stdir;
+
+    DIR *dir = opendir(path.c_str());
+    if (!dir)
+    {
+        content = "<p>could not open the directory " + path + " </p>";
+        return content;
+    }
+    size_t pos = path.find("/");
+    if (pos != std::string::npos)
+        path = path.substr(pos + 1);
+            std::cout << "path after skipping = " << path <<std::endl;
+    stdir = readdir(dir);
+    while (stdir)
+    {
+        if (stdir)
+        {   
+            std::string dirname(stdir->d_name);
+            // std::cout << "<p>" << dirname << "</p>" << std::endl;
+            std::cout << "file name = " << dirname << std::endl;
+            std::string href = path + "/" + dirname;
+            std::cout << "href = " << href << std::endl;
+            std::string link = "<li>";
+                link += "<a href=\"" + href + "\">" + dirname + "</a></li>";
+            std::cout << "tag = " << link << std::endl;
+            content += link;
+        }
+        stdir = readdir(dir);
+    }
+    content += "</ul></body></html>";
+    closedir(dir);
+    // std::cout << content << std::endl;
+    return content;
 }
