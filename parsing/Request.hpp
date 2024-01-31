@@ -6,14 +6,11 @@
 /*   By: ogorfti <ogorfti@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/08 09:36:38 by ogorfti           #+#    #+#             */
-/*   Updated: 2023/11/08 17:55:32 by ogorfti          ###   ########.fr       */
+/*   Updated: 2024/01/31 13:28:37 by ogorfti          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include <iostream>
-#include <vector>
-#include <map>
-
+#include "../include/lib.hpp"
 class Request
 {
 	private:

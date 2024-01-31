@@ -6,7 +6,7 @@
 /*   By: ogorfti <ogorfti@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/08 09:47:33 by ogorfti           #+#    #+#             */
-/*   Updated: 2023/11/08 18:05:12 by ogorfti          ###   ########.fr       */
+/*   Updated: 2024/01/21 18:57:06 by ogorfti          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,6 +28,8 @@ void    Request::splitLines()
 
 void	Request::parseFirstLine()
 {
+	if (lines_.empty())
+		return ;
 	std::string firstLine = lines_[0];
 	size_t methodEnd = firstLine.find(" ");
 	size_t urlEnd = firstLine.find(" ", methodEnd + 1);
@@ -60,6 +62,8 @@ void Request::parseBody()
 
 void Request::parseRequest()
 {
+	if (request_.empty())
+		return ;
 	splitLines();
 	parseFirstLine();
 	parseHeaders();

@@ -6,17 +6,19 @@
 #    By: ogorfti <ogorfti@student.42.fr>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2023/10/27 11:05:58 by ogorfti           #+#    #+#              #
-#    Updated: 2023/11/07 09:58:04 by ogorfti          ###   ########.fr        #
+#    Updated: 2024/01/31 13:30:25 by ogorfti          ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 CXX = c++
 
-CXXFLAGS = -Wall -Wextra -Werror -std=c++98
+CXXFLAGS = -Wall -Wextra -Werror -std=c++98 #-fsanitize=address -g
 
 SERVER =	${addprefix src/, main.cpp}
+PARSING =	${addprefix parsing/, Request.cpp ServerConf.cpp}
+RESPONSE =	${addprefix response/, Response.cpp}
 
-SRCS = $(SERVER)
+SRCS = $(SERVER) $(PARSING) $(RESPONSE)
 
 OBJ_DIR = obj
 

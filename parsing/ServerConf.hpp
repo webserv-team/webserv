@@ -6,17 +6,13 @@
 /*   By: ogorfti <ogorfti@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/11 18:08:24 by ogorfti           #+#    #+#             */
-/*   Updated: 2023/11/17 11:22:23 by ogorfti          ###   ########.fr       */
+/*   Updated: 2024/01/31 13:29:03 by ogorfti          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #pragma once
 
-#include <iostream>
-#include <fstream>
-#include <sstream>
-#include <vector>
-#include <map>
+#include "../include/lib.hpp"
 
 typedef std::vector<std::string>::iterator vecIt;
 
