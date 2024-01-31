@@ -1,0 +1,30 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 20px;
+}
+h1 {
+    color: #333;
+}
+ul {
+    list-style-type: none;
+    padding: 0;
+}
+li {
+    margin-bottom: 10px;
+}
+.file {
+    text-decoration: none;
+    color: #007BFF;
+    font-weight: bold;
+}
+.directory {
+    text-decoration: none;
+    color: #4E148C;
+    font-weight: bold;
+}
+.icon {
+    margin-right: 5px;
+}
+a:hover {
+    color: #0056b3;
+}
