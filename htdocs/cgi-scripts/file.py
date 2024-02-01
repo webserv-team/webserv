@@ -45,7 +45,7 @@ if "REQUEST_METHOD" in os.environ and os.environ["REQUEST_METHOD"] == "POST":
 else:
     # Display the login form
     print('<div class="login-form-container">')
-    print('<a href="form.html">LOGIN</a>')
+    print('<a href="pages/form.html">LOGIN</a>')
     print('</div>')
 
 print("</body>")

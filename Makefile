@@ -4,7 +4,7 @@ CXXFLAGS = -Wall -Wextra -Werror -std=c++98 -fsanitize=address -g
 
 NAME = server
 
-SRCS = main.cpp WebServer.cpp parsing/Request.cpp parsing/ServerConf.cpp Cgi.cpp helpers.cpp
+SRCS = main.cpp WebServer.cpp parsing/Request.cpp parsing/ServerConf.cpp Cgi.cpp helpers.cpp Response.cpp
 
 HEADERS = parsing/Request.hpp parsing/ServerConf.hpp WebServer.hpp
 

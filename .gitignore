@@ -1,3 +1,7 @@
 .vscode
 webserv
 *.o
+*.mp4
+*.jpeg
+*.jpg
+*.png

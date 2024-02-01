@@ -6,7 +6,7 @@
 /*   By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/27 10:37:31 by hoigag            #+#    #+#             */
-/*   Updated: 2024/01/30 18:43:42 by hoigag           ###   ########.fr       */
+/*   Updated: 2024/02/01 16:02:05 by hoigag           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -101,6 +101,9 @@ std::string getContentType(std::string ext)
 
 std::string getContentTypeFromCgiOutput(std::string& content)
 {
+        
+    if (content.empty())
+        return "text/html";
     std::stringstream stream;
     std::string line;
     stream.str(content);
@@ -125,6 +128,15 @@ bool isDirectory(std::string& path)
 }
 std::string directoryListing(std::string& path)
 {
+    size_t pos = path.find("/");
+    std::string relativePath;
+    if (pos != std::string::npos)
+        relativePath = path.substr(pos + 1);
+    // std::string path = "/Users/hoigag/cursus/webserv/htdocs/" + path;
+    std::cout << "relative directory path = " << path << std::endl;
+    std::cout << "absolute directory path = " << path << std::endl;
+    // if (chdir(path.c_str()) < 0)
+    //     return ("could not change to " + path);
     std::string content = "<!DOCTYPE html> <html lang=\"en\" <head>\
     <meta charset=\"UTF-8\">\
     <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\
@@ -149,11 +161,13 @@ std::string directoryListing(std::string& path)
             color: #007BFF;\
             font-weight: bold;\
         }\
-        .direcotry\
-        {\
+        .directory {\
             text-decoration: none;\
-            color: #ff0000;\
+            color: #4E148C;\
             font-weight: bold;\
+        }\
+        .icon {\
+            margin-right: 5px;\
         }\
         a:hover {\
             color: #0056b3;\
@@ -161,39 +175,40 @@ std::string directoryListing(std::string& path)
     </style>\
 </head>\
 <body>\
-    <h1>File List</h1>\
+    <h1>Directory Listing</h1>\
+    <hr>\
     <ul>";
+    
     struct dirent *stdir;
-
     DIR *dir = opendir(path.c_str());
     if (!dir)
-    {
-        content = "<p>could not open the directory " + path + " </p>";
-        return content;
-    }
-    size_t pos = path.find("/");
-    if (pos != std::string::npos)
-        path = path.substr(pos + 1);
-            std::cout << "path after skipping = " << path <<std::endl;
+        return  ("<p>could not open the directory " + path + " </p>");
+    
+    content += "<li><strong>Directory: " + path + "</strong></li><br>";
+
     stdir = readdir(dir);
     while (stdir)
     {
         if (stdir)
         {   
-            std::string dirname(stdir->d_name);
-            // std::cout << "<p>" << dirname << "</p>" << std::endl;
-            std::cout << "file name = " << dirname << std::endl;
-            std::string href = path + "/" + dirname;
-            std::cout << "href = " << href << std::endl;
-            std::string link = "<li>";
-                link += "<a href=\"" + href + "\">" + dirname + "</a></li>";
-            std::cout << "tag = " << link << std::endl;
-            content += link;
+            std::string filename(stdir->d_name);
+            if (filename != "." && filename != "..")
+            {
+                std::string href = "/" + relativePath + "/" + filename;
+                std::string link;
+                std::string directory = path + "/" + filename;
+                std::cout << "directory = " << directory << std::endl;
+                if (isDirectory(directory))
+                    link += "<li><span class=\"icon\">📁</span><a href=\"" + href + "\" class=\"directory\">" + filename + "</a></li>";
+                else
+                    link += "<li><span class=\"icon\">📄</span><a href=\"" + href + "\" class=\"file\">" + filename + "</a></li>";
+                content += link;
+            }
         }
         stdir = readdir(dir);
     }
     content += "</ul></body></html>";
     closedir(dir);
-    // std::cout << content << std::endl;
-    return content;
+
+    return content; 
 }

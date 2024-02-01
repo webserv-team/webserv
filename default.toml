@@ -5,6 +5,7 @@
 
   [servers.errorPages]
     not_found = ./htdocs/error_pages/404.html
+    forbidden = ./htdocs/error_pages/403.html
     server_error = "./htdocs/error_pages/500.html"
 
   [[servers.locations]]

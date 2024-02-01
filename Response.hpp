@@ -6,7 +6,7 @@
 /*   By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/19 13:50:27 by hoigag            #+#    #+#             */
-/*   Updated: 2024/01/19 15:26:08 by hoigag           ###   ########.fr       */
+/*   Updated: 2024/02/01 17:59:41 by hoigag           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,22 +14,42 @@
 #define RESPONSE_HPP
 
 #include <string>
-
+#include <iostream>
+#include <unistd.h>
+#include <sys/socket.h>
+#include <ostream>
 class Response
 {
 	public:
 		Response();
-		Response(int statusCode, std::string contentType, std::string body);
 		~Response();
-		Response(const Response& other);
-		Response& operator=(const Response& other);
+		// Response(const Response& other);
+		// Response& operator=(const Response& other);
+		void setStatusCode(short status);
+		void setContentType(std::string contentType);
+		void setContentLength(int contentLength);
+		void setBody(std::string body);
+		void sendIt(int sock);
+		void setStatusLine();
+		
+		std::string getStatusCode();
+		std::string getContentType();
+		std::string getContentLength();
+		std::string getBody();
+		std::string getStatusLine();
 	private:
-		short statusCode;
+		std::string delim;
+		std::string statusCode;
 		std::string contentType;
-		int contentLength;
+		std::string contentLength;
 		std::string body;
-		std::string statusLine;
 		std::string statusReason;
+		std::string httpVersion;
+		std::string response;
+		std::string statusLine;
+		void setStatusReason(short status);
 };
+
+std::ostream& operator<<(std::ostream& stream, Response& res);
 
 #endif

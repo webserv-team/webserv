@@ -6,7 +6,7 @@
 /*   By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/25 13:25:34 by hoigag            #+#    #+#             */
-/*   Updated: 2024/01/30 17:16:51 by hoigag           ###   ########.fr       */
+/*   Updated: 2024/02/01 18:12:25 by hoigag           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,63 +15,115 @@
 #include <fstream>
 #include "helpers.hpp"
 #include "Cgi.hpp"
+#include "Response.hpp"
+
 using namespace std;
+
+
+std::string WebServer::directoryListing(std::string& path)
+{
+    size_t pos = path.find("/");
+    std::string relativePath;
+    if (pos != std::string::npos)
+        relativePath = path.substr(pos + 1);
+    // std::string path = "/Users/hoigag/cursus/webserv/htdocs/" + path;
+    std::cout << "relative directory path = " << path << std::endl;
+    std::cout << "absolute directory path = " << path << std::endl;
+    // if (chdir(path.c_str()) < 0)
+    //     return ("could not change to " + path);
+    std::string content = "<!DOCTYPE html> <html lang=\"en\" <head>\
+    <meta charset=\"UTF-8\">\
+    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\
+    <title>File List</title>\
+    <link rel=\"stylesheet\" href=\"/styles/listing.css\">\
+</head>\
+<body>\
+    <h1>Directory Listing</h1>\
+    <hr>\
+    <ul>";
+    
+    struct dirent *stdir;
+    DIR *dir = opendir(path.c_str());
+    if (!dir)
+        return  ("<p>could not open the directory " + path + " </p>");
+    
+    content += "<li><strong>Directory: " + path + "</strong></li><br>";
+
+    stdir = readdir(dir);
+    while (stdir)
+    {
+        if (stdir)
+        {   
+            std::string filename(stdir->d_name);
+            if (filename != "." && filename != "..")
+            {
+                std::string directory = path + "/" + filename;
+                std::string href = "/" + relativePath + "/" + filename;
+                std::string link;
+                if (isDirectory(directory))
+                    link += "<li><span class=\"icon\">📁</span><a href=\"" + href + "\" class=\"directory\">" + filename + "</a></li>";
+                else
+                    link += "<li><span class=\"icon\">📄</span><a href=\"" + href + "\" class=\"file\">" + filename + "</a></li>";
+                content += link;
+            }
+        }
+        stdir = readdir(dir);
+    }
+    content += "</ul></body></html>";
+    closedir(dir);
+
+    return content; 
+}
 
 void	WebServer::sendResponse(Request req, int sock)
 {
+    Response response;
     std::string content;
     std::string header;
-    std::string contentType = "text/html";
-    std::string statusLine = "HTTP/1.1 200\r\n";
+    std::string contentType;
     std::string resourceFullPath = this->server.documentRoot;
     std::string url = req.getURL();
-    std::cout << "url ===== " << url << std::endl;
-    try
-    {
-        size_t pos = url.find("?");
-        if (url == "/")
-            url = "/index.html";
-        if (pos != std::string::npos)
-            resourceFullPath += url.substr(0, pos);
-        else
-            resourceFullPath += url;
-        if (isDirectory(resourceFullPath))
-            content = directoryListing(resourceFullPath);
-        else if (isSupportedCgiScript(resourceFullPath))
-        {
-            Cgi cgi(req);
-            content = cgi.executeScript(resourceFullPath);
-            size_t pos = content.find("\r\n\r\n");
-            header = content.substr(0, pos);
-            if (pos != std::string::npos)
-                content = content.substr(pos);
-        }
-        else
-            content = loadFile(this->server.documentRoot + url);
-    }
-    catch(const std::exception& e)
+    size_t pos = url.find("?");
+    if (url == "/")
+        url = "/index.html";
+    if (pos != std::string::npos)
+        resourceFullPath += url.substr(0, pos);
+    else
+        resourceFullPath += url;
+    if (access(resourceFullPath.c_str(), F_OK) != 0)    
     {
         content = loadFile(this->server.errorPages["not_found"]);
-        statusLine = "HTTP/1.1 404 KO\r\n";
+        response.setStatusCode(404);
     }
+    else if (access(resourceFullPath.c_str(), R_OK) != 0)
+    {
+        content = loadFile(this->server.errorPages["forbidden"]);
+        response.setStatusCode(403);
+    }
+    else if (isDirectory(resourceFullPath))
+        content = this->directoryListing(resourceFullPath);
+    else if (isSupportedCgiScript(resourceFullPath))
+    {
+        Cgi cgi(req);
+        content = cgi.executeScript(resourceFullPath);
+        size_t pos = content.find("\r\n\r\n");
+        if (pos != std::string::npos)
+        {
+            content = content.substr(pos);
+            header = content.substr(0, pos);
+        }
+    }
+    else
+        content = loadFile(this->server.documentRoot + url);
     if (!isSupportedCgiScript(req.getURL()))
         contentType = getContentType(getFileExtension(req.getURL()));
     else if (isSupportedCgiScript(req.getURL()))
         contentType = getContentTypeFromCgiOutput(header);
-	std::string response = "" + statusLine;
-    response += "Content-Type: ";
-    response += contentType;
-    response += "\r\n";
-    response += "Content-Length: " + std::to_string(content.size()) + "\r\n";
-    response += "\r\n";
-    response += content;
-    
-	if (send(sock, response.c_str(), response.length(), 0) < 0)
-	{
-		std::cerr << "error: Could not send data" << std::endl;
-		exit(1);
-	}
-    close(sock);
+    response.setContentType(contentType);
+    response.setContentLength(content.size());
+    response.setBody(content);
+    std::cout << response;
+    response.sendIt(sock);
 }
 
 WebServer::WebServer(ConfigData ServerConf)
@@ -139,7 +191,16 @@ void WebServer::listenForConnections()
             continue;
         Request req(request);
         std::cout << req;
-        sendResponse(req, connFd);
+        try
+        {
+            sendResponse(req, connFd);
+        }
+        catch(const std::exception& e)
+        {
+            std::cerr << "error sending the response" << '\n';
+            close(connFd);
+        }
+        
     }
 }
 
