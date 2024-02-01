@@ -6,7 +6,7 @@
 /*   By: ogorfti <ogorfti@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/20 10:16:59 by ogorfti           #+#    #+#             */
-/*   Updated: 2024/01/31 13:30:45 by ogorfti          ###   ########.fr       */
+/*   Updated: 2024/02/01 18:35:55 by ogorfti          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -76,7 +76,6 @@ int main()
 		cout << "Request received: " << buffer << endl;
 	   
 		Request request(buffer);
-		request.parseRequest();		
 
 		for (size_t i = 0; i < servers.size(); i++)
 		{
