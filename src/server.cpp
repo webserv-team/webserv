@@ -6,7 +6,7 @@
 /*   By: emohamed <emohamed@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/23 11:26:17 by emohamed          #+#    #+#             */
-/*   Updated: 2024/02/01 11:05:17 by emohamed         ###   ########.fr       */
+/*   Updated: 2024/02/01 13:19:14 by emohamed         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -198,7 +198,7 @@ int main(){
         std::cerr << "Bind failed" << std::endl;
         exit(1);
     }
-    int l = listen(server, 3);
+    int l = listen(server, 10);
 	if(l < 0){
 		std::cerr << "Listen failed" << std::endl;
 		exit(1);
@@ -210,25 +210,83 @@ int main(){
 	fd_set master; // master file descriptor set
 	FD_ZERO(&master); // clear the master set
 	FD_SET(server, &master); // add the listener to the master set
-	while(true){
-    std::cout << "          \033[1;32m 🛠 ...... SERVER ON ...... 🛠\033[0m" << std::endl;
+// 	while(true){
 
-    // Make a copy of the master file descriptor set, because select() modifies the set
-    fd_set copy = master;
-    // Call select() to wait for activity on any of the sockets in the set
-    // The first parameter is ignored in modern implementations, but traditionally it's the highest-numbered file descriptor in any of the sets, plus one
-    // The second parameter is the set of file descriptors to monitor for read readiness
-    // The last three parameters are sets of file descriptors to monitor for write readiness, error conditions, and timeout, all of which we're not using
-    int socketCount = select(0, &copy, nullptr, nullptr, nullptr);
+//     // Make a copy of the master file descriptor set, because select() modifies the set
+//     fd_set copy = master;
+//     // Call select() to wait for activity on any of the sockets in the set
+//     // The first parameter is ignored in modern implementations, but traditionally it's the highest-numbered file descriptor in any of the sets, plus one
+//     // The second parameter is the set of file descriptors to monitor for read readiness
+//     // The last three parameters are sets of file descriptors to monitor for write readiness, error conditions, and timeout, all of which we're not using
+//     // int socketCount = select(server+1, &copy, nullptr, nullptr, nullptr);
 
-    // Check if select() returned an error
-    if(socketCount == -1){
-        std::cerr << "select error: " << strerror(errno) << std::endl;
+//     // // Check if select() returned an error
+//     // if(socketCount == -1){
+//     //     std::cerr << "select error: " << strerror(errno) << std::endl;
+//     //     return (-1);
+//     // }
+
+//     // Loop over all the sockets in the set
+//     for(int i = 0; i < FD_SETSIZE; i++){
+//         // Check if the socket is in the set
+//         if(FD_ISSET(i, &copy)){
+//             int sock = i;
+
+//             // If the socket is the server socket, it means there's a new connection
+//             if(sock == server){
+//                 // Accept the new connection
+//                 new_socket = accept(server, (struct sockaddr *)&address, &addrlen);
+
+//                 // Check if accept() returned an error
+//                 if (new_socket < 0) {
+//                     std::cerr << "Accept error: " << strerror(errno) << std::endl;
+//                     return (-1);
+//                 }
+
+//                 // Add the new socket to the master set
+//                 FD_SET(new_socket, &master);
+//             }
+// 			else{
+// 				// Receive data from the socket
+// 				int  r = recv(sock, buff, BUFFER_SIZE, 0);
+// 				// Check if recv() returned an error
+// 				if( r < 0){
+// 					std::cerr << "cant read from the socket" << std::endl;
+// 				}
+// 				buff[r] = '\0';
+// 				// Print the received data
+// 				std::cout << YELLOW << buff << RESET<< std::endl;
+// 				std::cout << "          \033[1;32m 🛠 ...... SERVER ON ...... 🛠\033[0m" << std::endl;
+
+// 				// Parse the request
+// 				Request req(buff);
+// 				req.parseRequest();
+
+// 				std::string path = req.getURL();
+// 				// Loop over all the servers
+// 				for (size_t i = 0; i < servers.size(); i++){
+// 					// If the server's port matches the requested port, send a response
+// 					if (servers[i].port == port){
+// 						sendResponse(sock, req, servers[i]);
+// 					}
+// 				}
+// 			}
+//             // Close the socket
+//             close(sock);
+//             // Remove the socket from the master set
+//             FD_CLR(sock, &master);
+//         }
+//     }
+// }
+	
+   while(true){
+    fd_set copy = master; // copy of the master set because select() modifies the set passed to it
+    if (select(FD_SETSIZE, &copy, NULL, NULL, NULL) == -1) {
+        std::cerr << "Select error: " << strerror(errno) << std::endl;
         return (-1);
     }
 
-    // Loop over all the sockets in the set
-    for(int i = 0; i < socketCount; i++){
+    for(int i = 0; i < FD_SETSIZE; i++){
         // Check if the socket is in the set
         if(FD_ISSET(i, &copy)){
             int sock = i;
@@ -243,71 +301,49 @@ int main(){
                     std::cerr << "Accept error: " << strerror(errno) << std::endl;
                     return (-1);
                 }
-
+				  // Make the new socket non-blocking
+                int flags = fcntl(new_socket, F_GETFL, 0);
+                if (flags == -1) {
+                    std::cerr << "Fcntl error: " << strerror(errno) << std::endl;
+                    return (-1);
+                }
+                flags |= O_NONBLOCK;
+                if (fcntl(new_socket, F_SETFL, flags) == -1) {
+                    std::cerr << "Fcntl error: " << strerror(errno) << std::endl;
+                    return (-1);
+                }
                 // Add the new socket to the master set
                 FD_SET(new_socket, &master);
             }
-            // Receive data from the socket
-            int  r = recv(sock, buff, BUFFER_SIZE, 0);
-            // Check if recv() returned an error
-            if( r < 0){
-                std::cerr << "cant read from the socket" << std::endl;
-            }
-            buff[r] = '\0';
-            // Print the received data
-            std::cout << YELLOW << buff << RESET<< std::endl;
-            // Parse the request
-            Request req(buff);
-            req.parseRequest();
-
-            std::string path = req.getURL();
-            // Loop over all the servers
-            for (size_t i = 0; i < servers.size(); i++){
-                // If the server's port matches the requested port, send a response
-                if (servers[i].port == port){
-                    sendResponse(sock, req, servers[i]);
+            else{
+                // Receive data from the socket
+                int  r = recv(sock, buff, BUFFER_SIZE, 0);
+                // Check if recv() returned an error
+                if( r < 0){
+                    std::cerr << "cant read from the socket" << std::endl;
                 }
+                buff[r] = '\0';
+                // Print the received data
+                std::cout << YELLOW << buff << RESET<< std::endl;
+                // Parse the request
+                Request req(buff);
+                req.parseRequest();
+
+                std::string path = req.getURL();
+                // Loop over all the servers
+                for (size_t i = 0; i < servers.size(); i++){
+                    // If the server's port matches the requested port, send a response
+                    if (servers[i].port == port){
+                        sendResponse(sock, req, servers[i]);
+                    }
+                }
+                // Close the socket
+                close(sock);
+                // Remove the socket from the master set
+                FD_CLR(sock, &master);
             }
-            // Close the socket
-            close(sock);
-            // Remove the socket from the master set
-            FD_CLR(sock, &master);
         }
     }
 }
-	
-    // while(true){
-    //     std::cout << "          \033[1;32m 🛠 ...... SERVER ON ...... 🛠\033[0m" << std::endl;
-    //     new_socket = accept(server, (struct sockaddr *)&address, &addrlen);
-	// 	if (new_socket < 0) {
-	// 		std::cerr << "Accept error: " << strerror(errno) << std::endl;
-	// 		return (-1);
-	// 	}
-	// 	// int flags = fcntl(new_socket, F_GETFL, 0);
-	// 	// fcntl(new_socket, F_SETFL, flags | O_NONBLOCK);
-	// 	// fcntl(fd, F_SETFL, O_NONBLOCK, FD_CLOEXEC);
-	// 	if(l < 0 || new_socket < 0){
-    //         std::cerr << "cant accept or lestining .." << std::endl;
-    //     }
-    //     // int r = read(new_socket, buff, BUFFER_SIZE);
-	// 	int  r = recv(new_socket, buff, BUFFER_SIZE, 0);
-    //     if( r < 0){
-    //         std::cerr << "cant read from the socket" << std::endl;
-    //     }
-    //     buff[r] = '\0';
-    //     // std::cout << buff << std::endl;
-    //     std::cout << YELLOW << buff << RESET<< std::endl;
-    //     Request req(buff);
-    //     req.parseRequest();
-    //     std::string path = req.getURL();
-    //     for (size_t i = 0; i < servers.size(); i++)
-	// 	{
-	// 		if (servers[i].port == port)
-	// 		{
-	// 			sendResponse(new_socket, req, servers[i]);
-	// 		}
-	// 	}
-	// 	close(new_socket);
-    // }
-	close(server);
+	// close(server);
 }
