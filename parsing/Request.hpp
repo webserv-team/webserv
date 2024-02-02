@@ -6,7 +6,7 @@
 /*   By: ogorfti <ogorfti@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/08 09:36:38 by ogorfti           #+#    #+#             */
-/*   Updated: 2024/02/01 18:05:32 by ogorfti          ###   ########.fr       */
+/*   Updated: 2024/02/02 12:46:25 by ogorfti          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -41,6 +41,7 @@ class Request
 		void parseBody();
 		// void parseRequest();
 		void parseMultipart();
+		void chunkedDecode();
 	public:
 		Request();
 		Request(std::string request);
@@ -54,7 +55,7 @@ class Request
 		const std::string& getMethod() const;
 		const std::string& getURL() const;
 		const std::string& getProtocol() const;
-		const std::string& getBody() const;
+		std::string& getBody();
 		const std::map<std::string, std::string>& getHeaders() const;
 		vector<s_tuple >& getMultipart();
 };
