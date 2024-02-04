@@ -6,7 +6,7 @@
 /*   By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/25 13:25:34 by hoigag            #+#    #+#             */
-/*   Updated: 2024/02/01 18:12:25 by hoigag           ###   ########.fr       */
+/*   Updated: 2024/02/04 11:37:12 by hoigag           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -122,7 +122,7 @@ void	WebServer::sendResponse(Request req, int sock)
     response.setContentType(contentType);
     response.setContentLength(content.size());
     response.setBody(content);
-    std::cout << response;
+    // std::cout << response;
     response.sendIt(sock);
 }
 
