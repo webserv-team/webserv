@@ -6,7 +6,7 @@
 /*   By: emohamed <emohamed@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/23 11:26:17 by emohamed          #+#    #+#             */
-/*   Updated: 2024/02/04 15:12:14 by emohamed         ###   ########.fr       */
+/*   Updated: 2024/02/05 17:42:23 by emohamed         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -148,15 +148,28 @@ void sendResponse(int socket, Request& request, ConfigData& server)
 		
 		std::string response = "HTTP/1.1 200 OK\r\nContent-Type: " + getContentType(filePath) + "\r\nContent-Length: ";
 		response += std::to_string(content.length()) + "\r\n\r\n" + content;
-		int sizes = 0;
-		if ((sizes = send(socket, response.c_str(), response.length(), 0)) < 0)
-		{
-			std::cerr << RED << "Send error: " << strerror(errno) << RESET << std::endl;
-			error500(socket, server.errorPages["server_error"]);
-			return;
-		}	
-		std::cout << RED << "size sended : " << sizes << RESET <<  " | " <<  YELLOW << "full size: "<<response.length()  << RESET<< std::endl;
+		// int sizes = 0;
+		// if ((sizes = send(socket, response.c_str(), response.length(), 0)) < 0)
+		// {
+		// 	std::cerr << RED << "Send error: " << strerror(errno) << RESET << std::endl;
+		// 	error500(socket, server.errorPages["server_error"]);
+		// 	return;
+		// }
+		int sent = 0;
+		int totalSent = 0;
+		int responseLength = response.length();
+		while (totalSent < responseLength) {
+			 sent = send(socket, response.c_str() + totalSent, responseLength - totalSent, 0);
+			if (sent == -1) {
+				std::cerr << RED << "Send error: " << strerror(errno) << RESET << std::endl;
+				error500(socket, server.errorPages["server_error"]);
+				return;
+			}
+			totalSent += sent;
+		}
+		std::cout << RED << "size sended : " << sent << RESET <<  " | " <<  YELLOW << "full size: "<<response.length()  << RESET<< std::endl;
 		std::cout << GREEN << "Response sent : " << RESET << RED << request.getURL() << RESET << std::endl;
+		
 	}
     else
 	{
@@ -248,8 +261,7 @@ int main(int ac, char **av){
 						std::cerr << RED << "Fcntl error: " << strerror(errno) << RESET << std::endl;
 						return 1;
 					}
-					flags |= O_NONBLOCK;
-					if(fcntl(new_socket, F_SETFL, flags) < 0){
+					if(fcntl(flags, F_SETFL, O_NONBLOCK, FD_CLOEXEC) < 0){
 						std::cerr << RED << "Fcntl error: " << strerror(errno) << RESET << std::endl;
 						return 1;
 					}
@@ -268,12 +280,12 @@ int main(int ac, char **av){
 						}
 					
 					}
-					int r = recv(newClient.socket, buffer, BUFFER_SIZE, 0);
+					int r = recv(newClient.socket, buffer, BUFFER_SIZE - 1, 0);
 					if(r < 0){
 						std::cerr << RED << "Recv error: " << strerror(errno) << RESET << std::endl;
 						
 					}
-					// buffer[r] = '\0';
+					buffer[r] = '\0';
 					newClient.request += buffer;
 
 					std::size_t found = newClient.request.find("\r\n\r\n");
@@ -288,8 +300,8 @@ int main(int ac, char **av){
 							sendResponse(sock, request, servers[i]);
 						}
 					}
-					// close(sock);
-					// FD_CLR(sock, &master);
+					close(sock);
+					FD_CLR(sock, &master);
 				}
 			}
 		}
