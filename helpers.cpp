@@ -6,7 +6,7 @@
 /*   By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/27 10:37:31 by hoigag            #+#    #+#             */
-/*   Updated: 2024/02/01 16:02:05 by hoigag           ###   ########.fr       */
+/*   Updated: 2024/02/05 15:06:26 by hoigag           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -59,46 +59,6 @@ std::string loadFile(const std::string& path)
 }
 
 
-void parseLine(std::map<std::string, std::string>& extensions, std::string& line)
-{
-    std::stringstream stream;
-    stream.str(line);
-    std::string extension;
-    std::string contentType;
-    std::getline(stream, extension, '|');
-    std::getline(stream, contentType);
-    size_t pos = extension.find(",");
-    if (pos != std::string::npos)
-    {
-        std::stringstream stream2;
-        stream2.str(extension);
-        std::string ext;
-        while (std::getline(stream2, ext, ','))
-        {
-            size_t pointPos = ext.find(".");
-            if (pointPos != std::string::npos)
-                ext = ext.substr(pointPos);
-            extensions[ext] = contentType;
-        }
-    }
-    // std::cout << extension << std::endl;
-}
-
-std::string getContentType(std::string ext)
-{
-    std::map<std::string, std::string> extensions;
-    std::ifstream inFile("mimes.txt");
-    if (!inFile.is_open())
-        throw std::runtime_error("could not open mimes file");
-    while (inFile)
-    {
-        std::string line;
-        std::getline(inFile, line);
-        parseLine(extensions, line);
-    }
-    return extensions[ext];
-}
-
 std::string getContentTypeFromCgiOutput(std::string& content)
 {
         
@@ -115,6 +75,15 @@ std::string getContentTypeFromCgiOutput(std::string& content)
     std::string contentType = header.substr(colonPos + 2);
     return contentType;
 }
+
+
+void urlValidator(std::string& url)
+{
+    for (int i = 0; url[i]; i++)
+        if (url[i] == '/' && url[i + 1] && url[i + 1] == '/')
+            url.erase(i, 1);
+}
+
 
 bool isDirectory(std::string& path)
 {

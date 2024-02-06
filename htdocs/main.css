@@ -1,5 +1,12 @@
+
+Certainly! Here's a more modern and cleaner version of your CSS:
+
+css
+Copy code
+/* modern.css */
+
 body {
-    font-family: Arial, sans-serif;
+    font-family: 'Arial', sans-serif;
     margin: 0;
     padding: 0;
     background-color: #f4f4f4;
@@ -8,7 +15,7 @@ body {
 header {
     background-color: #333;
     color: white;
-    padding: 10px;
+    padding: 1rem;
     text-align: center;
 }
 
@@ -24,7 +31,7 @@ section {
 footer {
     background-color: #333;
     color: white;
-    padding: 10px;
+    padding: 1rem;
     text-align: center;
     position: fixed;
     bottom: 0;
@@ -32,7 +39,19 @@ footer {
 }
 
 img {
-    max-height: 600px;
-    margin-left: 40%;
-}    
+    max-width: 100%;
+    max-height: 50vh;
+    height: auto;
+    display: block;
+    margin: 0 auto;
+}
 
+a {
+    text-decoration: none;
+    color: #007BFF;
+    transition: color 0.3s ease; /* Smooth color transition on hover */
+}
+
+a:hover {
+    color: #0056b3;
+}

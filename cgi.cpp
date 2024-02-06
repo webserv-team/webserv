@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   cgi.cpp                                            :+:      :+:    :+:   */
+/*   Cgi.cpp                                            :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/25 10:51:02 by hoigag            #+#    #+#             */
-/*   Updated: 2024/01/29 11:17:27 by hoigag           ###   ########.fr       */
+/*   Updated: 2024/02/05 17:32:14 by hoigag           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,13 +19,14 @@ Cgi::Cgi()
 
 Cgi::Cgi(Request& req)
 {
+    
     this->req = req;
     this->REQUEST_URI = req.getURL();
-    this->vars["DOCUMENT_ROOT"] = "/htdocs";
+    this->vars["DOCUMENT_ROOT"] = "htdocs";
     this->vars["REQUEST_URI"] = req.getURL();
     this->vars["REDIRECT_STATUS"] = "200";
-    this->vars["SCRIPT_NAME"] = "submit.php";
-    this->vars["SCRIPT_FILENAME"] = "htdocs/submit.php";
+    this->vars["SCRIPT_NAME"] = req.getURL();
+    this->vars["SCRIPT_FILENAME"] = "htdocs/" + req.getURL();
     if (req.getContentType() != "")
         this->vars["CONTENT_TYPE"] = req.getContentType();
     if (req.getContentLength() > 0)
@@ -74,7 +75,8 @@ std::string Cgi::executeScript(std::string script)
         command[0] = strdup("/Users/hoigag/.brew/bin/python3");
     else
         command[0] = strdup("htdocs/cgi-bin/php-cgi");
-    command[1] = script.c_str();     
+    command[1] = script.c_str();
+    std::cout << "the file being exectuted " << command[1] << std::endl;
     command[2] = NULL;
     int pipes[2];
     if (pipe(pipes) < 0)

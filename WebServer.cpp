@@ -6,7 +6,7 @@
 /*   By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/25 13:25:34 by hoigag            #+#    #+#             */
-/*   Updated: 2024/02/04 11:37:12 by hoigag           ###   ########.fr       */
+/*   Updated: 2024/02/06 12:29:06 by hoigag           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,11 +26,6 @@ std::string WebServer::directoryListing(std::string& path)
     std::string relativePath;
     if (pos != std::string::npos)
         relativePath = path.substr(pos + 1);
-    // std::string path = "/Users/hoigag/cursus/webserv/htdocs/" + path;
-    std::cout << "relative directory path = " << path << std::endl;
-    std::cout << "absolute directory path = " << path << std::endl;
-    // if (chdir(path.c_str()) < 0)
-    //     return ("could not change to " + path);
     std::string content = "<!DOCTYPE html> <html lang=\"en\" <head>\
     <meta charset=\"UTF-8\">\
     <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\
@@ -115,14 +110,16 @@ void	WebServer::sendResponse(Request req, int sock)
     }
     else
         content = loadFile(this->server.documentRoot + url);
-    if (!isSupportedCgiScript(req.getURL()))
-        contentType = getContentType(getFileExtension(req.getURL()));
-    else if (isSupportedCgiScript(req.getURL()))
+    if (!isSupportedCgiScript(url))
+    {
+        std::string ext = getFileExtension(url);
+        contentType = mimes.getContentType(ext);
+    }
+    else if (isSupportedCgiScript(url))
         contentType = getContentTypeFromCgiOutput(header);
     response.setContentType(contentType);
     response.setContentLength(content.size());
     response.setBody(content);
-    // std::cout << response;
     response.sendIt(sock);
 }
 
@@ -190,7 +187,9 @@ void WebServer::listenForConnections()
         if (request.empty())
             continue;
         Request req(request);
-        std::cout << req;
+        std::cout << "body == " << req.getBody() << std::endl;
+        // std::cout << request;   
+        // std::cout << req;
         try
         {
             sendResponse(req, connFd);

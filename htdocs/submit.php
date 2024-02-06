@@ -54,7 +54,7 @@
         }
 
     }
-    else
+    else    
     {
         echo '<div class="welcome-container">';
         echo '<a href="form.html">login</a>';

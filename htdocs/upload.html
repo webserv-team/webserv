@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>File Upload and Content Display</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        h1 {
+            color: #333;
+        }
+        form {
+            margin-bottom: 20px;
+        }
+        textarea {
+            width: 100%;
+            height: 100px;
+        }
+        #fileContent {
+            border: 1px solid #ddd;
+            padding: 10px;
+            margin-top: 20px;
+            white-space: pre-line; /* Preserve line breaks */
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Upload a File and Display Content</h1>
+
+    <form action="./cgi-scripts/upload.php" method="post" enctype="multipart/form-data">
+        <label for="file">Choose a file:</label>
+        <input type="file" id="file" name="file" accept=".txt" required>
+
+        <br>
+
+        <input type="submit" value="Upload and Submit">
+    </form>
+
+    <div id="fileContent"></div>
+
+</body>
+</html>

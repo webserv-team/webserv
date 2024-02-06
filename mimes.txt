@@ -1,3 +1,4 @@
+.css|text/css
 .pdf|application/pdf
 .ez|application/andrew-inset
 .aw|application/applixware
@@ -602,7 +603,6 @@ application/x-pkcs7-certificates
 .vtu|model/vnd.vtu
 .vrml, .wrl|model/vrml
 .ics, .ifb|text/calendar
-.css|text/css
 .csv|application/csv
 .htm, .html, .php|text/html
 .js|text/javascript
