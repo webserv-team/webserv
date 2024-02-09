@@ -6,7 +6,7 @@
 /*   By: emohamed <emohamed@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/23 11:26:17 by emohamed          #+#    #+#             */
-/*   Updated: 2024/02/05 17:42:23 by emohamed         ###   ########.fr       */
+/*   Updated: 2024/02/09 17:22:24 by emohamed         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -159,14 +159,20 @@ void sendResponse(int socket, Request& request, ConfigData& server)
 		int totalSent = 0;
 		int responseLength = response.length();
 		while (totalSent < responseLength) {
-			 sent = send(socket, response.c_str() + totalSent, responseLength - totalSent, 0);
+			sent = send(socket, response.c_str() + totalSent, responseLength - totalSent, 0);
 			if (sent == -1) {
-				std::cerr << RED << "Send error: " << strerror(errno) << RESET << std::endl;
-				error500(socket, server.errorPages["server_error"]);
-				return;
-			}
-			totalSent += sent;
-		}
+				if (errno == EPIPE) {
+					std::cerr << RED << "Client disconnected unexpectedly: " << strerror(errno) << RESET << std::endl;
+					close(socket);
+					return;
+				} else {
+					std::cerr << RED << "Send error: " << strerror(errno) << RESET << std::endl;
+					error500(socket, server.errorPages["server_error"]);
+					return;
+				}
+    }
+    totalSent += sent;
+}
 		std::cout << RED << "size sended : " << sent << RESET <<  " | " <<  YELLOW << "full size: "<<response.length()  << RESET<< std::endl;
 		std::cout << GREEN << "Response sent : " << RESET << RED << request.getURL() << RESET << std::endl;
 		
@@ -211,6 +217,13 @@ int main(int ac, char **av){
 		std::cerr  << RED << "Socket creation error: " << strerror(errno) << RESET << std::endl;
 		return 1;
 	}
+	// int f = fcntl(server, F_GETFL);
+	// if(f < 0){
+	// 	std::cerr << RED << "Fcntl error: " << strerror(errno) << RESET << std::endl;
+	// }
+	// if(fcntl(server, F_SETFL, f | O_NONBLOCK) < 0){
+	// 	std::cerr << RED << "Fcntl error: " << strerror(errno) << RESET << std::endl;
+	// }
 	 int opt = 1;
     if(setsockopt(server, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) == -1){
         std::cerr << "Setsockopt eroor: " << strerror(errno) << std::endl;
@@ -295,7 +308,7 @@ int main(int ac, char **av){
 					std::cout << YELLOW << newClient.request << RESET<<std::endl;
 					Request request(newClient.request);
 					request.parseRequest();
-					for(int i = 0; i < servers.size(); i++){
+					for(size_t i = 0; i < servers.size(); i++){
 						if(servers[i].port == port){
 							sendResponse(sock, request, servers[i]);
 						}
