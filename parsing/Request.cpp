@@ -6,7 +6,7 @@
 /*   By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/01 16:18:37 by ogorfti           #+#    #+#             */
-/*   Updated: 2024/02/06 12:46:22 by hoigag           ###   ########.fr       */
+/*   Updated: 2024/02/09 16:06:52 by hoigag           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -161,6 +161,20 @@ std::ostream &operator<<(std::ostream &stream, Request &req)
 	stream << "url           : " << req.getURL() << std::endl;
 	stream << "content type  : " << req.getContentType() << std::endl;
 	stream << "content length: " << req.getContentLength() << std::endl;
+	stream << "body          : " << std::endl;
+	if (req.getContentType().find("multipart/form-data") != string::npos)
+	{
+		vector<s_tuple > data = req.getMultipart();
+		for (size_t i = 0; i < data.size(); i++)
+		{
+			stream << "---------------------------" << endl;
+			stream << "name: " << data[i].name << endl;
+			stream << "filename: " << data[i].fileName << endl;
+			stream << "value: " << data[i].value << endl;
+		}
+	}
+	else
+		stream << req.getBody() << std::endl;
 	stream << "----------------------- Request end --------------------------------------" << std::endl;
 
 	return stream;

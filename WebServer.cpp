@@ -6,7 +6,7 @@
 /*   By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/25 13:25:34 by hoigag            #+#    #+#             */
-/*   Updated: 2024/02/06 12:29:06 by hoigag           ###   ########.fr       */
+/*   Updated: 2024/02/09 16:10:32 by hoigag           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -99,14 +99,15 @@ void	WebServer::sendResponse(Request req, int sock)
         content = this->directoryListing(resourceFullPath);
     else if (isSupportedCgiScript(resourceFullPath))
     {
-        Cgi cgi(req);
-        content = cgi.executeScript(resourceFullPath);
-        size_t pos = content.find("\r\n\r\n");
-        if (pos != std::string::npos)
-        {
-            content = content.substr(pos);
-            header = content.substr(0, pos);
-        }
+        // Cgi cgi(req);
+        // content = cgi.executeScript(resourceFullPath);
+        // size_t pos = content.find("\r\n\r\n");
+        // if (pos != std::string::npos)
+        // {
+        //     content = content.substr(pos);
+        //     header = content.substr(0, pos);
+        // }
+        content = "cgi script";
     }
     else
         content = loadFile(this->server.documentRoot + url);
