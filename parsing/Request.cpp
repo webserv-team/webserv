@@ -6,7 +6,7 @@
 /*   By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/01 16:18:37 by ogorfti           #+#    #+#             */
-/*   Updated: 2024/02/09 16:06:52 by hoigag           ###   ########.fr       */
+/*   Updated: 2024/02/09 17:08:44 by hoigag           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -68,8 +68,6 @@ void Request::parseHeaders()
 	for (size_t i = 1; i < this->lines_.size(); i++)
 	{
 		pos = lines_[i].find(":");
-		// if (!lines_[i].find("{") || !lines_[i].find("--myboundary"))
-		// 	isBody_ = true;
 		if (lines_[i].empty()) // means that body starts
 			isBody_ = true;
 		if (pos != std::string::npos && !isBody_)
@@ -87,6 +85,55 @@ void Request::parseBody()
 	this->body_ = request_.substr(pos + 4);
 }
 
+void Request::parseMultipart()
+{
+	size_t start = 14;
+	size_t pos = 0;
+
+	while ((pos = body_.find("\r\n\r\n", start)) != std::string::npos)
+	{
+		s_tuple tmp;
+		string header = body_.substr(start, pos - start);
+
+		size_t pos1 = header.find("name=\"");
+		if (pos1 != string::npos)
+		{
+			size_t pos2 = header.find("\"", pos1 + 6);
+			tmp.name = header.substr(pos1 + 6, pos2 - pos1 - 6);
+		}
+		size_t pos3 = header.find("filename=\"");
+		if (pos3 != string::npos)
+		{
+			size_t pos4 = header.find("\"", pos3 + 10);
+			tmp.fileName = header.substr(pos3 + 10, pos4 - pos3 - 10);
+		}
+		size_t pos5 = body_.find("\r\n", pos + 4);
+		if (pos5 != string::npos)
+		{
+			tmp.value = body_.substr(pos + 4, pos5 - pos - 4);
+		}
+		this->multipart_.push_back(tmp);
+		start = pos + 4;
+	}
+}
+
+void Request::chunkedDecode()
+{
+	size_t pos = 0;
+	string tmp;
+	
+	while ((pos = body_.find("\r\n")) != string::npos)
+	{
+		string size = body_.substr(0, pos);
+		int len = strtol(size.c_str(), NULL, 16);
+		if (len == 0)
+			break;
+		tmp += body_.substr(pos + 2, len) + "\n";
+		body_ = body_.substr(pos + 2 + len + 2);
+	}
+	body_ = tmp;
+}
+
 Request::Request(std::string request)
 {
 	if (request.empty())
@@ -98,6 +145,7 @@ Request::Request(std::string request)
 	parseHeaders();
 	parseBody();
 }
+
 /*-------------------- Getters --------------------*/
 
 const std::string &Request::getMethod() const
@@ -114,8 +162,11 @@ const std::string &Request::getProtocol() const
 {
 	return (protocol_);
 }
-const std::string &Request::getBody() const
+
+std::string &Request::getBody()
 {
+	if (!body_.empty() && headers_["Transfer-Encoding"] == "chunked")
+		chunkedDecode();
 	return (body_);
 }
 
@@ -191,65 +242,30 @@ void printMultiForm(vector<s_tuple> &multipart)
 	}
 }
 
-void Request::parseMultipart()
-{
-	size_t start = 14;
-	size_t pos = 0;
-
-	while ((pos = body_.find("\r\n\r\n", start)) != std::string::npos)
-	{
-		s_tuple tmp;
-		string header = body_.substr(start, pos - start);
-
-		size_t pos1 = header.find("name=\"");
-		if (pos1 != string::npos)
-		{
-			size_t pos2 = header.find("\"", pos1 + 6);
-			tmp.name = header.substr(pos1 + 6, pos2 - pos1 - 6);
-		}
-		size_t pos3 = header.find("filename=\"");
-		if (pos3 != string::npos)
-		{
-			size_t pos4 = header.find("\"", pos3 + 10);
-			tmp.fileName = header.substr(pos3 + 10, pos4 - pos3 - 10);
-		}
-		size_t pos5 = body_.find("\r\n", pos + 4);
-		if (pos5 != string::npos)
-		{
-			tmp.value = body_.substr(pos + 4, pos5 - pos - 4);
-		}
-		this->multipart_.push_back(tmp);
-		start = pos + 4;
-	}
-}
+/*-------------------- Main --------------------*/
 
 // c++ -std=c++98 -Wall -Wextra -Werror Request.cpp && ./a.out
 // int main()
 // {
-// 	std::string httpRequest = "POST /api/data HTTP/1.1\r\n";
-// 	httpRequest += "Host: api.example.com\r\n";
-// 	httpRequest += "User-Agent: Mozilla/5.0\r\n";
-// 	httpRequest += "Accept: */*\r\n";
-// 	httpRequest += "Accept-Language: en-US,en;q=0.5\r\n";
-// 	httpRequest += "Accept-Encoding: gzip, deflate, br\r\n";
-// 	httpRequest += "Connection: keep-alive\r\n";
-// 	httpRequest += "Content-Type: multipart/form-data; boundary=myboundary\r\n\r\n";
+// 	std::string httpRequest = "POST /test HTTP/1.1\r\n";
+// 	httpRequest += "Host: www.test.com\r\n";
+// 	httpRequest += "Transfer-Encoding: chunked\r\n";
+// 	httpRequest += "Content-Type: application/json\r\n\r\n";
 
-// 	httpRequest += "--myboundary\r\n";
-// 	httpRequest += "Content-Disposition: form-data; name=\"field1\"\r\n\r\n";
-// 	httpRequest += "value1\r\n";
+// 	httpRequest += "26\r\n";  // 38 in hexadecimal
+// 	httpRequest += "{\"test1\": \"value1\", \"test2\": \"value2\"}\r\n";
 
-// 	httpRequest += "--myboundary\r\n";
-// 	httpRequest += "Content-Disposition: form-data; name=\"field2\"\r\n\r\n";
-// 	httpRequest += "value2\r\n";
+// 	httpRequest += "3A\r\n";  // 58 in hexadecimal
+// 	httpRequest += "{\"test3\": \"value3\", \"test4\": \"value4\", \"test5\": \"value5\"}\r\n";
 
-// 	httpRequest += "--myboundary\r\n";
-// 	httpRequest += "Content-Disposition: form-data; name=\"image\"; filename=\"example.jpg\"\r\n";
-// 	httpRequest += "Content-Type: image/jpeg\r\n\r\n";
-// 	httpRequest += "(binary content of the image here)\r\n";
+// 	httpRequest += "0\r\n";
+// 	httpRequest += "\r\n";
 
-// 	httpRequest += "--myboundary--\r\n";
+// // 	httpRequest += "--myboundary--\r\n";
 // 	Request parser(httpRequest);
+	// parser.chunkedDecode();
+	// string body = parser.getBody();
+	// chunkedDecode(body);
 // 	vector <s_tuple> multipart = parser.getMultipart();
 // 	printMultiForm(multipart);
 	// parser.parseRequest();
@@ -269,10 +285,10 @@ void Request::parseMultipart()
 	// 	std::cout << it->first << ": " << it->second << std::endl;
 	// }
 
-	// std::cout << "\n---- Body ----" << std::endl;
-	// std::cout << parser.getBody() << std::endl;
+// 	std::cout << "\n---- Body ----" << std::endl;
+// 	std::cout << parser.getBody() << std::endl;
 
-	// parseMultipart();
+// 	// parseMultipart();
 
 // 	return 0;
 // }

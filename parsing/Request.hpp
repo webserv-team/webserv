@@ -6,7 +6,7 @@
 /*   By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/08 09:36:38 by ogorfti           #+#    #+#             */
-/*   Updated: 2024/02/06 12:46:01 by hoigag           ###   ########.fr       */
+/*   Updated: 2024/02/09 17:08:38 by hoigag           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -41,6 +41,7 @@ class Request
 		void parseBody();
 		// void parseRequest();
 		void parseMultipart();
+		void chunkedDecode();
 	public:
 		Request();
 		Request(std::string request);
@@ -54,7 +55,7 @@ class Request
 		const std::string& getMethod() const;
 		const std::string& getURL() const;
 		const std::string& getProtocol() const;
-		const std::string& getBody() const;
+		std::string& getBody();
 		const std::map<std::string, std::string>& getHeaders() const;
 		vector<s_tuple >& getMultipart();
 };
