@@ -6,47 +6,53 @@
 /*   By: ogorfti <ogorfti@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/11 18:08:24 by ogorfti           #+#    #+#             */
-/*   Updated: 2024/01/31 13:29:03 by ogorfti          ###   ########.fr       */
+/*   Updated: 2024/02/09 18:41:16 by ogorfti          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #pragma once
 
 #include "../include/lib.hpp"
+using namespace std;
 
-typedef std::vector<std::string>::iterator vecIt;
+typedef vector<string>::iterator vecIt;
 
 class Location
 {
 	public:
-		std::string path;
-		std::string root;
-		std::string index;
+		string path;
+		string root;
+		string index;
+		string autoindex;
+		string bodyLimit;
+		map <string, string> redirect;
+		vector<string> methods;
 };
-
 
 class ConfigData
 {
 	public:
 		int port;
-		std::string hostName;
-		std::string documentRoot;
-		std::map <std::string, std::string> errorPages;
-		std::vector<Location> locations;
+		string host;
+		string root;
+		string cgiPath;
+		string uploadPath;
+		map <string, string> errorPages;
+		vector<Location> locations;
 };
 
 class ServerConf
 {
 	private:
-		std::vector<ConfigData> servers;
-		std::vector <std::string> lines_;
-		void splitLines(const std::string& buffer);
-		void handleSrv(ConfigData& server, vecIt& it);
-		void serverParams(ConfigData& server, vecIt& it);
-		void serverErrors(ConfigData& server, vecIt& it);
-		void serverLocations(ConfigData& server, vecIt& it);
+		vector<ConfigData> servers;
+		// vector <string> lines_;
+		// void splitLines(const string& buffer);
+		void handleSrv(ConfigData& server, const string& lines);
+		void serverParams(ConfigData& server, const vector<string>& settings);
+		void serverErrors(ConfigData& server, const string& errors);
+		// void serverLocations(ConfigData& server, vecIt& it);
 
 	public:
-		ServerConf(const std::string& configPath);
-		const std::vector<ConfigData>& getServers();
+		ServerConf(const string& configPath);
+		const vector<ConfigData>& getServers();
 };
