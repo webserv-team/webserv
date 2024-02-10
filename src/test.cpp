@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   server.cpp                                         :+:      :+:    :+:   */
+/*   test.cpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: emohamed <emohamed@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/23 11:26:17 by emohamed          #+#    #+#             */
-/*   Updated: 2024/02/10 15:11:45 by emohamed         ###   ########.fr       */
+/*   Updated: 2024/02/09 19:59:03 by emohamed         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -163,7 +163,6 @@ void sendResponse(int socket, Request& request, ConfigData& server)
 			if (sent == -1) {
 				if (errno == EPIPE) {
 					std::cerr << RED << "Client disconnected unexpectedly: " << strerror(errno) << RESET << std::endl;
-					// You might want to close the socket and return here, since there's no point in trying to send more data
 					close(socket);
 					return;
 				} else {
@@ -203,62 +202,94 @@ void sendResponse(int socket, Request& request, ConfigData& server)
 	}
 }
 
-int check_serv_socket(int server, std::vector<int> serverSockets){
-	for(size_t i = 0; i < serverSockets.size(); i++){
-		if(server == serverSockets[i]){
-			return 1;
-		}
-	}
-	return 0;
-}
+
 int main(int ac, char **av){
 	if(ac != 2){
 		std::cerr << "Usage: ./server <config_file>" << std::endl;
 		return 1;
 	}
-	int server;
-	int new_socket;
-	int port;
 	ServerConf data(av[1]);
-	std::vector<int> serverSockets;
-	fd_set master;
-	FD_ZERO(&master);
-	for(size_t i = 0; i < data.getServers().size(); i++){
-		 port = data.getServers()[i].port;
-		std::cout << RED << port << RESET << std::endl;
-		 server = socket(AF_INET, SOCK_STREAM, 0);
-		if (server < 0)
-		{
-			std::cerr  << RED << "Socket creation error: " << strerror(errno) << RESET << std::endl;
-			exit(1);
-		}
-		int opt = 1;
-		if(setsockopt(server, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) == -1){
-			std::cerr << "Setsockopt eroor: " << strerror(errno) << std::endl;
-			return -1;
-		}
-		memset(&address, 0, sizeof(address));
-		address.sin_family = AF_INET;
-		address.sin_addr.s_addr = INADDR_ANY;
-		address.sin_port = htons(port);
-		if (bind(server, (struct sockaddr *)&address, sizeof(address)) < 0)
-		{
-			std::cerr << RED << "Bind error: " << strerror(errno) << RESET << std::endl;
-			return 1;
-		}
-		if (listen(server, 3) < 0)
-		{
-			std::cerr << RED << "Listen error: " << strerror(errno) << RESET << std::endl;
-			return 1;
-		}
-		serverSockets.push_back(server);
-		FD_SET(server, &master);
+	int port = data.getServers()[0].port;
+	int new_socket;
+	int server = socket(AF_INET, SOCK_STREAM, 0);
+	if (server < 0)
+	{
+		std::cerr  << RED << "Socket creation error: " << strerror(errno) << RESET << std::endl;
+		return 1;
 	}
+	int f = fcntl(server, F_GETFL);
+	if(f < 0){
+		std::cerr << RED << "Fcntl error: " << strerror(errno) << RESET << std::endl;
+	}
+	if(fcntl(server, F_SETFL, f | O_NONBLOCK) < 0){
+		std::cerr << RED << "Fcntl error: " << strerror(errno) << RESET << std::endl;
+	}
+	 int opt = 1;
+    if(setsockopt(server, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) == -1){
+        std::cerr << "Setsockopt eroor: " << strerror(errno) << std::endl;
+        return -1;
+    }
+	memset(&address, 0, sizeof(address));
+	address.sin_family = AF_INET;
+	address.sin_addr.s_addr = INADDR_ANY;
+	address.sin_port = htons(port);
+	if (bind(server, (struct sockaddr *)&address, sizeof(address)) < 0)
+	{
+		std::cerr << RED << "Bind error: " << strerror(errno) << RESET << std::endl;
+		return 1;
+	}
+	if (listen(server, 3) < 0)
+	{
+		std::cerr << RED << "Listen error: " << strerror(errno) << RESET << std::endl;
+		return 1;
+	}
+	if (ac != 2) {
+        std::cerr << "Usage: " << av[0] << " <config_file>\n";
+        return 1;
+    }
+
+    ServerConf data(av[1]);
+    std::vector<ConfigData> servers = data.getServers();
+	std::vector<int> ports;
+	for(size_t i = 0; i < servers.size(); i++){
+		ports.push_back(servers[i].port);
+	}
+    for (std::vector<ConfigData>::iterator it = servers.begin(); it != servers.end(); ++it) {
+        int port = ports[it - servers.begin()];
+		std::cout << RED << "port: " << port << std::endl;
+        sockaddr_in address;
+        int server = socket(AF_INET, SOCK_STREAM, 0);
+        if (server < 0) {
+            std::cerr << RED << "Socket creation error: " << strerror(errno) << RESET << std::endl;
+            continue;
+        }
+
+        int opt = 1;
+        if (setsockopt(server, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) == -1) {
+            std::cerr << RED << "Setsockopt error: " << strerror(errno) << RESET << std::endl;
+            continue;
+        }
+        memset(&address, 0, sizeof(address));
+        address.sin_family = AF_INET;
+        address.sin_addr.s_addr = INADDR_ANY;
+        address.sin_port = htons(port);
+        if (bind(server, (struct sockaddr *)&address, sizeof(address)) < 0) {
+            std::cerr << RED << "Bind error: " << strerror(errno) << RESET << std::endl;
+            continue;
+        }
+
+        if (listen(server, 3) < 0) {
+            std::cerr << RED << "Listen error: " << strerror(errno) << RESET << std::endl;
+            continue;
+        }
 	socklen_t addrlen = sizeof(address);
 	std::vector<client> clients;
 	std::vector<ConfigData> servers = data.getServers();
 	signal(SIGPIPE, SIG_IGN);
 	char buffer[BUFFER_SIZE] ;
+	fd_set master;
+	FD_ZERO(&master);
+	FD_SET(server, &master);
 	while(1){
 		std::cout << GREEN << "Waiting for connections..." << RESET << std::endl;
 		fd_set copy = master;
@@ -270,8 +301,8 @@ int main(int ac, char **av){
 		for(int i = 0; i < FD_SETSIZE; i++){
 			if(FD_ISSET(i , &copy)){
 				int sock = i;
-				if(check_serv_socket(sock, serverSockets)){
-					new_socket = accept(sock, (struct sockaddr *)&address, &addrlen);
+				if(sock == server){
+					int new_socket = accept(server, (struct sockaddr *)&address, &addrlen);
 					if (new_socket < 0)
 					{
 						std::cerr << RED << "Accept error: " << strerror(errno) << RESET << std::endl;
@@ -317,8 +348,131 @@ int main(int ac, char **av){
 					Request request(newClient.request);
 					request.parseRequest();
 					for(size_t i = 0; i < servers.size(); i++){
-						// std::cout << RED << servers[i].port << RESET << std::endl;
-						// std::cout << GREEN << port << RESET << std::endl;
+						if(servers[i].port == port){
+							sendResponse(sock, request, servers[i]);
+						}
+					}
+					close(sock);
+					FD_CLR(sock, &master);
+				}
+			}
+		}
+	}
+	
+	
+    }
+}
+
+
+
+
+
+int main(int ac, char **av){
+	if(ac != 2){
+		std::cerr << "Usage: ./server <config_file>" << std::endl;
+		return 1;
+	}
+	ServerConf data(av[1]);
+	int port = data.getServers()[0].port;
+	int new_socket;
+	int server = socket(AF_INET, SOCK_STREAM, 0);
+	if (server < 0)
+	{
+		std::cerr  << RED << "Socket creation error: " << strerror(errno) << RESET << std::endl;
+		return 1;
+	}
+	// int f = fcntl(server, F_GETFL);
+	// if(f < 0){
+	// 	std::cerr << RED << "Fcntl error: " << strerror(errno) << RESET << std::endl;
+	// }
+	// if(fcntl(server, F_SETFL, f | O_NONBLOCK) < 0){
+	// 	std::cerr << RED << "Fcntl error: " << strerror(errno) << RESET << std::endl;
+	// }
+	 int opt = 1;
+    if(setsockopt(server, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) == -1){
+        std::cerr << "Setsockopt eroor: " << strerror(errno) << std::endl;
+        return -1;
+    }
+	memset(&address, 0, sizeof(address));
+	address.sin_family = AF_INET;
+	address.sin_addr.s_addr = INADDR_ANY;
+	address.sin_port = htons(port);
+	if (bind(server, (struct sockaddr *)&address, sizeof(address)) < 0)
+	{
+		std::cerr << RED << "Bind error: " << strerror(errno) << RESET << std::endl;
+		return 1;
+	}
+	if (listen(server, 3) < 0)
+	{
+		std::cerr << RED << "Listen error: " << strerror(errno) << RESET << std::endl;
+		return 1;
+	}
+	socklen_t addrlen = sizeof(address);
+	std::vector<client> clients;
+	std::vector<ConfigData> servers = data.getServers();
+	signal(SIGPIPE, SIG_IGN);
+	char buffer[BUFFER_SIZE] ;
+	fd_set master;
+	FD_ZERO(&master);
+	FD_SET(server, &master);
+	while(1){
+		std::cout << GREEN << "Waiting for connections..." << RESET << std::endl;
+		fd_set copy = master;
+		
+		if(select(FD_SETSIZE, &copy, nullptr, nullptr, nullptr) < 0){
+			std::cerr << RED << "Select error: " << strerror(errno) << RESET << std::endl;
+			return 1;
+		}
+		for(int i = 0; i < FD_SETSIZE; i++){
+			if(FD_ISSET(i , &copy)){
+				int sock = i;
+				if(sock == server){
+					new_socket = accept(server, (struct sockaddr *)&address, &addrlen);
+					if (new_socket < 0)
+					{
+						std::cerr << RED << "Accept error: " << strerror(errno) << RESET << std::endl;
+						return 1;
+					}
+					int flags = fcntl(new_socket, F_GETFL, 0);
+					if(flags < 0){
+						std::cerr << RED << "Fcntl error: " << strerror(errno) << RESET << std::endl;
+						return 1;
+					}
+					if(fcntl(flags, F_SETFL, O_NONBLOCK, FD_CLOEXEC) < 0){
+						std::cerr << RED << "Fcntl error: " << strerror(errno) << RESET << std::endl;
+						return 1;
+					}
+					FD_SET(new_socket, &master);
+					client newClient;
+					newClient.socket = new_socket;
+					clients.push_back(newClient);
+					
+				}
+				else{
+					client newClient;
+					for(std::vector<client>::iterator it = clients.begin(); it != clients.end(); it++){
+						if(it->socket == sock){
+							newClient = *it;
+							break;
+						}
+					
+					}
+					int r = recv(newClient.socket, buffer, BUFFER_SIZE - 1, 0);
+					if(r < 0){
+						std::cerr << RED << "Recv error: " << strerror(errno) << RESET << std::endl;
+						
+					}
+					buffer[r] = '\0';
+					newClient.request += buffer;
+
+					std::size_t found = newClient.request.find("\r\n\r\n");
+					if (found != std::string::npos) {
+						std::cout  << "\n"<<  GREEN <<" ***** Complete request received ***** " << "\n"<<  std::endl;
+					}
+					std::cout << YELLOW << newClient.request << RESET<<std::endl;
+					Request request(newClient.request);
+					request.parseRequest();
+					for(size_t i = 0; i < servers.size(); i++){
 						if(servers[i].port == port){
 							sendResponse(sock, request, servers[i]);
 						}
