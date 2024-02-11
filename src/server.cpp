@@ -6,7 +6,7 @@
 /*   By: emohamed <emohamed@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/23 11:26:17 by emohamed          #+#    #+#             */
-/*   Updated: 2024/02/10 15:11:45 by emohamed         ###   ########.fr       */
+/*   Updated: 2024/02/11 16:22:54 by emohamed         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -203,7 +203,7 @@ void sendResponse(int socket, Request& request, ConfigData& server)
 	}
 }
 
-int check_serv_socket(int server, std::vector<int> serverSockets){
+int check_serv_socket_to_connect(int server, std::vector<int> serverSockets){
 	for(size_t i = 0; i < serverSockets.size(); i++){
 		if(server == serverSockets[i]){
 			return 1;
@@ -225,7 +225,7 @@ int main(int ac, char **av){
 	FD_ZERO(&master);
 	for(size_t i = 0; i < data.getServers().size(); i++){
 		 port = data.getServers()[i].port;
-		std::cout << RED << port << RESET << std::endl;
+		std::cout << RED << "Server port: " << port << std::endl;
 		 server = socket(AF_INET, SOCK_STREAM, 0);
 		if (server < 0)
 		{
@@ -258,7 +258,7 @@ int main(int ac, char **av){
 	std::vector<client> clients;
 	std::vector<ConfigData> servers = data.getServers();
 	signal(SIGPIPE, SIG_IGN);
-	char buffer[BUFFER_SIZE] ;
+	// char buffer[BUFFER_SIZE] ;
 	while(1){
 		std::cout << GREEN << "Waiting for connections..." << RESET << std::endl;
 		fd_set copy = master;
@@ -270,7 +270,7 @@ int main(int ac, char **av){
 		for(int i = 0; i < FD_SETSIZE; i++){
 			if(FD_ISSET(i , &copy)){
 				int sock = i;
-				if(check_serv_socket(sock, serverSockets)){
+				if(check_serv_socket_to_connect(sock, serverSockets)){
 					new_socket = accept(sock, (struct sockaddr *)&address, &addrlen);
 					if (new_socket < 0)
 					{
@@ -301,21 +301,68 @@ int main(int ac, char **av){
 						}
 					
 					}
-					int r = recv(newClient.socket, buffer, BUFFER_SIZE - 1, 0);
-					if(r < 0){
-						std::cerr << RED << "Recv error: " << strerror(errno) << RESET << std::endl;
+					// Request getdata(newClient.request);
+					// int contentLength = getdata.getContentLength();
+					
+					// int bytesReceived = 0;
+					// while(bytesReceived <= contentLength){
+					// 	int r = recv(newClient.socket, buffer, BUFFER_SIZE - 1, 0);
+					// 	if(r < 0){
+					// 		std::cerr << RED << "Recv error: " << strerror(errno) << RESET << std::endl;
+					// 	}
+					// 	newClient.request += buffer;
+					// 	if(bytesReceived == contentLength){
+					// 		std::cout << GREEN << " **** REQUEST RECEIVED ****** " << RESET << std::endl;
+					// 		newClient.request[r] = '\0';
+					// 	}
+					// 	bytesReceived += r;
+					// }
+					// std::cout << GREEN << "Content length: " << contentLength << std::endl;
+					// std::cout << YELLOW << newClient.request << RESET<<std::endl;
+					// int r = recv(newClient.socket, buffer, BUFFER_SIZE - 1, 0);
+					// if(r < 0){
+					// 	std::cerr << RED << "Recv error: " << strerror(errno) << RESET << std::endl;
 						
+					// }
+					// newClient.request += buffer;
+					std::string headers;
+					char tempBuffer[BUFFER_SIZE];
+					while (headers.find("\r\n\r\n") == std::string::npos) {
+						int r = recv(newClient.socket, tempBuffer, BUFFER_SIZE - 1, 0);
+						if (r < 0) {
+							std::cerr << RED << "Recv error: " << strerror(errno) << RESET << std::endl;
+							break;
+						}
+						tempBuffer[r] = '\0';
+						headers += tempBuffer;
 					}
-					buffer[r] = '\0';
-					newClient.request += buffer;
 
-					std::size_t found = newClient.request.find("\r\n\r\n");
-					if (found != std::string::npos) {
-						std::cout  << "\n"<<  GREEN <<" ***** Complete request received ***** " << "\n"<<  std::endl;
+					Request getdata(headers);
+					int contentLength = getdata.getContentLength();
+
+					std::string body;
+					std::cout << GREEN << "Content length: " << contentLength << RESET << std::endl;
+					int bytesReceived = 0;
+					while (bytesReceived < contentLength) {
+						int r = recv(newClient.socket, tempBuffer, BUFFER_SIZE - 1, 0);
+						if (r < 0) {
+							std::cerr << RED << "Recv error: " << strerror(errno) << RESET << std::endl;
+							break;
+						}
+						tempBuffer[r] = '\0';
+						body += tempBuffer;
+						bytesReceived += r;
 					}
-					std::cout << YELLOW << newClient.request << RESET<<std::endl;
+
+					newClient.request = headers + body;
+					std::cout << YELLOW << newClient.request << RESET << std::endl;
+					// std::size_t found = newClient.request.find("\r\n\r\n");
+					// if (found != std::string::npos) {
+					// 	std::cout  << "\n"<<  GREEN <<" ***** Complete request received ***** " << "\n"<<  std::endl;
+					// }
 					Request request(newClient.request);
-					request.parseRequest();
+					// int len = request.getContentLength();
+					// std::cout << GREEN << "Content length: " << len << RESET << std::endl;
 					for(size_t i = 0; i < servers.size(); i++){
 						// std::cout << RED << servers[i].port << RESET << std::endl;
 						// std::cout << GREEN << port << RESET << std::endl;

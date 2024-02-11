@@ -12,6 +12,30 @@
     root = ../htdoc
     index = home.html
 
+[[servers]]
+  port = 9090
+  hostName = localhost
+  documentRoot = ../htdoc
+
+  [servers.errorPages]
+    not_found = ../htdoc/404.html
+    server_error = ../htdoc/404.html
+
   [[servers.locations]]
-    path = /images
-    root = htdoc
+    path = /
+    root = ../htdoc
+    index = home.html
+
+[[servers]]
+  port = 1010
+  hostName = localhost
+  documentRoot = ../htdoc
+
+  [servers.errorPages]
+    not_found = ../htdoc/404.html
+    server_error = ../htdoc/404.html
+
+  [[servers.locations]]
+    path = /
+    root = ../htdoc
+    index = home.html
