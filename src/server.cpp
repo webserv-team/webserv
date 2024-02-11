@@ -6,7 +6,7 @@
 /*   By: emohamed <emohamed@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/23 11:26:17 by emohamed          #+#    #+#             */
-/*   Updated: 2024/02/11 16:22:54 by emohamed         ###   ########.fr       */
+/*   Updated: 2024/02/11 21:27:42 by emohamed         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -163,7 +163,6 @@ void sendResponse(int socket, Request& request, ConfigData& server)
 			if (sent == -1) {
 				if (errno == EPIPE) {
 					std::cerr << RED << "Client disconnected unexpectedly: " << strerror(errno) << RESET << std::endl;
-					// You might want to close the socket and return here, since there's no point in trying to send more data
 					close(socket);
 					return;
 				} else {
@@ -333,7 +332,6 @@ int main(int ac, char **av){
 							std::cerr << RED << "Recv error: " << strerror(errno) << RESET << std::endl;
 							break;
 						}
-						tempBuffer[r] = '\0';
 						headers += tempBuffer;
 					}
 
@@ -349,11 +347,9 @@ int main(int ac, char **av){
 							std::cerr << RED << "Recv error: " << strerror(errno) << RESET << std::endl;
 							break;
 						}
-						tempBuffer[r] = '\0';
 						body += tempBuffer;
 						bytesReceived += r;
 					}
-
 					newClient.request = headers + body;
 					std::cout << YELLOW << newClient.request << RESET << std::endl;
 					// std::size_t found = newClient.request.find("\r\n\r\n");
