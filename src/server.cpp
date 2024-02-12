@@ -6,7 +6,7 @@
 /*   By: emohamed <emohamed@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/23 11:26:17 by emohamed          #+#    #+#             */
-/*   Updated: 2024/02/12 15:38:33 by emohamed         ###   ########.fr       */
+/*   Updated: 2024/02/12 18:16:54 by emohamed         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -137,7 +137,6 @@ void sendResponse(int socket, Request& request, ConfigData& server)
 	else
 		filePath += request.getURL();
 
-    // std::cout <<  "---->   " << filePath << std::endl;
 	std::ifstream file(filePath);
 	if (file.is_open())
 	{
@@ -148,13 +147,6 @@ void sendResponse(int socket, Request& request, ConfigData& server)
 		
 		std::string response = "HTTP/1.1 200 OK\r\nContent-Type: " + getContentType(filePath) + "\r\nContent-Length: ";
 		response += std::to_string(content.length()) + "\r\n\r\n" + content;
-		// int sizes = 0;
-		// if ((sizes = send(socket, response.c_str(), response.length(), 0)) < 0)
-		// {
-		// 	std::cerr << RED << "Send error: " << strerror(errno) << RESET << std::endl;
-		// 	error500(socket, server.errorPages["server_error"]);
-		// 	return;
-		// }
 		int sent = 0;
 		int totalSent = 0;
 		int responseLength = response.length();
@@ -211,11 +203,6 @@ int check_serv_socket_to_connect(int server, std::vector<int> serverSockets){
 	return 0;
 }
 
-// int getContentLength(0
-// {
-	
-// })
-
 std::string readRequest(int socket)
 {
 	int bufferSize = 1024;
@@ -243,9 +230,6 @@ std::string readRequest(int socket)
 	// std::cout << "Content Length = " << contentlength << std::endl;
 	size_t pos = request.find("\r\n\r\n");
 	std::string header = request.substr(0, pos);
-	// std::cout << "--------------- header data ---------------------------" << std::endl;
-	// std::cout << header << std::endl;
-	// std::cout << "------------------------------------------" << std::endl;
 	std::string body = request.substr(pos + 4);
 	bodySizeReceived = body.length();
 	while (bodySizeReceived < contentlength)
@@ -258,13 +242,43 @@ std::string readRequest(int socket)
 		body += sbuffer;
 		bodySizeReceived += r;
 	}
-	// std::cout << "bodySizeReceived = " << bodySizeReceived << std::endl;
-	// std::cout << "--------------- body data ---------------------------" << std::endl;
-	// std::cout << body << std::endl;
-	// std::cout << "------------------------------------------" << std::endl;
 	return request;
 }
 
+void Multiple_server(ServerConf& data, std::vector<int>& serverSockets, fd_set& master, int &port, int &server) {
+    for(size_t i = 0; i < data.getServers().size(); i++){
+         port = data.getServers()[i].port;
+        std::cout << RED << "Server port: " << port << std::endl;
+         server = socket(AF_INET, SOCK_STREAM, 0);
+        if (server < 0)
+        {
+            std::cerr  << RED << "Socket creation error: " << strerror(errno) << RESET << std::endl;
+            exit(1);
+        }
+        int opt = 1;
+        if(setsockopt(server, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) == -1){
+            std::cerr << "Setsockopt error: " << strerror(errno) << std::endl;
+            exit(1);
+        }
+        struct sockaddr_in address;
+        memset(&address, 0, sizeof(address));
+        address.sin_family = AF_INET;
+        address.sin_addr.s_addr = INADDR_ANY;
+        address.sin_port = htons(port);
+        if (bind(server, (struct sockaddr *)&address, sizeof(address)) < 0)
+        {
+            std::cerr << RED << "Bind error: " << strerror(errno) << RESET << std::endl;
+            exit(1);
+        }
+        if (listen(server, 3) < 0)
+        {
+            std::cerr << RED << "Listen error: " << strerror(errno) << RESET << std::endl;
+            exit(1);
+        }
+        serverSockets.push_back(server);
+        FD_SET(server, &master);
+    }
+}
 int main(int ac, char **av){
 	if(ac != 2){
 		std::cerr << "Usage: ./server <config_file>" << std::endl;
@@ -276,43 +290,14 @@ int main(int ac, char **av){
 	ServerConf data(av[1]);
 	std::vector<int> serverSockets;
 	fd_set master;
+
 	FD_ZERO(&master);
-	for(size_t i = 0; i < data.getServers().size(); i++){
-		 port = data.getServers()[i].port;
-		std::cout << RED << "Server port: " << port << std::endl;
-		 server = socket(AF_INET, SOCK_STREAM, 0);
-		if (server < 0)
-		{
-			std::cerr  << RED << "Socket creation error: " << strerror(errno) << RESET << std::endl;
-			exit(1);
-		}
-		int opt = 1;
-		if(setsockopt(server, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) == -1){
-			std::cerr << "Setsockopt eroor: " << strerror(errno) << std::endl;
-			return -1;
-		}
-		memset(&address, 0, sizeof(address));
-		address.sin_family = AF_INET;
-		address.sin_addr.s_addr = INADDR_ANY;
-		address.sin_port = htons(port);
-		if (bind(server, (struct sockaddr *)&address, sizeof(address)) < 0)
-		{
-			std::cerr << RED << "Bind error: " << strerror(errno) << RESET << std::endl;
-			return 1;
-		}
-		if (listen(server, 3) < 0)
-		{
-			std::cerr << RED << "Listen error: " << strerror(errno) << RESET << std::endl;
-			return 1;
-		}
-		serverSockets.push_back(server);
-		FD_SET(server, &master);
-	}
+	Multiple_server(data, serverSockets, master, port, server);
 	socklen_t addrlen = sizeof(address);
 	std::vector<client> clients;
 	std::vector<ConfigData> servers = data.getServers();
 	signal(SIGPIPE, SIG_IGN);
-	// char buffer[BUFFER_SIZE] ;
+
 	while(1){
 		std::cout << GREEN << "Waiting for connections..." << RESET << std::endl;
 		fd_set copy = master;
@@ -355,78 +340,10 @@ int main(int ac, char **av){
 						}
 					
 					}
-					// Request getdata(newClient.request);
-					// int contentLength = getdata.getContentLength();
-					
-					// int bytesReceived = 0;
-					// while(bytesReceived <= contentLength){
-					// 	int r = recv(newClient.socket, buffer, BUFFER_SIZE - 1, 0);
-					// 	if(r < 0){
-					// 		std::cerr << RED << "Recv error: " << strerror(errno) << RESET << std::endl;
-					// 	}
-					// 	newClient.request += buffer;
-					// 	if(bytesReceived == contentLength){
-					// 		std::cout << GREEN << " **** REQUEST RECEIVED ****** " << RESET << std::endl;
-					// 		newClient.request[r] = '\0';
-					// 	}
-					// 	bytesReceived += r;
-					// }
-					// std::cout << GREEN << "Content length: " << contentLength << std::endl;
-					// std::cout << YELLOW << newClient.request << RESET<<std::endl;
-					// int r = recv(newClient.socket, buffer, BUFFER_SIZE - 1, 0);
-					// if(r < 0){
-					// 	std::cerr << RED << "Recv error: " << strerror(errno) << RESET << std::endl;
-						
-					// }
-					// newClient.request += buffer;
-					// std::string headers;
-					// char tempBuffer[BUFFER_SIZE];
-					// // std::cout << "*****************" << std::endl;
-					// while (headers.find("\r\n\r\n") == std::string::npos) {
-					// 	int r = recv(newClient.socket, tempBuffer, BUFFER_SIZE, 0);
-					// 	if (r < 0) {
-					// 		std::cerr << RED << "Recv error: " << strerror(errno) << RESET << std::endl;
-					// 		break;
-					// 	}
-					// 	 tempBuffer[r] = '\0';
-					// 	headers += tempBuffer;
-					// }
-					// // std::cout << "---------------" << std::endl;
-					// Request getdata(headers);
-					// int contentLength = getdata.getContentLength();
-
-					// size_t endOfHeaders = headers.find("\r\n\r\n");
-					// headers = headers.substr(0, endOfHeaders);
-					// std::cout << " ------ header ----------- \n" << headers << std::endl;
-					// std::cout<< "header end" << std::endl;
-					// std::string body = headers.substr(endOfHeaders);
-					// std::cout << GREEN << "Content length: " << contentLength << RESET << std::endl;
-					// int bytesReceived = 0;
-					// while (bytesReceived < contentLength) {
-					// 	int r = recv(newClient.socket, tempBuffer, BUFFER_SIZE, 0);
-					// 	if (r < 0) {
-					// 		std::cerr << RED << "Recv error: " << strerror(errno) << RESET << std::endl;
-					// 		break;
-					// 	}
-					// 	body += tempBuffer;
-					// 	bytesReceived += r;
-					// }
-					// std::cout << " ------ body ----------- \n" << body << std::endl;
-					// std::cout<< "body end" << std::endl;
-					// newClient.request = headers + body;
 					newClient.request  = readRequest(newClient.socket);
-					// std::cout << RED << "bytesReceived : "  << bytesReceived  << " | " << "Content length: " << contentLength << std::endl;
 					std::cout << YELLOW << newClient.request << RESET << std::endl;
-					// std::size_t found = newClient.request.find("\r\n\r\n");
-					// if (found != std::string::npos) {
-					// 	std::cout  << "\n"<<  GREEN <<" ***** Complete request received ***** " << "\n"<<  std::endl;
-					// }
 					Request request(newClient.request);
-					// int len = request.getContentLength();
-					// std::cout << GREEN << "Content length: " << len << RESET << std::endl;
 					for(size_t i = 0; i < servers.size(); i++){
-						// std::cout << RED << servers[i].port << RESET << std::endl;
-						// std::cout << GREEN << port << RESET << std::endl;
 						if(servers[i].port == port){
 							sendResponse(sock, request, servers[i]);
 						}
