@@ -6,7 +6,7 @@
 /*   By: emohamed <emohamed@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/23 11:26:17 by emohamed          #+#    #+#             */
-/*   Updated: 2024/02/11 21:27:42 by emohamed         ###   ########.fr       */
+/*   Updated: 2024/02/12 15:38:33 by emohamed         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -210,6 +210,61 @@ int check_serv_socket_to_connect(int server, std::vector<int> serverSockets){
 	}
 	return 0;
 }
+
+// int getContentLength(0
+// {
+	
+// })
+
+std::string readRequest(int socket)
+{
+	int bufferSize = 1024;
+	
+	char buffer[bufferSize + 1];
+	int r = 1;
+	std::string request = "";
+	size_t cpos;
+	int bodySizeReceived = 0;
+	while(r > 0)
+	{
+		r = recv(socket, buffer, bufferSize, 0);
+		if (r < 0)
+			break;
+		buffer[r] = '\0';
+		std::string sbuffer(buffer);
+		request += sbuffer;
+		if (sbuffer.find("\r\n\r\n") != std::string::npos)
+			break;
+	}
+	cpos = request.find("Content-Length");
+	int contentlength = 0;
+	if (cpos != std::string::npos)
+		contentlength = atoi(request.substr(cpos + 15, request.find("\r\n")).c_str());
+	// std::cout << "Content Length = " << contentlength << std::endl;
+	size_t pos = request.find("\r\n\r\n");
+	std::string header = request.substr(0, pos);
+	// std::cout << "--------------- header data ---------------------------" << std::endl;
+	// std::cout << header << std::endl;
+	// std::cout << "------------------------------------------" << std::endl;
+	std::string body = request.substr(pos + 4);
+	bodySizeReceived = body.length();
+	while (bodySizeReceived < contentlength)
+	{
+		r = recv(socket, buffer, bufferSize, 0);
+		if (r < 0)
+			break;
+		buffer[r] = '\0';
+		std::string sbuffer(buffer);
+		body += sbuffer;
+		bodySizeReceived += r;
+	}
+	// std::cout << "bodySizeReceived = " << bodySizeReceived << std::endl;
+	// std::cout << "--------------- body data ---------------------------" << std::endl;
+	// std::cout << body << std::endl;
+	// std::cout << "------------------------------------------" << std::endl;
+	return request;
+}
+
 int main(int ac, char **av){
 	if(ac != 2){
 		std::cerr << "Usage: ./server <config_file>" << std::endl;
@@ -324,33 +379,43 @@ int main(int ac, char **av){
 						
 					// }
 					// newClient.request += buffer;
-					std::string headers;
-					char tempBuffer[BUFFER_SIZE];
-					while (headers.find("\r\n\r\n") == std::string::npos) {
-						int r = recv(newClient.socket, tempBuffer, BUFFER_SIZE - 1, 0);
-						if (r < 0) {
-							std::cerr << RED << "Recv error: " << strerror(errno) << RESET << std::endl;
-							break;
-						}
-						headers += tempBuffer;
-					}
+					// std::string headers;
+					// char tempBuffer[BUFFER_SIZE];
+					// // std::cout << "*****************" << std::endl;
+					// while (headers.find("\r\n\r\n") == std::string::npos) {
+					// 	int r = recv(newClient.socket, tempBuffer, BUFFER_SIZE, 0);
+					// 	if (r < 0) {
+					// 		std::cerr << RED << "Recv error: " << strerror(errno) << RESET << std::endl;
+					// 		break;
+					// 	}
+					// 	 tempBuffer[r] = '\0';
+					// 	headers += tempBuffer;
+					// }
+					// // std::cout << "---------------" << std::endl;
+					// Request getdata(headers);
+					// int contentLength = getdata.getContentLength();
 
-					Request getdata(headers);
-					int contentLength = getdata.getContentLength();
-
-					std::string body;
-					std::cout << GREEN << "Content length: " << contentLength << RESET << std::endl;
-					int bytesReceived = 0;
-					while (bytesReceived < contentLength) {
-						int r = recv(newClient.socket, tempBuffer, BUFFER_SIZE - 1, 0);
-						if (r < 0) {
-							std::cerr << RED << "Recv error: " << strerror(errno) << RESET << std::endl;
-							break;
-						}
-						body += tempBuffer;
-						bytesReceived += r;
-					}
-					newClient.request = headers + body;
+					// size_t endOfHeaders = headers.find("\r\n\r\n");
+					// headers = headers.substr(0, endOfHeaders);
+					// std::cout << " ------ header ----------- \n" << headers << std::endl;
+					// std::cout<< "header end" << std::endl;
+					// std::string body = headers.substr(endOfHeaders);
+					// std::cout << GREEN << "Content length: " << contentLength << RESET << std::endl;
+					// int bytesReceived = 0;
+					// while (bytesReceived < contentLength) {
+					// 	int r = recv(newClient.socket, tempBuffer, BUFFER_SIZE, 0);
+					// 	if (r < 0) {
+					// 		std::cerr << RED << "Recv error: " << strerror(errno) << RESET << std::endl;
+					// 		break;
+					// 	}
+					// 	body += tempBuffer;
+					// 	bytesReceived += r;
+					// }
+					// std::cout << " ------ body ----------- \n" << body << std::endl;
+					// std::cout<< "body end" << std::endl;
+					// newClient.request = headers + body;
+					newClient.request  = readRequest(newClient.socket);
+					// std::cout << RED << "bytesReceived : "  << bytesReceived  << " | " << "Content length: " << contentLength << std::endl;
 					std::cout << YELLOW << newClient.request << RESET << std::endl;
 					// std::size_t found = newClient.request.find("\r\n\r\n");
 					// if (found != std::string::npos) {
@@ -375,3 +440,5 @@ int main(int ac, char **av){
 	
 	
 }
+
+
