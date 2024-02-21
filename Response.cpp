@@ -6,7 +6,7 @@
 /*   By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/19 15:22:39 by hoigag            #+#    #+#             */
-/*   Updated: 2024/02/01 18:12:20 by hoigag           ###   ########.fr       */
+/*   Updated: 2024/02/20 17:32:38 by hoigag           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -85,7 +85,7 @@ void Response::sendIt(int sock)
 		std::cerr << "error: Could not send data" << std::endl;
 		exit(1);
 	}
-    close(sock);
+    // close(sock);
 }
 std::string Response::getStatusCode()
 {

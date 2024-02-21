@@ -6,7 +6,7 @@
 /*   By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/01 16:18:37 by ogorfti           #+#    #+#             */
-/*   Updated: 2024/02/09 17:08:44 by hoigag           ###   ########.fr       */
+/*   Updated: 2024/02/12 16:40:40 by hoigag           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -205,6 +205,10 @@ void Request::printHeaders()
 		it++;
 	}
 }
+void Request::setBody(std::string body)
+{
+	this->body_ = body;
+}
 std::ostream &operator<<(std::ostream &stream, Request &req)
 {
 	stream << "----------------------- Request start --------------------------------------" << std::endl;
@@ -212,21 +216,21 @@ std::ostream &operator<<(std::ostream &stream, Request &req)
 	stream << "url           : " << req.getURL() << std::endl;
 	stream << "content type  : " << req.getContentType() << std::endl;
 	stream << "content length: " << req.getContentLength() << std::endl;
-	stream << "body          : " << std::endl;
-	if (req.getContentType().find("multipart/form-data") != string::npos)
-	{
-		vector<s_tuple > data = req.getMultipart();
-		for (size_t i = 0; i < data.size(); i++)
-		{
-			stream << "---------------------------" << endl;
-			stream << "name: " << data[i].name << endl;
-			stream << "filename: " << data[i].fileName << endl;
-			stream << "value: " << data[i].value << endl;
-		}
-	}
-	else
-		stream << req.getBody() << std::endl;
-	stream << "----------------------- Request end --------------------------------------" << std::endl;
+	// stream << "body          : " << std::endl;
+	// if (req.getContentType().find("multipart/form-data") != string::npos)
+	// {
+	// 	vector<s_tuple > data = req.getMultipart();
+	// 	for (size_t i = 0; i < data.size(); i++)
+	// 	{
+	// 		stream << "---------------------------" << endl;
+	// 		stream << "name: " << data[i].name << endl;
+	// 		stream << "filename: " << data[i].fileName << endl;
+	// 		stream << "value: " << data[i].value << endl;
+	// 	}
+	// }
+	// else
+	// 	stream << req.getBody() << std::endl;
+	// stream << "----------------------- Request end --------------------------------------" << std::endl;
 
 	return stream;
 }

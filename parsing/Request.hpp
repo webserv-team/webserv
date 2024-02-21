@@ -6,7 +6,7 @@
 /*   By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/08 09:36:38 by ogorfti           #+#    #+#             */
-/*   Updated: 2024/02/09 17:08:38 by hoigag           ###   ########.fr       */
+/*   Updated: 2024/02/10 17:39:21 by hoigag           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -47,7 +47,7 @@ class Request
 		Request(std::string request);
 		Request& operator=(Request& reaquest);
 		~Request();
-		
+		void setBody(std::string body);
 		void printHeaders();
 		Request(Request& reaquest);
 		int getContentLength();

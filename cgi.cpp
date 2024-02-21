@@ -6,7 +6,7 @@
 /*   By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/25 10:51:02 by hoigag            #+#    #+#             */
-/*   Updated: 2024/02/05 17:32:14 by hoigag           ###   ########.fr       */
+/*   Updated: 2024/02/12 12:01:44 by hoigag           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -92,6 +92,7 @@ std::string Cgi::executeScript(std::string script)
     }
     else if (pid == 0)
     {
+        
         if (this->vars["REQUEST_METHOD"] == "POST")
             if (dup2(pipes[0], 0) < 0)
             {

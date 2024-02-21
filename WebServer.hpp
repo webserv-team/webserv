@@ -6,7 +6,7 @@
 /*   By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/25 13:25:40 by hoigag            #+#    #+#             */
-/*   Updated: 2024/02/04 12:58:13 by hoigag           ###   ########.fr       */
+/*   Updated: 2024/02/15 10:38:13 by hoigag           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,6 +25,7 @@
 #include "Mimes.hpp"
 // #define SERVER_PORT 3030
 #define REQUEST_LENGTH 1024
+#include <map>
 class WebServer
 {
 	public:
@@ -35,10 +36,11 @@ class WebServer
 		void bindSocket();
 		void sendResponse(Request req, int sock);
 		std::string directoryListing(std::string& path);
-
+		
 		// WebServer(const WebServer& other);
 		// WebServer& operator=(const WebServer& other);
 	private:
+		std::map<int, std::string> clients;
 		ConfigData server;
 		int listenFD;
 		struct sockaddr_in servaddr;
