@@ -6,7 +6,7 @@
 /*   By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/25 13:25:40 by hoigag            #+#    #+#             */
-/*   Updated: 2024/02/15 10:38:13 by hoigag           ###   ########.fr       */
+/*   Updated: 2024/02/26 15:16:34 by hoigag           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,6 +26,17 @@
 // #define SERVER_PORT 3030
 #define REQUEST_LENGTH 1024
 #include <map>
+struct Client
+{
+    std::string request;
+    bool isRequestFinished;
+	int bytesRead;
+	int contentlength;
+	std::string header;
+	std::string content;
+	int isHeaderFinished;
+};
+
 class WebServer
 {
 	public:
@@ -40,7 +51,7 @@ class WebServer
 		// WebServer(const WebServer& other);
 		// WebServer& operator=(const WebServer& other);
 	private:
-		std::map<int, std::string> clients;
+		std::map<int, Client> clients;
 		ConfigData server;
 		int listenFD;
 		struct sockaddr_in servaddr;

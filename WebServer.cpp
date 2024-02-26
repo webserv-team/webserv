@@ -6,7 +6,7 @@
 /*   By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/25 13:25:34 by hoigag            #+#    #+#             */
-/*   Updated: 2024/02/21 18:17:57 by hoigag           ###   ########.fr       */
+/*   Updated: 2024/02/26 15:47:39 by hoigag           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,8 +17,42 @@
 #include "Cgi.hpp"
 #include "Response.hpp"
 
-using namespace std;
 
+class Header
+{
+    public:
+        Header() : req(""){};
+        Header(std::string& req){this->req = req;}
+        std::string getMethod()
+        {
+            size_t pos = this->req.find(" ");
+            return this->req.substr(0, pos);
+        }
+        int getContentLength()
+        {
+            int contentlength = 0;
+            size_t pos = this->req.find("Content-Length: ");
+            if (pos != std::string::npos)
+            {
+                std::string length = req.substr(pos + 16);
+                contentlength = atoi(length.c_str());
+            }
+            return contentlength;
+        }
+        bool isChunked()
+        {
+            size_t pos = this->req.find("Transfer-Encoding: chunked");
+            if (pos != std::string::npos)
+                return true;
+            return false;
+        }
+    private:
+        std::string req;
+};
+
+
+
+using namespace std;
 
 std::string WebServer::directoryListing(std::string& path)
 {
@@ -247,12 +281,16 @@ std::string getMethod(std::string& req)
 
 std::string sread(int socket)
 {
-    char dataRead[BUFFER_SIZE + 1];
-    int bytesRead = recv(socket, dataRead, BUFFER_SIZE, 0);
+    int size = 10;
+    char dataRead[size + 1];
+    int bytesRead = recv(socket, dataRead, size, 0);
     if (bytesRead < 0)
         std::runtime_error("recv error : could not read from socket");
     dataRead[bytesRead] = '\0';
-    std::string str(dataRead);
+    std::string str(dataRead, bytesRead);
+    std::cout << "--------------- data read ----------------" << std::endl;
+    std::cout << str << std::endl;
+    std::cout << "--------------------- end read ----------------------" << std::endl;
     return str;
 }
 
@@ -263,10 +301,22 @@ int getContentLength(std::string& req)
     if (pos != std::string::npos)
     {
         std::string length = req.substr(pos + 16);
-        std::cout << "len len len === " << length << std::endl;
         contentlength = atoi(length.c_str());
     }
     return contentlength;
+}
+
+bool isChunked(std::string& req)
+{
+    size_t pos = req.find("Transfer-Encoding: chunked");
+    if (pos != std::string::npos)
+        return true;
+    return false;
+}
+
+void handlePostRequest()
+{
+    std::cout << "handling post request" << std::endl;
 }
 
 void WebServer::listenForConnections()
@@ -278,14 +328,15 @@ void WebServer::listenForConnections()
     fd_set current_sockets, ready_sockets;
     FD_ZERO(&current_sockets);
     FD_SET(this->listenFD, &current_sockets);
+    int maxFd = this->listenFD;
     while (true)
     {
         ready_sockets = current_sockets;
-        if (select(FD_SETSIZE, &ready_sockets, NULL, NULL, NULL) < 0)
+        if (select(maxFd + 1, &ready_sockets, NULL, NULL, NULL) < 0)
             std::runtime_error("select error");
         struct sockaddr_in addr;
-        socklen_t addr_len;
-        for (int i = 0; i < FD_SETSIZE; i++)
+        socklen_t addr_len = sizeof(addr);
+        for (int i = 0; i <= maxFd; i++)
         {
             if (FD_ISSET(i, &ready_sockets))
             {
@@ -298,37 +349,62 @@ void WebServer::listenForConnections()
                         std::cout << "could not accept the connection" << std::endl;
                         exit(1);
                     }
-                   FD_SET(connFd, &current_sockets);
-                //    std::cout << "partial request: " << this->clients[connFd] << std::endl;
+                    FD_SET(connFd, &current_sockets);
+                    if (connFd > maxFd)
+                        maxFd = connFd;
+                    Client c = {"" , false, 0, 0, "", "", false};
+                    this->clients[connFd] = c;
+                    // this->clients[connFd] = sread(connFd);
+                    // std::cout << "partial request: " << this->clients[connFd] << std::endl;
                 }
                 else
                 {    
-                    std::cout << "already existing client" << std::endl;
-                    // this->clients[i] += sread(i);
-                    // this->clients[i] += sread(i); 
-                    std::string request = this->clients[i];
-                    if (getMethod(request) == "GET" && request.find("\r\n\r\n") != std::string::npos)
+                    // std::cout << "already existing client" << std::endl;
+                    std::string dataRead = sread(i);
+                    Header headers;
+                    // std::string request = this->clients[i].request;
+                    // std::cout << "method == " << getMethod(request) << std::endl;
+                    size_t carr_pos = dataRead.find("\r\n\r\n");
+                    if (carr_pos != std::string::npos)
                     {
-                        std::cout << "<" << getMethod(request) << ">" << std::endl;
-                        std::cout << request << std::endl;
-                        Request req(request);
-                        std::cout << "sending response" << std::endl;
-                        // sendResponse(req, i);
-                        // close(i);
-                        FD_CLR(i, &current_sockets);
+                        this->clients[i].isHeaderFinished = true; 
+                        this->clients[i].header = dataRead.substr(0, carr_pos);
+                        headers =  Header(this->clients[i].header);   
                     }
-                    else if (getMethod(request) == "POST")
+                    
+                    
+                    if (headers.getMethod() == "GET")
                     {
-                        std::cout << "POST REQUEST" << std::endl;
-                        std::cout << this->clients[i] << std::endl;
-                        std::cout << "content length = " << getContentLength(request) << std::endl;
+                        std::cout << "seend reaponse" << std::endl;
                         FD_CLR(i, &current_sockets);
+                        close(i);
                     }
+                    // if (headers.getMethod() == "POST")
+                    // {
+                    //     this->clients[i].content += dataRead.substr(carr_pos + 4);
+                    //     this->clients
+                    // }
                     else
-                    {
-                        this->clients[i] += sread(i);
-                        std::cout << this->clients[i] << std::endl;
-                    }
+                        this->clients[i].header.append(dataRead);
+                    // if (getMethod(request) == "POST")
+                    // {
+                    //     this->clients[i].contentlength = getContentLength(request);
+                    //     std::string body = request.substr(carr_pos + 4);
+                    //     this->clients[i].bytesRead = body.length();
+                    // }
+                    // if (getMethod(request) == "GET" && request.find("\r\n\r\n") != std::string::npos)
+                    //     this->clients[i].isRequestFinished = true;
+                    // else if (getMethod(request) == "POST" && isChunked(request) && request.find("0\r\n\r\n") != std::string::npos)
+                    //     this->clients[i].isRequestFinished = true;
+                    // else if (getMethod(request) == "POST" && !isChunked(request) && this->clients[i].bytesRead >= this->clients[i].contentlength)
+                    //     this->clients[i].isRequestFinished = true;
+                    //  if (this->clients[i].isRequestFinished)
+                    // {
+                    //     std::cout << this->clients[i].request << std::endl;
+                    //     std::cout << "size = " << this->clients[i].bytesRead << std::endl;
+                    //     std::cout << "sending response" << std::endl;
+                    //     FD_CLR(i, &current_sockets);
+                    // }
                 }
             }
         }
@@ -349,7 +425,6 @@ void WebServer::listenForConnections()
         //     std::cerr << "error sending the response" << '\n';
         //     close(connFd);
         // }
-        
     }
 }
 
