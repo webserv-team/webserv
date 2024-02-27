@@ -6,7 +6,7 @@
 /*   By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/19 15:22:39 by hoigag            #+#    #+#             */
-/*   Updated: 2024/02/20 17:32:38 by hoigag           ###   ########.fr       */
+/*   Updated: 2024/02/27 18:28:38 by hoigag           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -73,19 +73,25 @@ void Response::setStatusLine()
     this->statusLine = this->httpVersion + " " + this->statusCode + " " + this->statusReason;
 }
 
-void Response::sendIt(int sock)
+void Response::buildResponse()
 {
     this->response = this->statusLine + this->delim;
     this->response += "Content-Type: " + this->contentType + this->delim;
     this->response += "Content-Length: " + this->contentLength + this->delim;
     this->response += this->delim;
     this->response += this->body;
-    if (send(sock, this->response.c_str(), response.length(), 0) < 0)
-	{
-		std::cerr << "error: Could not send data" << std::endl;
-		exit(1);
-	}
-    // close(sock);
+}
+
+void Response::sendIt(int sock)
+{
+    int totalDataSent = 0;
+    int dataSent = 0;
+    int responseLength = this->response.length();
+    dataSent = send(sock, this->response.c_str() + dataSent, responseLength - totalDataSent, 0);
+    if (dataSent < 0)
+        std::cerr << "error: Could not send data" << std::endl;
+    else
+        totalDataSent += dataSent;
 }
 std::string Response::getStatusCode()
 {
@@ -118,3 +124,9 @@ std::ostream& operator<<(std::ostream& stream, Response& res)
     stream << "++++++++++++++++++++++++++++++++++++++++++++++++++++\n";
     return stream;
 }
+
+int Response::getResponseLength()
+{
+    return this->response.length();
+}
+

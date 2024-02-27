@@ -6,7 +6,7 @@
 /*   By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/25 13:25:40 by hoigag            #+#    #+#             */
-/*   Updated: 2024/02/26 15:16:34 by hoigag           ###   ########.fr       */
+/*   Updated: 2024/02/27 18:21:33 by hoigag           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,6 +23,7 @@
 #include <sys/stat.h>
 #include "parsing/ServerConf.hpp"
 #include "Mimes.hpp"
+#include "Response.hpp"
 // #define SERVER_PORT 3030
 #define REQUEST_LENGTH 1024
 #include <map>
@@ -37,6 +38,14 @@ struct Client
 	int isHeaderFinished;
 };
 
+struct ClientResponse
+{
+	Response response;
+	int dataSent;
+	int totalDataSent;
+	int responseSize;
+};
+
 class WebServer
 {
 	public:
@@ -45,13 +54,14 @@ class WebServer
 		void createSocket();
 		void listenForConnections();
 		void bindSocket();
-		void sendResponse(Request req, int sock);
+		Response sendResponse(Request req);
 		std::string directoryListing(std::string& path);
 		
 		// WebServer(const WebServer& other);
 		// WebServer& operator=(const WebServer& other);
 	private:
 		std::map<int, Client> clients;
+		std::map<int, ClientResponse> clientResponses;
 		ConfigData server;
 		int listenFD;
 		struct sockaddr_in servaddr;

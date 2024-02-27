@@ -6,7 +6,7 @@
 /*   By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/25 13:25:34 by hoigag            #+#    #+#             */
-/*   Updated: 2024/02/26 15:47:39 by hoigag           ###   ########.fr       */
+/*   Updated: 2024/02/27 18:30:13 by hoigag           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -127,13 +127,14 @@ void uploadFiles(Request& req)
     std::cout << "body === " << body << std::endl;
 }
 
-void	WebServer::sendResponse(Request req, int sock)
+Response	WebServer::sendResponse(Request req)
 {
     Response response;
     std::string content;
     std::string header;
     std::string contentType;
     std::string resourceFullPath = this->server.documentRoot;
+    std::cout << req << std::endl;
     std::string url = req.getURL();
     size_t pos = url.find("?");
     if (req.getMethod() == "POST" && req.getContentType().find("multipart/form-data") != string::npos)
@@ -180,8 +181,9 @@ void	WebServer::sendResponse(Request req, int sock)
     response.setContentType(contentType);
     response.setContentLength(content.size());
     response.setBody(content);
+    response.buildResponse();
     // std::cout << response << std::endl;
-    response.sendIt(sock);
+    return response;
 }
 
 WebServer::WebServer(ConfigData ServerConf)
@@ -213,63 +215,6 @@ void WebServer::bindSocket()
     if(bind(this->listenFD, (struct sockaddr *) &servaddr, sizeof(servaddr)) < 0)
         throw std::runtime_error("could not bind to socket");
 }
-//  std::string getRequest(int connFd)
-//  {
-//     char data[REQUEST_LENGTH];
-//     int n = read(connFd, data, REQUEST_LENGTH);
-//     if (n  < 0)
-//     {
-//         std::cout << "could not read the request" << std::endl;
-//         exit (1);
-//     }
-//     data[n] = '\0';
-//     std::string request(data);
-//     return request;
-//  }
-std::string getRequest(int socket)
-{
-    int bufferSize = 1024;
-    
-    char buffer[bufferSize + 1];
-    int r = 1;
-    std::string request = "";
-    size_t cpos;
-    int bodySizeReceived = 0;
-    while(r > 0)
-    {
-        r = recv(socket, buffer, bufferSize, 0);
-        if (r < 0)
-            break;
-        buffer[r] = '\0';
-        std::string sbuffer(buffer);
-        request += sbuffer;
-        if (sbuffer.find("\r\n\r\n") != std::string::npos)
-            break;
-    }
-    if (request.substr(0, request.find(" ")) == "POST")
-    {
-        cpos = request.find("Content-Length");
-        int contentlength = 0;
-        if (cpos != std::string::npos)
-            contentlength = atoi(request.substr(cpos + 15, request.find("\r\n")).c_str());
-        size_t pos = request.find("\r\n\r\n");
-        std::string header = request.substr(0, pos);
-        std::string body = request.substr(pos + 4);
-        bodySizeReceived = body.length();
-        while (bodySizeReceived < contentlength)
-        {
-            r = recv(socket, buffer, bufferSize, 0);
-            if (r < 0)
-                break;
-            buffer[r] = '\0';
-            std::string sbuffer(buffer);
-            body += sbuffer;
-            bodySizeReceived += r;
-        }
-        std::cout << "body received " << bodySizeReceived << " | content LENGTH = " << contentlength << std::endl;
-    }
-    return request;
-}
 
 std::string getMethod(std::string& req)
 {
@@ -281,16 +226,16 @@ std::string getMethod(std::string& req)
 
 std::string sread(int socket)
 {
-    int size = 10;
+    int size = 1024;
     char dataRead[size + 1];
     int bytesRead = recv(socket, dataRead, size, 0);
     if (bytesRead < 0)
         std::runtime_error("recv error : could not read from socket");
     dataRead[bytesRead] = '\0';
     std::string str(dataRead, bytesRead);
-    std::cout << "--------------- data read ----------------" << std::endl;
-    std::cout << str << std::endl;
-    std::cout << "--------------------- end read ----------------------" << std::endl;
+    // std::cout << "--------------- data read ----------------" << std::endl;
+    // std::cout << str << std::endl;
+    // std::cout << "--------------------- end read ----------------------" << std::endl;
     return str;
 }
 
@@ -314,9 +259,24 @@ bool isChunked(std::string& req)
     return false;
 }
 
-void handlePostRequest()
+void handlePostRequest(Header& header, Client& client, std::string& dataRead)
 {
     std::cout << "handling post request" << std::endl;
+    if (dataRead.find("\r\n\r\n") == std::string::npos)
+    {
+        client.content.append(dataRead);
+        client.bytesRead += dataRead.length();
+    }
+    std::cout << "content length == " << header.getContentLength() << std::endl;
+    std::cout << "bytes read == " << client.bytesRead << std::endl;
+    // if (client.bytesRead == header.getContentLength())
+    std::cout << "data read = " << dataRead << std::endl;
+    if (header.getContentLength() >= client.bytesRead)
+    {
+        std::cout << "POST REQUEST END" << std::endl;
+        client.isRequestFinished = true;
+        // std::cout << "conetnt = " << client.content << std::endl;
+    }
 }
 
 void WebServer::listenForConnections()
@@ -326,7 +286,9 @@ void WebServer::listenForConnections()
     if ((listen(this->listenFD, 3)) < 0)
         std::runtime_error("error happened during listening for requests");
     fd_set current_sockets, ready_sockets;
+    fd_set write_sockets;
     FD_ZERO(&current_sockets);
+    FD_ZERO(&write_sockets);
     FD_SET(this->listenFD, &current_sockets);
     int maxFd = this->listenFD;
     while (true)
@@ -342,7 +304,7 @@ void WebServer::listenForConnections()
             {
                 if (i == this->listenFD)
                 {
-                    std::cout << "new connection" << std::endl;
+                    // std::cout << "new connection" << std::endl;
                     connFd = accept(this->listenFD,  (struct sockaddr *)&addr, (socklen_t *) &addr_len);
                     if (connFd < 0)
                     {
@@ -354,77 +316,47 @@ void WebServer::listenForConnections()
                         maxFd = connFd;
                     Client c = {"" , false, 0, 0, "", "", false};
                     this->clients[connFd] = c;
-                    // this->clients[connFd] = sread(connFd);
-                    // std::cout << "partial request: " << this->clients[connFd] << std::endl;
                 }
                 else
                 {    
-                    // std::cout << "already existing client" << std::endl;
                     std::string dataRead = sread(i);
                     Header headers;
-                    // std::string request = this->clients[i].request;
-                    // std::cout << "method == " << getMethod(request) << std::endl;
                     size_t carr_pos = dataRead.find("\r\n\r\n");
                     if (carr_pos != std::string::npos)
                     {
                         this->clients[i].isHeaderFinished = true; 
-                        this->clients[i].header = dataRead.substr(0, carr_pos);
-                        headers =  Header(this->clients[i].header);   
+                        this->clients[i].header += dataRead.substr(0, carr_pos);
+                        this->clients[i].content = dataRead.substr(carr_pos + 4);
+                        this->clients[i].bytesRead = this->clients[i].content.length();
                     }
-                    
-                    
-                    if (headers.getMethod() == "GET")
+                    if (this->clients[i].isHeaderFinished)
                     {
-                        std::cout << "seend reaponse" << std::endl;
-                        FD_CLR(i, &current_sockets);
-                        close(i);
+                        headers =  Header(this->clients[i].header);   
+                        // std::cout << "header is finished " << headers.getMethod() << std::endl;
+                        if (headers.getMethod() == "GET")
+                            this->clients[i].isRequestFinished = true;
+                        else if (headers.getMethod() == "POST")
+                            handlePostRequest(headers, this->clients[i], dataRead);
                     }
-                    // if (headers.getMethod() == "POST")
-                    // {
-                    //     this->clients[i].content += dataRead.substr(carr_pos + 4);
-                    //     this->clients
-                    // }
                     else
                         this->clients[i].header.append(dataRead);
-                    // if (getMethod(request) == "POST")
-                    // {
-                    //     this->clients[i].contentlength = getContentLength(request);
-                    //     std::string body = request.substr(carr_pos + 4);
-                    //     this->clients[i].bytesRead = body.length();
-                    // }
-                    // if (getMethod(request) == "GET" && request.find("\r\n\r\n") != std::string::npos)
-                    //     this->clients[i].isRequestFinished = true;
-                    // else if (getMethod(request) == "POST" && isChunked(request) && request.find("0\r\n\r\n") != std::string::npos)
-                    //     this->clients[i].isRequestFinished = true;
-                    // else if (getMethod(request) == "POST" && !isChunked(request) && this->clients[i].bytesRead >= this->clients[i].contentlength)
-                    //     this->clients[i].isRequestFinished = true;
-                    //  if (this->clients[i].isRequestFinished)
-                    // {
-                    //     std::cout << this->clients[i].request << std::endl;
-                    //     std::cout << "size = " << this->clients[i].bytesRead << std::endl;
-                    //     std::cout << "sending response" << std::endl;
-                    //     FD_CLR(i, &current_sockets);
-                    // }
+                    if (this->clients[i].isRequestFinished)
+                    {
+                        std::cout << "seend get response" << std::endl;
+                        FD_CLR(i, &current_sockets);
+                        FD_SET(i, &write_sockets);
+                        Request req(this->clients[i].header + this->clients[i].content);
+                        this->clientResponses[i].response = this->sendResponse(req);
+                        this->clientResponses[i].responseSize = this->clientResponses[i].response.getResponseLength();
+                    }
+                    if (FD_ISSET(i, &write_sockets))
+                    {
+                        this->clientResponses[i].response.sendIt(i);
+                        FD_CLR(i, &write_sockets);
+                    }
                 }
             }
         }
-        // std::cout << "listening on port " << this->server.port << std::endl;
-
-         
-        // std::string request = getRequest(connFd);
-        // if (request.empty())
-        //     continue;
-            // Request req(request);
-        
-        // try
-        // {
-        //     sendResponse(req, connFd);
-        // }
-        // catch(const std::exception& e)
-        // {
-        //     std::cerr << "error sending the response" << '\n';
-        //     close(connFd);
-        // }
     }
 }
 

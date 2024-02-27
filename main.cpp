@@ -6,7 +6,7 @@
 /*   By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/24 14:56:22 by hoigag            #+#    #+#             */
-/*   Updated: 2024/01/30 12:35:57 by hoigag           ###   ########.fr       */
+/*   Updated: 2024/02/27 15:37:15 by hoigag           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,6 +27,7 @@ int main(int argc, char __unused **argv)
     // getContentType("hassan");
     try
     {
+        signal(SIGPIPE, SIG_IGN);
         ServerConf conf(configFile);
         const std::vector<ConfigData> serversFiles = conf.getServers();
         const std::vector<WebServer> servers;
