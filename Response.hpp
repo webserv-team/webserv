@@ -6,7 +6,7 @@
 /*   By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/19 13:50:27 by hoigag            #+#    #+#             */
-/*   Updated: 2024/02/27 18:27:43 by hoigag           ###   ########.fr       */
+/*   Updated: 2024/02/28 10:55:08 by hoigag           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,6 +33,7 @@ class Response
 		void setStatusLine();
 		void buildResponse();
 		int getResponseLength();
+		const char  *getResponseString();
 		std::string getStatusCode();
 		std::string getContentType();
 		std::string getContentLength();

@@ -6,7 +6,7 @@
 /*   By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/25 13:25:40 by hoigag            #+#    #+#             */
-/*   Updated: 2024/02/27 18:21:33 by hoigag           ###   ########.fr       */
+/*   Updated: 2024/02/28 15:58:37 by hoigag           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,6 +44,7 @@ struct ClientResponse
 	int dataSent;
 	int totalDataSent;
 	int responseSize;
+	bool isResponseFinished;
 };
 
 class WebServer
@@ -54,7 +55,7 @@ class WebServer
 		void createSocket();
 		void listenForConnections();
 		void bindSocket();
-		Response sendResponse(Request req);
+		Response formResponse(Request req);
 		std::string directoryListing(std::string& path);
 		
 		// WebServer(const WebServer& other);

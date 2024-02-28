@@ -6,7 +6,7 @@
 /*   By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/19 15:22:39 by hoigag            #+#    #+#             */
-/*   Updated: 2024/02/27 18:28:38 by hoigag           ###   ########.fr       */
+/*   Updated: 2024/02/28 10:54:46 by hoigag           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -66,6 +66,11 @@ void Response::setStatusReason(short status)
         this->statusReason =  "Not Found";
     else
         this->statusReason = "";
+}
+
+const char * Response::getResponseString()
+{
+    return this->response.c_str();
 }
 
 void Response::setStatusLine()

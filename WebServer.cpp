@@ -6,7 +6,7 @@
 /*   By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/25 13:25:34 by hoigag            #+#    #+#             */
-/*   Updated: 2024/02/27 18:30:13 by hoigag           ###   ########.fr       */
+/*   Updated: 2024/02/28 15:59:18 by hoigag           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -106,6 +106,7 @@ std::string WebServer::directoryListing(std::string& path)
 
 void uploadFiles(Request& req)
 {
+    std::cout << "uploading files" << std::endl;
     vector<s_tuple > data = req.getMultipart();
     std::string body = "";
     for (size_t i = 0; i < data.size(); i++)
@@ -127,14 +128,13 @@ void uploadFiles(Request& req)
     std::cout << "body === " << body << std::endl;
 }
 
-Response	WebServer::sendResponse(Request req)
+Response	WebServer::formResponse(Request req)
 {
     Response response;
     std::string content;
     std::string header;
     std::string contentType;
     std::string resourceFullPath = this->server.documentRoot;
-    std::cout << req << std::endl;
     std::string url = req.getURL();
     size_t pos = url.find("?");
     if (req.getMethod() == "POST" && req.getContentType().find("multipart/form-data") != string::npos)
@@ -159,15 +159,14 @@ Response	WebServer::sendResponse(Request req)
         content = this->directoryListing(resourceFullPath);
     else if (isSupportedCgiScript(resourceFullPath))
     {
-        // Cgi cgi(req);
-        // content = cgi.executeScript(resourceFullPath);
-        // size_t pos = content.find("\r\n\r\n");
-        // if (pos != std::string::npos)
-        // {
-        //     content = content.substr(pos);
-        //     header = content.substr(0, pos);
-        // }
-        content = "cgi script";
+        Cgi cgi(req);
+        content = cgi.executeScript(resourceFullPath);
+        size_t pos = content.find("\r\n\r\n");
+        if (pos != std::string::npos)
+        {
+            content = content.substr(pos);
+            header = content.substr(0, pos);
+        }
     }
     else
         content = loadFile(this->server.documentRoot + url);
@@ -208,20 +207,11 @@ void WebServer::bindSocket()
     }
     bzero(&this->servaddr, sizeof(this->servaddr));
     servaddr.sin_family = AF_INET;
-    servaddr.sin_addr.s_addr = htonl(0x7f000001);
+    servaddr.sin_addr.s_addr = htonl(INADDR_ANY);
     servaddr.sin_port = htons(this->server.port);
-
     //*binding the socket to the server
     if(bind(this->listenFD, (struct sockaddr *) &servaddr, sizeof(servaddr)) < 0)
         throw std::runtime_error("could not bind to socket");
-}
-
-std::string getMethod(std::string& req)
-{
-    size_t pos = req.find(" ");
-    if (pos != std::string::npos)
-        return req.substr(0, pos);
-    return "";
 }
 
 std::string sread(int socket)
@@ -233,9 +223,6 @@ std::string sread(int socket)
         std::runtime_error("recv error : could not read from socket");
     dataRead[bytesRead] = '\0';
     std::string str(dataRead, bytesRead);
-    // std::cout << "--------------- data read ----------------" << std::endl;
-    // std::cout << str << std::endl;
-    // std::cout << "--------------------- end read ----------------------" << std::endl;
     return str;
 }
 
@@ -261,23 +248,42 @@ bool isChunked(std::string& req)
 
 void handlePostRequest(Header& header, Client& client, std::string& dataRead)
 {
-    std::cout << "handling post request" << std::endl;
+    // std::cout << "handling post request" << std::endl;
     if (dataRead.find("\r\n\r\n") == std::string::npos)
     {
         client.content.append(dataRead);
         client.bytesRead += dataRead.length();
     }
-    std::cout << "content length == " << header.getContentLength() << std::endl;
-    std::cout << "bytes read == " << client.bytesRead << std::endl;
-    // if (client.bytesRead == header.getContentLength())
-    std::cout << "data read = " << dataRead << std::endl;
-    if (header.getContentLength() >= client.bytesRead)
+    
+    // std::cout << "content length == " << header.getContentLength() << std::endl;
+    // std::cout << "bytes read == " << client.bytesRead << std::endl;
+    // // if (client.bytesRead == header.getContentLength())
+    // std::cout << "data read = " << dataRead << std::endl;
+    if (client.bytesRead >= header.getContentLength())
     {
         std::cout << "POST REQUEST END" << std::endl;
         client.isRequestFinished = true;
         // std::cout << "conetnt = " << client.content << std::endl;
     }
 }
+
+void sendChunk(int sock, ClientResponse& cr)
+{
+    if (cr.totalDataSent < cr.responseSize)
+    {
+        cr.dataSent = send(sock, cr.response.getResponseString() + cr.dataSent, cr.responseSize - cr.totalDataSent, 0);
+        if (cr.dataSent < 0)
+            std::cerr << "error: Could not send data" << std::endl;
+        else
+            cr.totalDataSent += cr.dataSent;
+    }
+    if (cr.totalDataSent >= cr.responseSize)
+        cr.isResponseFinished = true;
+    // std::cout << "sending chunk" << std::endl;
+    // std::cout << "resonse length = " << cr.responseSize << std::endl;
+    // std::cout << "total data sent = " << cr.dataSent << std::endl;
+}
+
 
 void WebServer::listenForConnections()
 {
@@ -304,7 +310,6 @@ void WebServer::listenForConnections()
             {
                 if (i == this->listenFD)
                 {
-                    // std::cout << "new connection" << std::endl;
                     connFd = accept(this->listenFD,  (struct sockaddr *)&addr, (socklen_t *) &addr_len);
                     if (connFd < 0)
                     {
@@ -342,17 +347,26 @@ void WebServer::listenForConnections()
                         this->clients[i].header.append(dataRead);
                     if (this->clients[i].isRequestFinished)
                     {
-                        std::cout << "seend get response" << std::endl;
                         FD_CLR(i, &current_sockets);
                         FD_SET(i, &write_sockets);
-                        Request req(this->clients[i].header + this->clients[i].content);
+                        std::string httprequest = this->clients[i].header + "\r\n\r\n" + this->clients[i].content;
+                        std::cout << httprequest << std::endl<<std::endl;
+                        Request req(httprequest);
                         this->clientResponses[i].response = this->sendResponse(req);
                         this->clientResponses[i].responseSize = this->clientResponses[i].response.getResponseLength();
+                        this->clientResponses[i].dataSent = 0;
+                        this->clientResponses[i].totalDataSent = 0;
+                        this->clientResponses[i].isResponseFinished = false;
                     }
                     if (FD_ISSET(i, &write_sockets))
                     {
-                        this->clientResponses[i].response.sendIt(i);
-                        FD_CLR(i, &write_sockets);
+                        if (!this->clientResponses[i].isResponseFinished)
+                            sendChunk(i, this->clientResponses[i]);
+                        if (this->clientResponses[i].isResponseFinished)
+                        {
+                            FD_CLR(i, &write_sockets);
+                            close(i);
+                        }
                     }
                 }
             }
