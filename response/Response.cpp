@@ -6,7 +6,7 @@
 /*   By: ogorfti <ogorfti@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/31 12:47:54 by ogorfti           #+#    #+#             */
-/*   Updated: 2024/01/31 16:17:44 by ogorfti          ###   ########.fr       */
+/*   Updated: 2024/02/12 14:25:40 by ogorfti          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,7 +29,7 @@ string getContentType(const string& filePath)
 
 string extractFilePath(const string& url, ConfigData& server)
 {
-	string filePath = server.documentRoot;
+	string filePath = server.root;
 	
 	for (size_t i = 0; i < server.locations.size(); i++)
 	{

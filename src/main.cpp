@@ -6,7 +6,7 @@
 /*   By: ogorfti <ogorfti@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/20 10:16:59 by ogorfti           #+#    #+#             */
-/*   Updated: 2024/02/01 18:35:55 by ogorfti          ###   ########.fr       */
+/*   Updated: 2024/02/12 14:25:17 by ogorfti          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -79,13 +79,13 @@ int main()
 
 		for (size_t i = 0; i < servers.size(); i++)
 		{
-			if (servers[i].port == 8080)
-			{
+			// if (servers[i].port == 8080)
+			// {
 				// cout << "Server found: " << servers[i].hostName << endl;
 				// sendResponse(new_socket, request, servers[i]);
 				Response::sendResponse(new_socket, request, servers[i]);
 				// break;
-			}
+			// }
 		}
 		close(new_socket);
 	}

@@ -6,7 +6,7 @@
 /*   By: ogorfti <ogorfti@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/11 18:08:24 by ogorfti           #+#    #+#             */
-/*   Updated: 2024/02/12 11:43:51 by ogorfti          ###   ########.fr       */
+/*   Updated: 2024/02/29 18:16:47 by ogorfti          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,8 +14,6 @@
 
 #include "../include/lib.hpp"
 using namespace std;
-
-typedef vector<string>::iterator vecIt;
 
 class Location
 {
@@ -32,7 +30,6 @@ class Location
 class ConfigData
 {
 	public:
-		// int port;
 		vector <int> ports;
 		string host;
 		string root;
@@ -46,11 +43,12 @@ class ServerConf
 {
 	private:
 		vector<ConfigData> servers;
-		void serverParams(ConfigData& server, const vector<string>& settings);
-		void serverErrors(ConfigData& server, const string& errors);
-		void serverLocations(ConfigData& server, const string& locations);
-
 	public:
 		ServerConf(const string& configPath);
 		const vector<ConfigData>& getServers() const;
 };
+
+void	settingsError(const vector<string>& settings);
+void	checkStatusCode(const string& code);
+void	isFilePath(const string& path);
+int		isNumber(const string& str);
