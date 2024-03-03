@@ -6,7 +6,7 @@
 /*   By: ogorfti <ogorfti@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/11 19:01:46 by ogorfti           #+#    #+#             */
-/*   Updated: 2024/02/29 18:16:04 by ogorfti          ###   ########.fr       */
+/*   Updated: 2024/03/03 16:59:03 by ogorfti          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -77,7 +77,22 @@ vector <string> split(const string& str, const string& delim)
 	return tokens;
 }
 
-Location parseLocation(const string& location)
+vector<string> parseMethod(const string& methods)
+{
+	vector<string> tokens = split(methods, ",");
+	vector<string> result;
+
+	for (size_t i = 0; i < tokens.size(); i++)
+	{
+		string method = trim(tokens[i]);
+		if (method != "GET" && method != "POST" && method != "DELETE")
+			throw runtime_error("Error: Invalid method");
+		result.push_back(method);
+	}
+	return result;
+}
+
+Location parseLocation(const string& location, ConfigData& server)
 {
 	vector<string> tokens = split(location, "\n");
 	Location loc;
@@ -89,22 +104,27 @@ Location parseLocation(const string& location)
 		{
 			string key = trim(tokens[i].substr(0, equalPos));
 			string value = trim(tokens[i].substr(equalPos + 1));
-			if (key == "path")
+			if (key == "path" || key == "root" || key == "index")
+				isFilePath(value);
+			if (key == "path")				
 				loc.path = value;
 			else if (key == "root")
 				loc.root = value;
 			else if (key == "index")
 				loc.index = value;
 			else if (key == "autoindex")
-				loc.autoindex = value;
-			else if (key == "bodyLimit")
-				loc.bodyLimit = value;
-			else if (key == "methods")
 			{
-				vector<string> methods = split(value, ",");
-				for (size_t i = 0; i < methods.size(); i++)
-					loc.methods.push_back(trim(methods[i]));
+				if (value != "on" && value != "off")
+					throw runtime_error("Error: Invalid autoindex value");	
+				loc.autoindex = value;
 			}
+			else if (key == "bodyLimit")
+			{
+				checkBodyLimit(value);	
+				loc.bodyLimit = value;
+			}
+			else if (key == "methods")
+				loc.methods = parseMethod(value);
 			else if (key == "redirect")
 			{
 				vector<string> redir = split(value, ",");
@@ -114,11 +134,17 @@ Location parseLocation(const string& location)
 				{
 					string key = trim(redir[i]);
 					string value = trim(redir[i + 1]);
+					isFilePath(key);
+					isFilePath(value);
 					loc.redirect[key] = value;
 				}
 			}
+			else
+				throw runtime_error("Error: Invalid location settings key");
 		}
 	}
+	if (loc.bodyLimit.empty())
+		loc.bodyLimit = server.bodyLimit;
 	return loc;
 }
 
@@ -128,7 +154,7 @@ void	serverLocations(ConfigData& server, const string& locations)
 
 	for (size_t i = 0; i < tokens.size(); i++)
 	{
-		Location loc = parseLocation(tokens[i]);
+		Location loc = parseLocation(tokens[i], server);
 		server.locations.push_back(loc);
 	}
 }
@@ -165,19 +191,6 @@ void	serverPorts(ConfigData& server, const string& ports)
 	}
 }
 
-void	checkValues(const string& value, const string& key)
-{
-	for (size_t i = 0; i < value.size(); i++)
-	{
-		if (!isalnum(value[i]) && value[i] != '/' && key != "errorPages" && key != "ports")
-		{
-			// cerr << RED << value << RESET << endl;
-			throw runtime_error("Error: Invalid server settings value");
-		}
-	}
-}
-
-//* add a check for each setting if it's empty later
 void	serverParams(ConfigData& server, const vector<string>& settings)
 {
 	// settingsError(settings);
@@ -206,6 +219,11 @@ void	serverParams(ConfigData& server, const vector<string>& settings)
 				server.uploadPath = value;
 			else if (key == "errorPages")
 				serverErrors(server, value);
+			else if (key == "bodyLimit")
+			{
+				checkBodyLimit(value);
+				server.bodyLimit = value;
+			}
 			else
 				throw runtime_error("Error: Invalid server settings key");
 		}
@@ -261,44 +279,45 @@ ServerConf::ServerConf(const string& configPath)
 	}
 }
 
-int main()
-{
-	ServerConf test("../default.conf");
+// int main()
+// {
+// 	ServerConf test("../default.conf");
 	
-	vector<ConfigData> servers = test.getServers();
+// 	vector<ConfigData> servers = test.getServers();
 
-	cerr << "Servers: " << servers.size() << endl;
-	for (size_t i = 0; i < servers.size(); i++)
-	{
-		cerr << "----------- Ports ------------\n";
-		for (size_t j = 0; j < servers[i].ports.size(); j++)
-		{
-			cerr << servers[i].ports[j] << endl;
-		}
-		// cerr << "--------- Settings -----------\n";
-		// cerr << "host: " << servers[i].host << endl;
-		// cerr << "root: " << servers[i].root << endl;
-		// cerr << "cgiPath: " << servers[i].cgiPath << endl;
-		// cerr << "uploadPath: " << servers[i].uploadPath << endl;
-		// cerr << "errorPages: " << endl;
-		// for (map<string, string>::iterator it = servers[i].errorPages.begin(); it != servers[i].errorPages.end(); it++)
-		// 	cerr << it->first << "-   -" << it->second << endl;
-		// cerr << "--------- Locations -----------" << servers[i].locations.size() << "\n";
-		// for (size_t j = 0; j < servers[i].locations.size(); j++)
-		// {
-		// 	cerr << "path: " << servers[i].locations[j].path << endl;
-		// 	cerr << "root: " << servers[i].locations[j].root << endl;
-		// 	cerr << "index: " << servers[i].locations[j].index << endl;
-		// 	cerr << "autoindex: " << servers[i].locations[j].autoindex << endl;
-		// 	cerr << "bodyLimit: " << servers[i].locations[j].bodyLimit << endl;
-		// 	cerr << "methods: ";
-		// 	for (size_t k = 0; k < servers[i].locations[j].methods.size(); k++)
-		// 		cerr << servers[i].locations[j].methods[k] << "- -";
-		// 	cerr << endl;
-		// 	cerr << "redirect: ";
-		// 	for (map<string, string>::iterator it = servers[i].locations[j].redirect.begin(); it != servers[i].locations[j].redirect.end(); it++)
-		// 		cerr << it->first << "-   -" << it->second << endl;
-		// 	cerr << "\n----------------------\n";
-		// }
-	}
-}
+// 	cerr << "Servers: " << servers.size() << endl;
+// 	for (size_t i = 0; i < servers.size(); i++)
+// 	{
+// 		cerr << "----------- Ports ------------\n";
+// 		for (size_t j = 0; j < servers[i].ports.size(); j++)
+// 		{
+// 			cerr << servers[i].ports[j] << endl;
+// 		}
+// 		cerr << "--------- Settings -----------\n";
+// 		cerr << "host: " << servers[i].host << endl;
+// 		cerr << "root: " << servers[i].root << endl;
+// 		cerr << "cgiPath: " << servers[i].cgiPath << endl;
+// 		cerr << "bodyLimit: " << servers[i].bodyLimit << endl;
+// 		cerr << "uploadPath: " << servers[i].uploadPath << endl;
+// 		cerr << "errorPages: " << endl;
+// 		for (map<string, string>::iterator it = servers[i].errorPages.begin(); it != servers[i].errorPages.end(); it++)
+// 			cerr << it->first << "-   -" << it->second << endl;
+// 		cerr << "--------- Locations -----------" << servers[i].locations.size() << "\n";
+// 		for (size_t j = 0; j < servers[i].locations.size(); j++)
+// 		{
+// 			cerr << "path: " << servers[i].locations[j].path << endl;
+// 			cerr << "root: " << servers[i].locations[j].root << endl;
+// 			cerr << "index: " << servers[i].locations[j].index << endl;
+// 			cerr << "autoindex: " << servers[i].locations[j].autoindex << endl;
+// 			cerr << "bodyLimit: " << servers[i].locations[j].bodyLimit << endl;
+// 			cerr << "methods: ";
+// 			for (size_t k = 0; k < servers[i].locations[j].methods.size(); k++)
+// 				cerr << servers[i].locations[j].methods[k] << "- -";
+// 			cerr << endl;
+// 			cerr << "redirect: ";
+// 			for (map<string, string>::iterator it = servers[i].locations[j].redirect.begin(); it != servers[i].locations[j].redirect.end(); it++)
+// 				cerr << it->first << "-   -" << it->second << endl;
+// 			cerr << "\n----------------------\n";
+// 		}
+// 	}
+// }

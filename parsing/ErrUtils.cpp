@@ -6,7 +6,7 @@
 /*   By: ogorfti <ogorfti@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/12 14:00:49 by ogorfti           #+#    #+#             */
-/*   Updated: 2024/02/29 18:17:16 by ogorfti          ###   ########.fr       */
+/*   Updated: 2024/03/03 17:00:16 by ogorfti          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,7 +20,7 @@ int isNumber(const string& str)
 	{
 		if (!isdigit(str[i]))
 		{
-			cerr << RED << str[i] << " is not a number" << RESET << endl;	
+			// cerr << RED << str[i] << " is not a number" << RESET << endl;
 			return 0;
 		}
 	}
@@ -46,13 +46,40 @@ void	isFilePath(const string& path)
 		throw runtime_error("Error: Invalid file path");
 	for (size_t i = 0; i < path.size(); i++)
 	{
-		if (!isalnum(path[i]) && path[i] != '/' && path[i] != '.' && path[i] != '_')
+		if (!isalnum(path[i]) && path[i] != '/' && path[i] != '.' && path[i] != '_' && path[i] != '-')
+		{
+			// cerr << RED << path[i] << RESET << endl;
 			throw runtime_error("Error: Invalid file path");
+		}
 	}
 }
 
-// void settingsError(const vector<string>& settings)
-// {
-//     if (settings.size() != 7)
-//         throw runtime_error("Error: missing or extra settings");
-// }
+void	checkValues(const string& value, const string& key)
+{
+	if (key.empty() || value.empty())
+		throw runtime_error("Error: Missing server settings");
+	for (size_t i = 0; i < value.size(); i++)
+	{
+		if (!isalnum(value[i]) && value[i] != '/' && key != "errorPages" && key != "ports")
+		{
+			// cerr << RED << value << RESET << endl;
+			throw runtime_error("Error: Invalid server settings value");
+		}
+	}
+}
+
+void	checkBodyLimit(const string& bodyLimit)
+{
+	if (bodyLimit.empty() || bodyLimit.size() < 2)
+		throw runtime_error("Error: Missing body limit");
+	
+	char unit = tolower(bodyLimit.back());
+	if (unit != 'b' && unit != 'k' && unit != 'm' && unit != 'g')
+		throw runtime_error("Error: Invalid body limit unit");
+	
+	for (size_t i = 0; i < bodyLimit.size() - 1; i++)
+	{
+		if (!isdigit(bodyLimit[i]))
+			throw runtime_error("Error: Invalid body limit value");
+	}
+}

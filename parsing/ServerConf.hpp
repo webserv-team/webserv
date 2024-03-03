@@ -6,7 +6,7 @@
 /*   By: ogorfti <ogorfti@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/11 18:08:24 by ogorfti           #+#    #+#             */
-/*   Updated: 2024/02/29 18:16:47 by ogorfti          ###   ########.fr       */
+/*   Updated: 2024/03/03 16:59:13 by ogorfti          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,6 +34,7 @@ class ConfigData
 		string host;
 		string root;
 		string cgiPath;
+		string bodyLimit;
 		string uploadPath;
 		map <string, string> errorPages;
 		vector<Location> locations;
@@ -48,7 +49,8 @@ class ServerConf
 		const vector<ConfigData>& getServers() const;
 };
 
-void	settingsError(const vector<string>& settings);
 void	checkStatusCode(const string& code);
 void	isFilePath(const string& path);
 int		isNumber(const string& str);
+void	checkValues(const string& value, const string& key);
+void	checkBodyLimit(const string& bodyLimit);
