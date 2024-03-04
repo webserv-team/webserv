@@ -6,7 +6,7 @@
 /*   By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/25 13:25:34 by hoigag            #+#    #+#             */
-/*   Updated: 2024/02/28 15:59:18 by hoigag           ###   ########.fr       */
+/*   Updated: 2024/03/04 11:40:35 by hoigag           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,6 +17,24 @@
 #include "Cgi.hpp"
 #include "Response.hpp"
 
+
+std::vector<char> readBinaryFile(const std::string& filename) {
+    std::ifstream file(filename.c_str(), std::ios::binary);
+    if (!file.is_open()) {
+        std::cerr << "Error opening file: " << filename << std::endl;
+        return std::vector<char>(); // Return an empty vector on error
+    }
+
+    // Read the entire file content into a vector
+    std::vector<char> buffer;
+    char ch;
+    while (file.get(ch)) {
+        buffer.push_back(ch);
+    }
+
+    file.close();
+    return buffer;
+}
 
 class Header
 {
@@ -169,7 +187,12 @@ Response	WebServer::formResponse(Request req)
         }
     }
     else
-        content = loadFile(this->server.documentRoot + url);
+    {
+        std::vector<char> data = readBinaryFile(this->server.documentRoot + url);
+        std::string res(data.begin(), data.end());
+        content = res;
+        // content = loadFile(this->server.documentRoot + url);
+    }
     if (!isSupportedCgiScript(url))
     {
         std::string ext = getFileExtension(url);
@@ -195,6 +218,12 @@ void WebServer::createSocket()
     this->listenFD = socket(AF_INET, SOCK_STREAM, 0);
     if (this->listenFD < 0)
         throw std::runtime_error("could not create server socket");
+            int status = fcntl(this->listenFD, F_SETFL, O_NONBLOCK, FD_CLOEXEC);
+            if (status < 0)
+            {
+                std::cout << "could not set request ot non blocking" << std::endl;
+                exit(1);
+            }
 }
 
 void WebServer::bindSocket()
@@ -216,7 +245,7 @@ void WebServer::bindSocket()
 
 std::string sread(int socket)
 {
-    int size = 1024;
+    int size = 100000;
     char dataRead[size + 1];
     int bytesRead = recv(socket, dataRead, size, 0);
     if (bytesRead < 0)
@@ -224,26 +253,6 @@ std::string sread(int socket)
     dataRead[bytesRead] = '\0';
     std::string str(dataRead, bytesRead);
     return str;
-}
-
-int getContentLength(std::string& req)
-{
-    int contentlength = 0;
-    size_t pos = req.find("Content-Length: ");
-    if (pos != std::string::npos)
-    {
-        std::string length = req.substr(pos + 16);
-        contentlength = atoi(length.c_str());
-    }
-    return contentlength;
-}
-
-bool isChunked(std::string& req)
-{
-    size_t pos = req.find("Transfer-Encoding: chunked");
-    if (pos != std::string::npos)
-        return true;
-    return false;
 }
 
 void handlePostRequest(Header& header, Client& client, std::string& dataRead)
@@ -267,46 +276,43 @@ void handlePostRequest(Header& header, Client& client, std::string& dataRead)
     }
 }
 
-void sendChunk(int sock, ClientResponse& cr)
+int sendChunk(int sock, ClientResponse& cr)
 {
-    if (cr.totalDataSent < cr.responseSize)
-    {
-        cr.dataSent = send(sock, cr.response.getResponseString() + cr.dataSent, cr.responseSize - cr.totalDataSent, 0);
-        if (cr.dataSent < 0)
-            std::cerr << "error: Could not send data" << std::endl;
-        else
-            cr.totalDataSent += cr.dataSent;
+    int dataSent = 0;
+    dataSent = send(sock, cr.response.getResponseString().c_str() + cr.totalDataSent, cr.responseSize - cr.totalDataSent, 0);
+    if (dataSent < 0)
+    {   
+        std::cerr << "error: Could not send data" << std::endl;
+        return 0;
     }
-    if (cr.totalDataSent >= cr.responseSize)
-        cr.isResponseFinished = true;
-    // std::cout << "sending chunk" << std::endl;
-    // std::cout << "resonse length = " << cr.responseSize << std::endl;
-    // std::cout << "total data sent = " << cr.dataSent << std::endl;
+    cr.totalDataSent += dataSent;
+    return 1;
 }
 
 
-void WebServer::listenForConnections()
+void WebServer::listenForConnections()  
 {
     int connFd;
     // std::string html = loadFile("index.html");
     if ((listen(this->listenFD, 3)) < 0)
         std::runtime_error("error happened during listening for requests");
-    fd_set current_sockets, ready_sockets;
-    fd_set write_sockets;
-    FD_ZERO(&current_sockets);
+    fd_set read_sockets, read_copy_sockets;
+    fd_set write_sockets, write_copy_sockets;
+    FD_ZERO(&read_sockets);
     FD_ZERO(&write_sockets);
-    FD_SET(this->listenFD, &current_sockets);
+    FD_SET(this->listenFD, &read_sockets);
     int maxFd = this->listenFD;
     while (true)
     {
-        ready_sockets = current_sockets;
-        if (select(maxFd + 1, &ready_sockets, NULL, NULL, NULL) < 0)
+        read_copy_sockets = read_sockets;
+        write_copy_sockets = write_sockets;
+        if (select(maxFd + 1, &read_copy_sockets, &write_copy_sockets, NULL, NULL) < 0)
             std::runtime_error("select error");
         struct sockaddr_in addr;
         socklen_t addr_len = sizeof(addr);
         for (int i = 0; i <= maxFd; i++)
         {
-            if (FD_ISSET(i, &ready_sockets))
+            if (FD_ISSET(i, &read_copy_sockets))
             {
                 if (i == this->listenFD)
                 {
@@ -316,7 +322,14 @@ void WebServer::listenForConnections()
                         std::cout << "could not accept the connection" << std::endl;
                         exit(1);
                     }
-                    FD_SET(connFd, &current_sockets);
+                    int status = fcntl(connFd, F_SETFL, O_NONBLOCK, FD_CLOEXEC);
+                    if (status < 0)
+                    {
+                        std::cout << "could not set request ot non blocking" << std::endl;
+                        exit(1);
+                    }
+                        
+                    FD_SET(connFd, &read_sockets);
                     if (connFd > maxFd)
                         maxFd = connFd;
                     Client c = {"" , false, 0, 0, "", "", false};
@@ -324,6 +337,7 @@ void WebServer::listenForConnections()
                 }
                 else
                 {    
+                    std::cout << i << std::endl;
                     std::string dataRead = sread(i);
                     Header headers;
                     size_t carr_pos = dataRead.find("\r\n\r\n");
@@ -347,27 +361,32 @@ void WebServer::listenForConnections()
                         this->clients[i].header.append(dataRead);
                     if (this->clients[i].isRequestFinished)
                     {
-                        FD_CLR(i, &current_sockets);
+                        FD_CLR(i, &read_sockets);
                         FD_SET(i, &write_sockets);
                         std::string httprequest = this->clients[i].header + "\r\n\r\n" + this->clients[i].content;
-                        std::cout << httprequest << std::endl<<std::endl;
+                        // std::cout << httprequest << std::endl<<std::endl;
                         Request req(httprequest);
-                        this->clientResponses[i].response = this->sendResponse(req);
+                        this->clientResponses[i].response = this->formResponse(req);
                         this->clientResponses[i].responseSize = this->clientResponses[i].response.getResponseLength();
                         this->clientResponses[i].dataSent = 0;
                         this->clientResponses[i].totalDataSent = 0;
                         this->clientResponses[i].isResponseFinished = false;
                     }
-                    if (FD_ISSET(i, &write_sockets))
-                    {
-                        if (!this->clientResponses[i].isResponseFinished)
-                            sendChunk(i, this->clientResponses[i]);
-                        if (this->clientResponses[i].isResponseFinished)
-                        {
-                            FD_CLR(i, &write_sockets);
-                            close(i);
-                        }
-                    }
+                }
+            }
+            if (FD_ISSET(i, &write_copy_sockets))
+            {
+                int success = sendChunk(i, this->clientResponses[i]);
+                if (!success)
+                {
+                    FD_CLR(i, &write_sockets);
+                    close(i);
+                }
+                if (this->clientResponses[i].totalDataSent >= this->clientResponses[i].responseSize)
+                {
+                    FD_CLR(i, &write_sockets);
+                    // FD_SET(i, &read_sockets);
+                    close(i);
                 }
             }
         }

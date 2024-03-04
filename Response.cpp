@@ -6,7 +6,7 @@
 /*   By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/19 15:22:39 by hoigag            #+#    #+#             */
-/*   Updated: 2024/02/28 10:54:46 by hoigag           ###   ########.fr       */
+/*   Updated: 2024/02/29 17:24:13 by hoigag           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -68,9 +68,9 @@ void Response::setStatusReason(short status)
         this->statusReason = "";
 }
 
-const char * Response::getResponseString()
+std::string Response::getResponseString()
 {
-    return this->response.c_str();
+    return this->response;
 }
 
 void Response::setStatusLine()
