@@ -6,7 +6,7 @@
 /*   By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/25 13:25:40 by hoigag            #+#    #+#             */
-/*   Updated: 2024/02/28 15:58:37 by hoigag           ###   ########.fr       */
+/*   Updated: 2024/03/04 18:26:02 by hoigag           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,6 +24,7 @@
 #include "parsing/ServerConf.hpp"
 #include "Mimes.hpp"
 #include "Response.hpp"
+#include "Socket.hpp"
 // #define SERVER_PORT 3030
 #define REQUEST_LENGTH 1024
 #include <map>
@@ -50,6 +51,7 @@ struct ClientResponse
 class WebServer
 {
 	public:
+		WebServer(std::vector<Socket>& httpServers);
 		WebServer(ConfigData server);
 		~WebServer();
 		void createSocket();
@@ -63,9 +65,10 @@ class WebServer
 	private:
 		std::map<int, Client> clients;
 		std::map<int, ClientResponse> clientResponses;
-		ConfigData server;
-		int listenFD;
-		struct sockaddr_in servaddr;
+		int maxFd;
+		fd_set read_sockets, read_copy_sockets;
+    	fd_set write_sockets, write_copy_sockets;
+		std::vector<Socket> httpServers;
 		Mimes mimes;
 };
 

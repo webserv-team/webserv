@@ -6,7 +6,7 @@
 /*   By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/27 10:37:00 by hoigag            #+#    #+#             */
-/*   Updated: 2024/01/30 12:53:46 by hoigag           ###   ########.fr       */
+/*   Updated: 2024/03/04 12:58:26 by hoigag           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,8 +22,11 @@
 #include <sstream>
 #include <iostream>
 #include <sys/stat.h>
+#include <sys/socket.h>
 #include <dirent.h>
 
+void setSocketToBeReusable(int sock);
+void setSocketToNonBlocking(int socket);
 std::string readfromFd(int fd);
 std::string getFileExtension(std::string filename);
 bool isSupportedCgiScript(std::string script);

@@ -6,11 +6,33 @@
 /*   By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/27 10:37:31 by hoigag            #+#    #+#             */
-/*   Updated: 2024/02/05 15:06:26 by hoigag           ###   ########.fr       */
+/*   Updated: 2024/03/04 12:59:36 by hoigag           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "helpers.hpp"
+
+
+void setSocketToBeReusable(int sock)
+{
+    int opt = 1;
+    if (setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) == -1)
+    {
+        std::cerr << "Setsockopt error: " << strerror(errno) << std::endl;
+        exit (1);
+    }
+}
+
+void setSocketToNonBlocking(int socket)
+{
+    int status = fcntl(socket, F_SETFL, O_NONBLOCK, FD_CLOEXEC);
+    if (status < 0)
+    {
+        std::cout << "could not set socket " << socket << "to non blocking" << std::endl;
+        exit(1);
+    }
+}
+
 
 std::string readfromFd(int fd)
 {
