@@ -6,7 +6,7 @@
 /*   By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/25 13:25:34 by hoigag            #+#    #+#             */
-/*   Updated: 2024/03/04 18:42:26 by hoigag           ###   ########.fr       */
+/*   Updated: 2024/03/05 17:40:48 by hoigag           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,26 +16,6 @@
 #include "helpers.hpp"
 #include "Cgi.hpp"
 #include "Response.hpp"
-
-
-
-std::vector<char> readBinaryFile(const std::string& filename) {
-    std::ifstream file(filename.c_str(), std::ios::binary);
-    if (!file.is_open()) {
-        std::cerr << "Error opening file: " << filename << std::endl;
-        return std::vector<char>(); // Return an empty vector on error
-    }
-
-    // Read the entire file content into a vector
-    std::vector<char> buffer;
-    char ch;
-    while (file.get(ch)) {
-        buffer.push_back(ch);
-    }
-
-    file.close();
-    return buffer;
-}
 
 class Header
 {
@@ -130,15 +110,17 @@ void uploadFiles(Request& req)
     std::cout << "uploading files" << std::endl;
     vector<s_tuple > data = req.getMultipart();
     std::string body = "";
+    std::cout << "url === " << req.getURL() << std::endl;
     for (size_t i = 0; i < data.size(); i++)
     {
         if (data[i].fileName.empty())
             body += data[i].name + "=" + data[i].value + "&";
         else
             {
+                std::cout << "filename === " << data[i].fileName << std::endl;
                 std::ofstream outfile("upload/" + data[i].fileName);
                 if (!outfile.is_open())
-                    throw std::runtime_error("could not open the file");
+                    throw std::runtime_error("could not open the file upload");
                 if (data[i].value.empty())
                     std::cerr << "the file content is empty" << std::endl;
                 else
@@ -146,136 +128,97 @@ void uploadFiles(Request& req)
             }
     }
     // req.setBody(body);
-    std::cout << "body === " << body << std::endl;
 }
 
-// Response	WebServer::formResponse(Request req)
-// {
-//     Response response;
-//     std::string content;
-//     std::string header;
-//     std::string contentType;
-//     std::string resourceFullPath = this->server.documentRoot;
-//     std::string url = req.getURL();
-//     size_t pos = url.find("?");
-//     if (req.getMethod() == "POST" && req.getContentType().find("multipart/form-data") != string::npos)
-//         uploadFiles(req);
-//     if (url == "/")
-//         url = "/index.html";
-//     if (pos != std::string::npos)
-//         resourceFullPath += url.substr(0, pos);
-//     else
-//         resourceFullPath += url;
-//     if (access(resourceFullPath.c_str(), F_OK) != 0)    
-//     {
-//         content = loadFile(this->server.errorPages["not_found"]);
-//         response.setStatusCode(404);
-//     }
-//     else if (access(resourceFullPath.c_str(), R_OK) != 0)
-//     {
-//         content = loadFile(this->server.errorPages["forbidden"]);
-//         response.setStatusCode(403);
-//     }
-//     else if (isDirectory(resourceFullPath))
-//         content = this->directoryListing(resourceFullPath);
-//     else if (isSupportedCgiScript(resourceFullPath))
-//     {
-//         Cgi cgi(req);
-//         content = cgi.executeScript(resourceFullPath);
-//         size_t pos = content.find("\r\n\r\n");
-//         if (pos != std::string::npos)
-//         {
-//             content = content.substr(pos);
-//             header = content.substr(0, pos);
-//         }
-//     }
-//     else
-//     {
-//         std::vector<char> data = readBinaryFile(this->server.documentRoot + url);
-//         std::string res(data.begin(), data.end());
-//         content = res;
-//         // content = loadFile(this->server.documentRoot + url);
-//     }
-//     if (!isSupportedCgiScript(url))
-//     {
-//         std::string ext = getFileExtension(url);
-//         contentType = mimes.getContentType(ext);
-//     }
-//     else if (isSupportedCgiScript(url))
-//         contentType = getContentTypeFromCgiOutput(header);
-//     response.setContentType(contentType);
-//     response.setContentLength(content.size());
-//     response.setBody(content);
-//     response.buildResponse();
-//     // std::cout << response << std::endl;
-//     return response;
-// }
+Socket WebServer::getServer(int port)
+{
+    int index = -1;
+    for (size_t i = 0; i < this->httpServers.size(); i++)
+    {
+        if (this->httpServers[i].getConfData().port == port)
+            index = i;
+    }
+    return this->httpServers[index];
+}
 
-// WebServer::WebServer(ConfigData ServerConf)
-// {
-//     this->server = ServerConf;
-// }
-
-// void WebServer::createSocket()
-// {
-//     this->listenFD = socket(AF_INET, SOCK_STREAM, 0);
-//     if (this->listenFD < 0)
-//         throw std::runtime_error("could not create server socket");
-//             int status = fcntl(this->listenFD, F_SETFL, O_NONBLOCK, FD_CLOEXEC);
-//             if (status < 0)
-//             {
-//                 std::cout << "could not set request ot non blocking" << std::endl;
-//                 exit(1);
-//             }
-// }
-
-// void WebServer::bindSocket()
-// {
-//     int opt = 1;
-//     if (setsockopt(this->listenFD, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) == -1)
-//     {
-//         std::cerr << "Setsockopt error: " << strerror(errno) << std::endl;
-//         exit (5);
-//     }
-//     bzero(&this->servaddr, sizeof(this->servaddr));
-//     servaddr.sin_family = AF_INET;
-//     servaddr.sin_addr.s_addr = htonl(INADDR_ANY);
-//     servaddr.sin_port = htons(this->server.port);
-//     //*binding the socket to the server
-//     if(bind(this->listenFD, (struct sockaddr *) &servaddr, sizeof(servaddr)) < 0)
-//         throw std::runtime_error("could not bind to socket");
-// }
+Response	WebServer::formResponse(Request __unused req)
+{
+    Response response;
+    std::string content;
+    std::string header;
+    std::string contentType;
+    ConfigData conf = this->getServer(req.getPort()).getConfData();
+    std::string resourceFullPath = conf.documentRoot;
+    std::string url = req.getURL();
+    size_t pos = url.find("?");
+    if (req.getMethod() == "POST" && req.getContentType().find("multipart/form-data") != string::npos)
+        uploadFiles(req);
+    if (url == "/")
+        url = "/index.html";
+    if (pos != std::string::npos)
+        resourceFullPath += url.substr(0, pos);
+    else
+        resourceFullPath += url;
+    if (access(resourceFullPath.c_str(), F_OK) != 0)    
+    {
+        content = loadFile(conf.errorPages["not_found"]);
+        response.setStatusCode(404);
+    }
+    else if (access(resourceFullPath.c_str(), R_OK) != 0)
+    {
+        content = loadFile(conf.errorPages["forbidden"]);
+        response.setStatusCode(403);
+    }
+    else if (isDirectory(resourceFullPath))
+        content = this->directoryListing(resourceFullPath);
+    else if (isSupportedCgiScript(resourceFullPath))
+    {
+        Cgi cgi(req);
+        content = cgi.executeScript(resourceFullPath);
+        size_t pos = content.find("\r\n\r\n");
+        if (pos != std::string::npos)
+        {
+            content = content.substr(pos);
+            header = content.substr(0, pos);
+        }
+    }
+    else
+        content = loadFile(conf.documentRoot + url);
+    if (!isSupportedCgiScript(url))
+    {
+        std::string ext = getFileExtension(url);
+        contentType = mimes.getContentType(ext);
+    }
+    else if (isSupportedCgiScript(url))
+        contentType = getContentTypeFromCgiOutput(header);
+    response.setContentType(contentType);
+    response.setContentLength(content.size());
+    response.setBody(content);
+    response.buildResponse();
+    return response;
+}
 
 std::string sread(int socket)
 {
-    int size = 100000;
-    char dataRead[size + 1];
-    int bytesRead = recv(socket, dataRead, size, 0);
+    char dataRead[BUFFER_SIZE + 1];
+    int bytesRead = recv(socket, dataRead, BUFFER_SIZE, 0);
     if (bytesRead < 0)
         std::runtime_error("recv error : could not read from socket");
     dataRead[bytesRead] = '\0';
-    std::string str(dataRead, bytesRead);
-    return str;
+    return std::string(dataRead, bytesRead);
 }
 
 void handlePostRequest(Header& header, Client& client, std::string& dataRead)
 {
-    // std::cout << "handling post request" << std::endl;
     if (dataRead.find("\r\n\r\n") == std::string::npos)
     {
         client.content.append(dataRead);
         client.bytesRead += dataRead.length();
     }
-    
-    // std::cout << "content length == " << header.getContentLength() << std::endl;
-    // std::cout << "bytes read == " << client.bytesRead << std::endl;
-    // // if (client.bytesRead == header.getContentLength())
-    // std::cout << "data read = " << dataRead << std::endl;
     if (client.bytesRead >= header.getContentLength())
     {
         std::cout << "POST REQUEST END" << std::endl;
         client.isRequestFinished = true;
-        // std::cout << "conetnt = " << client.content << std::endl;
     }
 }
 
@@ -289,39 +232,87 @@ int sendChunk(int sock, ClientResponse& cr)
         return 0;
     }
     cr.totalDataSent += dataSent;
+    if (cr.totalDataSent >= cr.responseSize)
+        cr.isResponseFinished = true;
     return 1;
 }
 
-// void WebServer::listenForConnections()
-// {
-//     while(1)
-//     {
-        
-//     }
-// }
-
-
 WebServer::WebServer(std::vector<Socket>& httpServers) 
 {
+    FD_ZERO(&this->read_sockets);
+    FD_ZERO(&this->write_sockets);
     this->httpServers = httpServers;
     this->maxFd = 0;
     for (size_t i = 0; i < this->httpServers.size(); i++)
     {
         this->httpServers[i].start();
-        FD_ZERO(&this->read_sockets);
-        FD_ZERO(&this->write_sockets);
         int serverFD = this->httpServers[i].getFd();
         FD_SET(serverFD, &read_sockets);
         if (serverFD > this->maxFd)
             this->maxFd = serverFD;  
     }
-    
 }
 
+bool WebServer::isServerFd(int fd)
+{
+    for (size_t i = 0; i < this->httpServers.size(); i++)
+    {
+        if (this->httpServers[i].getFd() == fd)
+            return true;
+    }
+    return false;
+}
+
+void WebServer::handleNewConnection(int serverFd)
+{
+    int connFd = Socket::acceptNewConnetction(serverFd);
+    setSocketToNonBlocking(connFd);
+    FD_SET(connFd, &this->read_sockets);
+    if (connFd > this->maxFd)
+        this->maxFd = connFd;
+    Client newClient = {"" , false, 0, 0, "", "", false};
+    this->clients[connFd] = newClient;
+}
+
+void WebServer::handleExistingConnection(int fd)
+{
+    std::string dataRead = sread(fd);
+    Header headers;
+    size_t carr_pos = dataRead.find("\r\n\r\n");
+    if (carr_pos != std::string::npos)
+    {
+        this->clients[fd].isHeaderFinished = true; 
+        this->clients[fd].header += dataRead.substr(0, carr_pos);
+        this->clients[fd].content = dataRead.substr(carr_pos + 4);
+        this->clients[fd].bytesRead = this->clients[fd].content.length();
+    }
+    if (this->clients[fd].isHeaderFinished)
+    {
+        headers =  Header(this->clients[fd].header);   
+        if (headers.getMethod() == "GET")
+            this->clients[fd].isRequestFinished = true;
+        else if (headers.getMethod() == "POST")
+            handlePostRequest(headers, this->clients[fd], dataRead);
+    }
+    else
+        this->clients[fd].header.append(dataRead);
+    if (this->clients[fd].isRequestFinished)
+    {
+        FD_CLR(fd, &read_sockets);
+        FD_SET(fd, &write_sockets);
+        std::string httprequest = this->clients[fd].header + "\r\n\r\n" + this->clients[fd].content;
+        Request req(httprequest);
+        std::cout << req;
+        this->clientResponses[fd].response = this->formResponse(req);
+        this->clientResponses[fd].responseSize = this->clientResponses[fd].response.getResponseLength();
+        this->clientResponses[fd].dataSent = 0;
+        this->clientResponses[fd].totalDataSent = 0;
+        this->clientResponses[fd].isResponseFinished = false;
+    }
+}
 
 void WebServer::listenForConnections()  
 {
-    // int connFd;
     while (true)
     {
         this->read_copy_sockets = this->read_sockets;
@@ -331,87 +322,30 @@ void WebServer::listenForConnections()
             std::cerr << "error occured on select" << std::endl;
             exit(1);
         }
-
-    //     for (int i = 0; i <= this->maxFd; i++)
-    //     {
-    //         if (FD_ISSET(i, &read_copy_sockets))
-    //         {
-    //             if (i == this->listenFD)
-    //             {
-    //                 connFd = accept(this->listenFD,  (struct sockaddr *)&addr, (socklen_t *) &addr_len);
-    //                 if (connFd < 0)
-    //                 {
-    //                     std::cout << "could not accept the connection" << std::endl;
-    //                     exit(1);
-    //                 }
-    //                 int status = fcntl(connFd, F_SETFL, O_NONBLOCK, FD_CLOEXEC);
-    //                 if (status < 0)
-    //                 {
-    //                     std::cout << "could not set request ot non blocking" << std::endl;
-    //                     exit(1);
-    //                 }
-                        
-    //                 FD_SET(connFd, &read_sockets);
-    //                 if (connFd > maxFd)
-    //                     maxFd = connFd;
-    //                 Client c = {"" , false, 0, 0, "", "", false};
-    //                 this->clients[connFd] = c;
-    //             }
-    //             else
-    //             {    
-    //                 std::cout << i << std::endl;
-    //                 std::string dataRead = sread(i);
-    //                 Header headers;
-    //                 size_t carr_pos = dataRead.find("\r\n\r\n");
-    //                 if (carr_pos != std::string::npos)
-    //                 {
-    //                     this->clients[i].isHeaderFinished = true; 
-    //                     this->clients[i].header += dataRead.substr(0, carr_pos);
-    //                     this->clients[i].content = dataRead.substr(carr_pos + 4);
-    //                     this->clients[i].bytesRead = this->clients[i].content.length();
-    //                 }
-    //                 if (this->clients[i].isHeaderFinished)
-    //                 {
-    //                     headers =  Header(this->clients[i].header);   
-    //                     // std::cout << "header is finished " << headers.getMethod() << std::endl;
-    //                     if (headers.getMethod() == "GET")
-    //                         this->clients[i].isRequestFinished = true;
-    //                     else if (headers.getMethod() == "POST")
-    //                         handlePostRequest(headers, this->clients[i], dataRead);
-    //                 }
-    //                 else
-    //                     this->clients[i].header.append(dataRead);
-    //                 if (this->clients[i].isRequestFinished)
-    //                 {
-    //                     FD_CLR(i, &read_sockets);
-    //                     FD_SET(i, &write_sockets);
-    //                     std::string httprequest = this->clients[i].header + "\r\n\r\n" + this->clients[i].content;
-    //                     // std::cout << httprequest << std::endl<<std::endl;
-    //                     Request req(httprequest);
-    //                     this->clientResponses[i].response = this->formResponse(req);
-    //                     this->clientResponses[i].responseSize = this->clientResponses[i].response.getResponseLength();
-    //                     this->clientResponses[i].dataSent = 0;
-    //                     this->clientResponses[i].totalDataSent = 0;
-    //                     this->clientResponses[i].isResponseFinished = false;
-    //                 }
-    //             }
-    //         }
-    //         if (FD_ISSET(i, &write_copy_sockets))
-    //         {
-    //             int success = sendChunk(i, this->clientResponses[i]);
-    //             if (!success)
-    //             {
-    //                 FD_CLR(i, &write_sockets);
-    //                 close(i);
-    //             }
-    //             if (this->clientResponses[i].totalDataSent >= this->clientResponses[i].responseSize)
-    //             {
-    //                 FD_CLR(i, &write_sockets);
-    //                 // FD_SET(i, &read_sockets);
-    //                 close(i);
-    //             }
-    //         }
-    //     }
+        for (int i = 0; i <= this->maxFd; i++)
+        {
+            if (FD_ISSET(i, &this->read_copy_sockets))
+            {
+                if (this->isServerFd(i))
+                    this->handleNewConnection(i);
+                else
+                    this->handleExistingConnection(i);
+            }
+            if (FD_ISSET(i, &this->write_copy_sockets))
+            {
+                int success = sendChunk(i, this->clientResponses[i]);
+                if (!success)
+                {
+                    FD_CLR(i, &this->write_sockets);
+                    close(i);
+                }
+                if (this->clientResponses[i].isResponseFinished)
+                {
+                    FD_CLR(i, &this->write_sockets);
+                    close(i);
+                }
+            }
+        }
     }
 }
 

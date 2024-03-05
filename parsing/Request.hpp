@@ -6,7 +6,7 @@
 /*   By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/08 09:36:38 by ogorfti           #+#    #+#             */
-/*   Updated: 2024/02/10 17:39:21 by hoigag           ###   ########.fr       */
+/*   Updated: 2024/03/05 15:36:44 by hoigag           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -43,6 +43,7 @@ class Request
 		void parseMultipart();
 		void chunkedDecode();
 	public:
+		
 		Request();
 		Request(std::string request);
 		Request& operator=(Request& reaquest);
@@ -58,6 +59,8 @@ class Request
 		std::string& getBody();
 		const std::map<std::string, std::string>& getHeaders() const;
 		vector<s_tuple >& getMultipart();
+		int getPort();
+		std::string getHostName();
 };
 
 std::ostream& operator<<(std::ostream& stream, Request& req);

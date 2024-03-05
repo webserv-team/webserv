@@ -6,7 +6,7 @@
 /*   By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/01 16:18:37 by ogorfti           #+#    #+#             */
-/*   Updated: 2024/02/12 16:40:40 by hoigag           ###   ########.fr       */
+/*   Updated: 2024/03/05 15:40:05 by hoigag           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -186,6 +186,23 @@ int Request::getContentLength()
 	return atoi(length.c_str());
 }
 
+int Request::getPort()
+{
+	std::string host = this->headers_["Host"];
+	size_t pos = host.find(":");
+	if (pos != std::string::npos)
+		return atoi(host.substr(pos + 1).c_str());
+	return -1;
+}
+std::string Request::getHostName()
+{
+	std::string host = this->headers_["Host"];
+	size_t pos = host.find(":");
+	if (pos != std::string::npos)
+		return host.substr(0, pos);
+	return "localhost";
+}
+
 vector<s_tuple> &Request::getMultipart()
 {
 	if (!this->body_.empty() && getContentType().find("multipart/form-data") != string::npos)
@@ -209,13 +226,22 @@ void Request::setBody(std::string body)
 {
 	this->body_ = body;
 }
+#include <ctime>
 std::ostream &operator<<(std::ostream &stream, Request &req)
-{
-	stream << "----------------------- Request start --------------------------------------" << std::endl;
-	stream << "method        : " << req.getMethod() << std::endl;
-	stream << "url           : " << req.getURL() << std::endl;
-	stream << "content type  : " << req.getContentType() << std::endl;
-	stream << "content length: " << req.getContentLength() << std::endl;
+{	
+    std::time_t currentTime;
+    std::time(&currentTime);
+    char buffer[80];
+    std::strftime(buffer, sizeof(buffer), "%Y-%m-%d %H:%M:%S", std::localtime(&currentTime));
+
+	stream << "\033[32m[" << buffer << "]\033[0m " << req.getHostName() << ":" << req.getPort() << " " << req.getMethod() << " " << req.getURL() << std::endl;	
+    // Convert the time to a string representation
+	// stream << "----------------------- Request start --------------------------------------" << std::endl;
+	// stream << "method        : " << req.getMethod() << std::endl;
+	// stream << "url           : " << req.getURL() << std::endl;
+	// stream << "content type  : " << req.getContentType() << std::endl;
+	// stream << "content length: " << req.getContentLength() << std::endl;
+	// stream << "port: " << req.getPort() << std::endl;
 	// stream << "body          : " << std::endl;
 	// if (req.getContentType().find("multipart/form-data") != string::npos)
 	// {

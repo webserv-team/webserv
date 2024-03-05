@@ -19,19 +19,20 @@
 
 [[servers]]
   port = 9090
-  hostName = "example.net"
-  documentRoot = "/path/to/server2/htdocs"
+  hostName = "second server"
+  documentRoot = htdocs
 
   [servers.errorPages]
-    not_found = "/path/to/server2/error_pages/404.html" 
-    server_error = "/path/to/server2/error_pages/500.html"
+    not_found = ./htdocs/error_pages/404.html
+    forbidden = ./htdocs/error_pages/403.html
+    server_error = "./htdocs/error_pages/500.html"
 
   [[servers.locations]]
     path = "/"
-    root = "/path/to/server2/htdocs"
+    root = "htdocs"
     index = "index.html"
 
   [[servers.locations]]
-    path = "/static"
-    root = "/path/to/server2/static"
-    index = "index.html"
+    path = "/images"
+    root = "/path/to/server1/images"
+

@@ -6,7 +6,7 @@
 /*   By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/27 10:37:31 by hoigag            #+#    #+#             */
-/*   Updated: 2024/03/04 12:59:36 by hoigag           ###   ########.fr       */
+/*   Updated: 2024/03/05 17:41:51 by hoigag           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -70,10 +70,11 @@ bool isSupportedCgiScript(std::string script)
 
 std::string loadFile(const std::string& path)
 {
+    std::cout << "path == " << path << std::endl;
     std::ifstream inFile;
     inFile.open(path.c_str());
     if (!inFile.is_open())
-        throw std::runtime_error("could not open file");
+        throw std::runtime_error("could not open file load file function");
 	std::ostringstream buffer;
 	buffer << inFile.rdbuf();
 	inFile.close();

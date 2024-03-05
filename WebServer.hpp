@@ -6,7 +6,7 @@
 /*   By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/25 13:25:40 by hoigag            #+#    #+#             */
-/*   Updated: 2024/03/04 18:26:02 by hoigag           ###   ########.fr       */
+/*   Updated: 2024/03/05 15:51:43 by hoigag           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,7 +26,7 @@
 #include "Response.hpp"
 #include "Socket.hpp"
 // #define SERVER_PORT 3030
-#define REQUEST_LENGTH 1024
+#define BUFFER_SIZE 300000
 #include <map>
 struct Client
 {
@@ -52,14 +52,14 @@ class WebServer
 {
 	public:
 		WebServer(std::vector<Socket>& httpServers);
-		WebServer(ConfigData server);
 		~WebServer();
-		void createSocket();
 		void listenForConnections();
-		void bindSocket();
 		Response formResponse(Request req);
+		Socket getServer(int port);
 		std::string directoryListing(std::string& path);
-		
+		bool isServerFd(int fd);
+		void handleNewConnection(int fd);
+		void handleExistingConnection(int fd);
 		// WebServer(const WebServer& other);
 		// WebServer& operator=(const WebServer& other);
 	private:
