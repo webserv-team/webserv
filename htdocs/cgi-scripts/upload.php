@@ -1,17 +1,17 @@
 <?php
-$target_dir = "upload/";
-$target_file = $target_dir . basename($_FILES["fileToUpload"]["name"]);
-$uploadOk = 1;
-$imageFileType = strtolower(pathinfo($target_file,PATHINFO_EXTENSION));
-// Check if image file is a actual image or fake image
-if(isset($_POST["submit"])) {
-  $check = getimagesize($_FILES["fileToUpload"]["tmp_name"]);
-  if($check !== false) {
-    echo "File is an image - " . $check["mime"] . ".";
-    $uploadOk = 1;
-  } else {
-    echo "File is not an image.";
-    $uploadOk = 0;
-  }
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    // Assuming you are expecting a file input named 'file'
+    if (isset($_FILES['file'])) {
+        $fileContent = file_get_contents($_FILES['file']['tmp_name']);
+
+        // Output the content
+        echo $fileContent;
+
+        // You might want to do further processing or save the content to a file, etc.
+    } else {
+        echo "No file uploaded.";
+    }
+} else {
+    echo "Invalid request method.";
 }
 ?>

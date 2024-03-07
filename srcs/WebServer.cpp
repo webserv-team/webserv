@@ -6,7 +6,7 @@
 /*   By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/25 13:25:34 by hoigag            #+#    #+#             */
-/*   Updated: 2024/03/07 15:57:34 by hoigag           ###   ########.fr       */
+/*   Updated: 2024/03/07 16:11:21 by hoigag           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,11 +24,13 @@
 
 Response	WebServer::formResponse(Request& req)
 {
+    std::cout << "forming response " << std::endl;
     Response response;
     std::string content;
     std::string header;
     std::string contentType;
     ConfigData conf = this->getServer(req.getPort()).getConfData();
+    std::cout << "got the right conf data " << std::endl;
     std::string resourceFullPath = conf.documentRoot;
     std::string url = req.getURL();
     size_t pos = url.find("?");
@@ -54,6 +56,7 @@ Response	WebServer::formResponse(Request& req)
         content = directoryListing(resourceFullPath);
     else if (isSupportedCgiScript(resourceFullPath))
     {
+        std::cout << "this is a cgi script" << std::endl;
         Cgi cgi(req);
         content = cgi.executeScript(resourceFullPath);
         size_t pos = content.find("\r\n\r\n");
