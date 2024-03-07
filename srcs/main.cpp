@@ -6,12 +6,12 @@
 /*   By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/24 14:56:22 by hoigag            #+#    #+#             */
-/*   Updated: 2024/03/05 15:58:13 by hoigag           ###   ########.fr       */
+/*   Updated: 2024/03/07 10:43:51 by hoigag           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <iostream>
-#include "parsing/ServerConf.hpp"
+#include "ServerConf.hpp"
 #include "Socket.hpp"
 #include "WebServer.hpp"
 #include "helpers.hpp"

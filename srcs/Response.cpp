@@ -6,7 +6,7 @@
 /*   By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/19 15:22:39 by hoigag            #+#    #+#             */
-/*   Updated: 2024/02/29 17:24:13 by hoigag           ###   ########.fr       */
+/*   Updated: 2024/03/07 12:44:22 by hoigag           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -135,3 +135,59 @@ int Response::getResponseLength()
     return this->response.length();
 }
 
+// void	Response::formResponse(Request& req)
+// {
+//     Response response;
+//     std::string content;
+//     std::string header;
+//     std::string contentType;
+//     ConfigData conf = this->getServer(req.getPort()).getConfData();
+//     std::string resourceFullPath = conf.documentRoot;
+//     std::string url = req.getURL();
+//     size_t pos = url.find("?");
+//     if (req.getMethod() == "POST" && req.getContentType().find("multipart/form-data") != string::npos)
+//         uploadFiles(req);
+//     if (url == "/")
+//         url = "/index.html";
+//     if (pos != std::string::npos)
+//         resourceFullPath += url.substr(0, pos);
+//     else
+//         resourceFullPath += url;
+//     if (access(resourceFullPath.c_str(), F_OK) != 0)    
+//     {
+//         content = loadFile(conf.errorPages["not_found"]);
+//         response.setStatusCode(404);
+//     }
+//     else if (access(resourceFullPath.c_str(), R_OK) != 0)
+//     {
+//         content = loadFile(conf.errorPages["forbidden"]);
+//         response.setStatusCode(403);
+//     }
+//     else if (isDirectory(resourceFullPath))
+//         content = this->directoryListing(resourceFullPath);
+//     else if (isSupportedCgiScript(resourceFullPath))
+//     {
+//         Cgi cgi(req);
+//         content = cgi.executeScript(resourceFullPath);
+//         size_t pos = content.find("\r\n\r\n");
+//         if (pos != std::string::npos)
+//         {
+//             content = content.substr(pos);
+//             header = content.substr(0, pos);
+//         }
+//     }
+//     else
+//         content = loadFile(conf.documentRoot + url);
+//     if (!isSupportedCgiScript(url))
+//     {
+//         std::string ext = getFileExtension(url);
+//         contentType = mimes.getContentType(ext);
+//     }
+//     else if (isSupportedCgiScript(url))
+//         contentType = getContentTypeFromCgiOutput(header);
+//     response.setContentType(contentType);
+//     response.setContentLength(content.size());
+//     response.setBody(content);
+//     response.buildResponse();
+//     return response;
+// }

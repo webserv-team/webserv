@@ -1,10 +1,12 @@
 CXX = c++
 
-CXXFLAGS = -Wall -Wextra -Werror -std=c++98 -fsanitize=address -g
+CXXFLAGS = -Wall -Wextra -Werror -std=c++98 -fsanitize=address -g -I./include -I./parsing
 
 NAME = server
 
-SRCS = main.cpp WebServer.cpp parsing/Request.cpp parsing/ServerConf.cpp Cgi.cpp helpers.cpp Response.cpp Mimes.cpp Socket.cpp
+SRCS_DIR = srcs
+
+SRCS = $(addprefix $(SRCS_DIR)/, main.cpp WebServer.cpp Cgi.cpp helpers.cpp Response.cpp Mimes.cpp Socket.cpp Header.cpp)  parsing/Request.cpp parsing/ServerConf.cpp 
 
 HEADERS = parsing/Request.hpp parsing/ServerConf.hpp WebServer.hpp
 
@@ -12,10 +14,10 @@ OBJS = $(SRCS:.cpp=.o)
 
 all: $(NAME)
 
-%.o: %.cpp $(HEADERS)
+%.o: %.cpp 
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
-$(NAME): $(OBJS) $(HEADERS)
+$(NAME): $(OBJS) 
 	$(CXX) $(CXXFLAGS) $(OBJS) -o $(NAME)
 
 clean:

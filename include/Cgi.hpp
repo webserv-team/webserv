@@ -6,7 +6,7 @@
 /*   By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/25 10:11:55 by hoigag            #+#    #+#             */
-/*   Updated: 2024/01/27 10:54:21 by hoigag           ###   ########.fr       */
+/*   Updated: 2024/03/07 10:44:33 by hoigag           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,7 +35,7 @@
 // SERVER_PORT	The port number your server is listening on
 // SERVER_SOFTWARE	The server software you're using (e.g. Apache 1.3)
 
-#include "parsing/Request.hpp"
+#include "Request.hpp"
 #include <ostream>
 #include <map>
 #include <string>

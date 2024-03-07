@@ -6,7 +6,7 @@
 /*   By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/25 13:25:34 by hoigag            #+#    #+#             */
-/*   Updated: 2024/03/05 17:40:48 by hoigag           ###   ########.fr       */
+/*   Updated: 2024/03/07 15:57:34 by hoigag           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,132 +16,13 @@
 #include "helpers.hpp"
 #include "Cgi.hpp"
 #include "Response.hpp"
-
-class Header
-{
-    public:
-        Header() : req(""){};
-        Header(std::string& req){this->req = req;}
-        std::string getMethod()
-        {
-            size_t pos = this->req.find(" ");
-            return this->req.substr(0, pos);
-        }
-        int getContentLength()
-        {
-            int contentlength = 0;
-            size_t pos = this->req.find("Content-Length: ");
-            if (pos != std::string::npos)
-            {
-                std::string length = req.substr(pos + 16);
-                contentlength = atoi(length.c_str());
-            }
-            return contentlength;
-        }
-        bool isChunked()
-        {
-            size_t pos = this->req.find("Transfer-Encoding: chunked");
-            if (pos != std::string::npos)
-                return true;
-            return false;
-        }
-    private:
-        std::string req;
-};
-
-
+#include "Header.hpp"
 // WebServer::WebServer()
 // {
     
 // }
 
-std::string WebServer::directoryListing(std::string& path)
-{
-    size_t pos = path.find("/");
-    std::string relativePath;
-    if (pos != std::string::npos)
-        relativePath = path.substr(pos + 1);
-    std::string content = "<!DOCTYPE html> <html lang=\"en\" <head>\
-    <meta charset=\"UTF-8\">\
-    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\
-    <title>File List</title>\
-    <link rel=\"stylesheet\" href=\"/styles/listing.css\">\
-</head>\
-<body>\
-    <h1>Directory Listing</h1>\
-    <hr>\
-    <ul>";
-    
-    struct dirent *stdir;
-    DIR *dir = opendir(path.c_str());
-    if (!dir)
-        return  ("<p>could not open the directory " + path + " </p>");
-    
-    content += "<li><strong>Directory: " + path + "</strong></li><br>";
-
-    stdir = readdir(dir);
-    while (stdir)
-    {
-        if (stdir)
-        {   
-            std::string filename(stdir->d_name);
-            if (filename != "." && filename != "..")
-            {
-                std::string directory = path + "/" + filename;
-                std::string href = "/" + relativePath + "/" + filename;
-                std::string link;
-                if (isDirectory(directory))
-                    link += "<li><span class=\"icon\">📁</span><a href=\"" + href + "\" class=\"directory\">" + filename + "</a></li>";
-                else
-                    link += "<li><span class=\"icon\">📄</span><a href=\"" + href + "\" class=\"file\">" + filename + "</a></li>";
-                content += link;
-            }
-        }
-        stdir = readdir(dir);
-    }
-    content += "</ul></body></html>";
-    closedir(dir);
-
-    return content; 
-}
-
-void uploadFiles(Request& req)
-{
-    std::cout << "uploading files" << std::endl;
-    vector<s_tuple > data = req.getMultipart();
-    std::string body = "";
-    std::cout << "url === " << req.getURL() << std::endl;
-    for (size_t i = 0; i < data.size(); i++)
-    {
-        if (data[i].fileName.empty())
-            body += data[i].name + "=" + data[i].value + "&";
-        else
-            {
-                std::cout << "filename === " << data[i].fileName << std::endl;
-                std::ofstream outfile("upload/" + data[i].fileName);
-                if (!outfile.is_open())
-                    throw std::runtime_error("could not open the file upload");
-                if (data[i].value.empty())
-                    std::cerr << "the file content is empty" << std::endl;
-                else
-                    outfile << data[i].value;
-            }
-    }
-    // req.setBody(body);
-}
-
-Socket WebServer::getServer(int port)
-{
-    int index = -1;
-    for (size_t i = 0; i < this->httpServers.size(); i++)
-    {
-        if (this->httpServers[i].getConfData().port == port)
-            index = i;
-    }
-    return this->httpServers[index];
-}
-
-Response	WebServer::formResponse(Request __unused req)
+Response	WebServer::formResponse(Request& req)
 {
     Response response;
     std::string content;
@@ -151,8 +32,8 @@ Response	WebServer::formResponse(Request __unused req)
     std::string resourceFullPath = conf.documentRoot;
     std::string url = req.getURL();
     size_t pos = url.find("?");
-    if (req.getMethod() == "POST" && req.getContentType().find("multipart/form-data") != string::npos)
-        uploadFiles(req);
+    // if (req.getMethod() == "POST" && req.getContentType().find("multipart/form-data") != string::npos)
+    //     uploadFiles(req);
     if (url == "/")
         url = "/index.html";
     if (pos != std::string::npos)
@@ -170,7 +51,7 @@ Response	WebServer::formResponse(Request __unused req)
         response.setStatusCode(403);
     }
     else if (isDirectory(resourceFullPath))
-        content = this->directoryListing(resourceFullPath);
+        content = directoryListing(resourceFullPath);
     else if (isSupportedCgiScript(resourceFullPath))
     {
         Cgi cgi(req);
@@ -198,43 +79,15 @@ Response	WebServer::formResponse(Request __unused req)
     return response;
 }
 
-std::string sread(int socket)
+Socket WebServer::getServer(int port)
 {
-    char dataRead[BUFFER_SIZE + 1];
-    int bytesRead = recv(socket, dataRead, BUFFER_SIZE, 0);
-    if (bytesRead < 0)
-        std::runtime_error("recv error : could not read from socket");
-    dataRead[bytesRead] = '\0';
-    return std::string(dataRead, bytesRead);
-}
-
-void handlePostRequest(Header& header, Client& client, std::string& dataRead)
-{
-    if (dataRead.find("\r\n\r\n") == std::string::npos)
+    int index = -1;
+    for (size_t i = 0; i < this->httpServers.size(); i++)
     {
-        client.content.append(dataRead);
-        client.bytesRead += dataRead.length();
+        if (this->httpServers[i].getConfData().port == port)
+            index = i;
     }
-    if (client.bytesRead >= header.getContentLength())
-    {
-        std::cout << "POST REQUEST END" << std::endl;
-        client.isRequestFinished = true;
-    }
-}
-
-int sendChunk(int sock, ClientResponse& cr)
-{
-    int dataSent = 0;
-    dataSent = send(sock, cr.response.getResponseString().c_str() + cr.totalDataSent, cr.responseSize - cr.totalDataSent, 0);
-    if (dataSent < 0)
-    {   
-        std::cerr << "error: Could not send data" << std::endl;
-        return 0;
-    }
-    cr.totalDataSent += dataSent;
-    if (cr.totalDataSent >= cr.responseSize)
-        cr.isResponseFinished = true;
-    return 1;
+    return this->httpServers[index];
 }
 
 WebServer::WebServer(std::vector<Socket>& httpServers) 
@@ -292,7 +145,18 @@ void WebServer::handleExistingConnection(int fd)
         if (headers.getMethod() == "GET")
             this->clients[fd].isRequestFinished = true;
         else if (headers.getMethod() == "POST")
-            handlePostRequest(headers, this->clients[fd], dataRead);
+        {
+            if (dataRead.find("\r\n\r\n") == std::string::npos)
+            {
+                this->clients[fd].content.append(dataRead);
+                this->clients[fd].bytesRead += dataRead.length();
+            }
+            if (this->clients[fd].bytesRead >= headers.getContentLength())
+            {
+                std::cout << "POST REQUEST END" << std::endl;
+                this->clients[fd].isRequestFinished = true;
+            }
+        }
     }
     else
         this->clients[fd].header.append(dataRead);
@@ -302,13 +166,29 @@ void WebServer::handleExistingConnection(int fd)
         FD_SET(fd, &write_sockets);
         std::string httprequest = this->clients[fd].header + "\r\n\r\n" + this->clients[fd].content;
         Request req(httprequest);
-        std::cout << req;
+        std::cout << httprequest << std::endl;
+        std::cout << "length === " << req.getContentLength() << std::endl;
+        // std::cout << req;
         this->clientResponses[fd].response = this->formResponse(req);
         this->clientResponses[fd].responseSize = this->clientResponses[fd].response.getResponseLength();
-        this->clientResponses[fd].dataSent = 0;
         this->clientResponses[fd].totalDataSent = 0;
         this->clientResponses[fd].isResponseFinished = false;
     }
+}
+
+int sendChunk(int sock, ClientResponse& cr)
+{
+    int dataSent = 0;
+    dataSent = send(sock, cr.response.getResponseString().c_str() + cr.totalDataSent, cr.responseSize - cr.totalDataSent, 0);
+    if (dataSent < 0)
+    {   
+        std::cerr << "error: Could not send data" << std::endl;
+        return 0;
+    }
+    cr.totalDataSent += dataSent;
+    if (cr.totalDataSent >= cr.responseSize)
+        cr.isResponseFinished = true;
+    return 1;
 }
 
 void WebServer::listenForConnections()  

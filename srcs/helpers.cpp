@@ -6,7 +6,7 @@
 /*   By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/27 10:37:31 by hoigag            #+#    #+#             */
-/*   Updated: 2024/03/05 17:41:51 by hoigag           ###   ########.fr       */
+/*   Updated: 2024/03/07 14:01:55 by hoigag           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -124,47 +124,11 @@ std::string directoryListing(std::string& path)
     std::string relativePath;
     if (pos != std::string::npos)
         relativePath = path.substr(pos + 1);
-    // std::string path = "/Users/hoigag/cursus/webserv/htdocs/" + path;
-    std::cout << "relative directory path = " << path << std::endl;
-    std::cout << "absolute directory path = " << path << std::endl;
-    // if (chdir(path.c_str()) < 0)
-    //     return ("could not change to " + path);
     std::string content = "<!DOCTYPE html> <html lang=\"en\" <head>\
     <meta charset=\"UTF-8\">\
     <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\
     <title>File List</title>\
-    <style>\
-        body {\
-            font-family: Arial, sans-serif;\
-            margin: 20px;\
-        }\
-        h1 {\
-            color: #333;\
-        }\
-        ul {\
-            list-style-type: none;\
-            padding: 0;\
-        }\
-        li {\
-            margin-bottom: 10px;\
-        }\
-        .file {\
-            text-decoration: none;\
-            color: #007BFF;\
-            font-weight: bold;\
-        }\
-        .directory {\
-            text-decoration: none;\
-            color: #4E148C;\
-            font-weight: bold;\
-        }\
-        .icon {\
-            margin-right: 5px;\
-        }\
-        a:hover {\
-            color: #0056b3;\
-        }\
-    </style>\
+    <link rel=\"stylesheet\" href=\"/styles/listing.css\">\
 </head>\
 <body>\
     <h1>Directory Listing</h1>\
@@ -186,10 +150,9 @@ std::string directoryListing(std::string& path)
             std::string filename(stdir->d_name);
             if (filename != "." && filename != "..")
             {
+                std::string directory = path + "/" + filename;
                 std::string href = "/" + relativePath + "/" + filename;
                 std::string link;
-                std::string directory = path + "/" + filename;
-                std::cout << "directory = " << directory << std::endl;
                 if (isDirectory(directory))
                     link += "<li><span class=\"icon\">📁</span><a href=\"" + href + "\" class=\"directory\">" + filename + "</a></li>";
                 else
@@ -204,3 +167,53 @@ std::string directoryListing(std::string& path)
 
     return content; 
 }
+
+void uploadFiles(Request& req)
+{
+    std::cout << "uploading files" << std::endl;
+    vector<s_tuple > data = req.getMultipart();
+    std::string body = "";
+    std::cout << "url === " << req.getURL() << std::endl;
+    for (size_t i = 0; i < data.size(); i++)
+    {
+        if (data[i].fileName.empty())
+            body += data[i].name + "=" + data[i].value + "&";
+        else
+            {
+                std::cout << "filename === " << data[i].fileName << std::endl;
+                std::ofstream outfile("upload/" + data[i].fileName);
+                if (!outfile.is_open())
+                    throw std::runtime_error("could not open the file upload");
+                if (data[i].value.empty())
+                    std::cerr << "the file content is empty" << std::endl;
+                else
+                    outfile << data[i].value;
+            }
+    }
+    // req.setBody(body);
+}
+
+std::string sread(int socket)
+{
+    char dataRead[BUFFER_SIZE + 1];
+    int bytesRead = recv(socket, dataRead, BUFFER_SIZE, 0);
+    if (bytesRead < 0)
+        std::runtime_error("recv error : could not read from socket");
+    dataRead[bytesRead] = '\0';
+    return std::string(dataRead, bytesRead);
+}
+
+// int sendChunk(int sock, ClientResponse& cr)
+// {
+//     int dataSent = 0;
+//     dataSent = send(sock, cr.response.getResponseString().c_str() + cr.totalDataSent, cr.responseSize - cr.totalDataSent, 0);
+//     if (dataSent < 0)
+//     {   
+//         std::cerr << "error: Could not send data" << std::endl;
+//         return 0;
+//     }
+//     cr.totalDataSent += dataSent;
+//     if (cr.totalDataSent >= cr.responseSize)
+//         cr.isResponseFinished = true;
+//     return 1;
+// }

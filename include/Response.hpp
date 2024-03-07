@@ -6,7 +6,7 @@
 /*   By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/19 13:50:27 by hoigag            #+#    #+#             */
-/*   Updated: 2024/02/29 17:24:25 by hoigag           ###   ########.fr       */
+/*   Updated: 2024/03/07 12:46:17 by hoigag           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,6 +18,10 @@
 #include <unistd.h>
 #include <sys/socket.h>
 #include <ostream>
+#include "Request.hpp"
+#include "ServerConf.hpp"
+
+
 class Response
 {
 	public:
@@ -33,6 +37,7 @@ class Response
 		void setStatusLine();
 		void buildResponse();
 		int getResponseLength();
+
 		std::string getResponseString();
 		std::string getStatusCode();
 		std::string getContentType();

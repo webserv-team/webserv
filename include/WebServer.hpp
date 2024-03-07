@@ -6,7 +6,7 @@
 /*   By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/25 13:25:40 by hoigag            #+#    #+#             */
-/*   Updated: 2024/03/05 15:51:43 by hoigag           ###   ########.fr       */
+/*   Updated: 2024/03/07 13:23:41 by hoigag           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,11 +21,10 @@
 #include <unistd.h>
 #include "Cgi.hpp"
 #include <sys/stat.h>
-#include "parsing/ServerConf.hpp"
+#include "ServerConf.hpp"
 #include "Mimes.hpp"
 #include "Response.hpp"
 #include "Socket.hpp"
-// #define SERVER_PORT 3030
 #define BUFFER_SIZE 300000
 #include <map>
 struct Client
@@ -42,7 +41,6 @@ struct Client
 struct ClientResponse
 {
 	Response response;
-	int dataSent;
 	int totalDataSent;
 	int responseSize;
 	bool isResponseFinished;
@@ -54,9 +52,9 @@ class WebServer
 		WebServer(std::vector<Socket>& httpServers);
 		~WebServer();
 		void listenForConnections();
-		Response formResponse(Request req);
+		Response formResponse(Request& req);
 		Socket getServer(int port);
-		std::string directoryListing(std::string& path);
+		// std::string directoryListing(std::string& path);
 		bool isServerFd(int fd);
 		void handleNewConnection(int fd);
 		void handleExistingConnection(int fd);

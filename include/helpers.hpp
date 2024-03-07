@@ -6,7 +6,7 @@
 /*   By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/27 10:37:00 by hoigag            #+#    #+#             */
-/*   Updated: 2024/03/04 12:58:26 by hoigag           ###   ########.fr       */
+/*   Updated: 2024/03/07 14:09:52 by hoigag           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,6 +24,10 @@
 #include <sys/stat.h>
 #include <sys/socket.h>
 #include <dirent.h>
+#include "Request.hpp"
+#include "Header.hpp"
+
+#define BUFFER_SIZE 300000
 
 void setSocketToBeReusable(int sock);
 void setSocketToNonBlocking(int socket);
@@ -35,6 +39,8 @@ std::string getContentType(std::string file);
 std::string getContentTypeFromCgiOutput(std::string& content);
 bool isDirectory(std::string& path);
 std::string directoryListing(std::string& path);
-
+void uploadFiles(Request& req);
+std::string sread(int socket);
+// int sendChunk(int sock, ClientResponse& cr);
 
 #endif

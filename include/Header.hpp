@@ -1,34 +1,35 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   lib.hpp                                            :+:      :+:    :+:   */
+/*   Header.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/01/31 13:25:56 by ogorfti           #+#    #+#             */
-/*   Updated: 2024/03/07 13:16:05 by hoigag           ###   ########.fr       */
+/*   Created: 2024/03/07 10:15:02 by hoigag            #+#    #+#             */
+/*   Updated: 2024/03/07 10:48:07 by hoigag           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#ifndef LIB_HPP
-# define LIB_HPP
+#ifndef HEADER_HPP
+#define HEADER_HPP
 
-#include <iostream>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <fstream>
-#include <sstream>
-#include <unistd.h>
-#include <vector>
-#include <map>
+#include <string>
 
-const int PORT = 8080;
-// const int BUFFER_SIZE = 1024;
+class Header
+{
+	public:
+		Header();
+		Header(std::string& req);
+		~Header();
+		Header(const Header& other);
+		Header& operator=(const Header& other);
 
-#define GREEN "\033[1;32m"
-#define RED "\033[1;31m"
-#define RESET "\033[0m"
+        std::string getMethod();
+        int getContentLength();
+        bool isChunked();
 
-using namespace std;
+	private:
+		std::string req;
+};
 
 #endif

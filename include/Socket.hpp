@@ -6,13 +6,13 @@
 /*   By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/04 12:14:45 by hoigag            #+#    #+#             */
-/*   Updated: 2024/03/04 18:41:32 by hoigag           ###   ########.fr       */
+/*   Updated: 2024/03/07 10:44:19 by hoigag           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef SOCKET_HPP
 #define SOCKET_HPP
-#include "parsing/ServerConf.hpp"
+#include "ServerConf.hpp"
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
