@@ -6,7 +6,7 @@
 /*   By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/25 13:25:34 by hoigag            #+#    #+#             */
-/*   Updated: 2024/03/07 16:11:21 by hoigag           ###   ########.fr       */
+/*   Updated: 2024/03/07 18:49:28 by hoigag           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,7 +31,7 @@ Response	WebServer::formResponse(Request& req)
     std::string contentType;
     ConfigData conf = this->getServer(req.getPort()).getConfData();
     std::cout << "got the right conf data " << std::endl;
-    std::string resourceFullPath = conf.documentRoot;
+    std::string resourceFullPath = conf.root;
     std::string url = req.getURL();
     size_t pos = url.find("?");
     // if (req.getMethod() == "POST" && req.getContentType().find("multipart/form-data") != string::npos)
@@ -67,7 +67,7 @@ Response	WebServer::formResponse(Request& req)
         }
     }
     else
-        content = loadFile(conf.documentRoot + url);
+        content = loadFile(conf.root + url);
     if (!isSupportedCgiScript(url))
     {
         std::string ext = getFileExtension(url);
@@ -87,7 +87,7 @@ Socket WebServer::getServer(int port)
     int index = -1;
     for (size_t i = 0; i < this->httpServers.size(); i++)
     {
-        if (this->httpServers[i].getConfData().port == port)
+        if (this->httpServers[i].getConfData().ports[0] == port)
             index = i;
     }
     return this->httpServers[index];

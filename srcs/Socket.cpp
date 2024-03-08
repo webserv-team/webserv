@@ -6,7 +6,7 @@
 /*   By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/04 12:19:12 by hoigag            #+#    #+#             */
-/*   Updated: 2024/03/04 18:42:05 by hoigag           ###   ########.fr       */
+/*   Updated: 2024/03/08 10:49:47 by hoigag           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,7 +34,7 @@ int Socket::start()
     bzero(&servaddr, sizeof(servaddr));
     servaddr.sin_family = AF_INET;
     servaddr.sin_addr.s_addr = htonl(INADDR_ANY);
-    servaddr.sin_port = htons(this->conf.port);
+    servaddr.sin_port = htons(this->conf.ports[0]);
     if(bind(sock, (struct sockaddr *) &servaddr, sizeof(servaddr)) < 0)
     {
         std::cerr << "could not bind socket " << sock << std::endl; 
@@ -46,7 +46,7 @@ int Socket::start()
         exit(1);
     }
     this->fd = sock;
-    std::cout << "listening on port : " << conf.port << std::endl;
+    std::cout << "listening on port : " << conf.ports[0] << std::endl;
     return sock;
 }
 

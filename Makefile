@@ -1,12 +1,25 @@
+# **************************************************************************** #
+#                                                                              #
+#                                                         :::      ::::::::    #
+#    Makefile                                           :+:      :+:    :+:    #
+#                                                     +:+ +:+         +:+      #
+#    By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+         #
+#                                                 +#+#+#+#+#+   +#+            #
+#    Created: 2023/10/27 11:05:58 by ogorfti           #+#    #+#              #
+#    Updated: 2024/03/07 18:46:47 by hoigag           ###   ########.fr        #
+#                                                                              #
+# **************************************************************************** #
+
 CXX = c++
 
 CXXFLAGS = -Wall -Wextra -Werror -std=c++98 -fsanitize=address -g -I./include -I./parsing
 
+PARSING =	${addprefix parsing/, Request.cpp ServerConf.cpp ErrUtils.cpp}
+
 NAME = server
 
-SRCS_DIR = srcs
-
-SRCS = $(addprefix $(SRCS_DIR)/, main.cpp WebServer.cpp Cgi.cpp helpers.cpp Response.cpp Mimes.cpp Socket.cpp Header.cpp)  parsing/Request.cpp parsing/ServerConf.cpp 
+SRCS = $(addprefix srcs/, main.cpp WebServer.cpp Cgi.cpp helpers.cpp Response.cpp Mimes.cpp Socket.cpp Header.cpp)  $(PARSING) 
+# SRCS = $(addprefix srcs/, main.cpp )  $(PARSING) 
 
 HEADERS = parsing/Request.hpp parsing/ServerConf.hpp WebServer.hpp
 
@@ -29,6 +42,6 @@ fclean: clean
 re: fclean all
 
 run: all
-	./$(NAME) default.toml
+	./$(NAME) default.conf
 
 .PHONY: all clean fclean re

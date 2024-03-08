@@ -3,174 +3,321 @@
 /*                                                        :::      ::::::::   */
 /*   ServerConf.cpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ogorfti <ogorfti@student.42.fr>            +#+  +:+       +#+        */
+/*   By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/11 19:01:46 by ogorfti           #+#    #+#             */
-/*   Updated: 2024/01/20 18:15:02 by ogorfti          ###   ########.fr       */
+/*   Updated: 2024/03/07 18:32:03 by hoigag           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "ServerConf.hpp"
 
-const std::vector<ConfigData>& ServerConf::getServers() { return this->servers; }
+/*-------------------- Getters --------------------*/
 
-std::string readFile(const std::string& configPath)
+const vector<ConfigData>& ServerConf::getServers() const 
 {
-	std::ifstream file;
+	return this->servers;
+}
+
+/*-------------------- Member functions --------------------*/
+
+string readFile(const string& configPath)
+{
+	ifstream file;
 
 	file.open(configPath.c_str());
 	if (!file.is_open())
-	{
-		std::cerr << "Error: Unable to open the config file" << std::endl;
-		exit (1);
-	}
-	std::ostringstream buffer;
+		throw runtime_error("Error: Unable to open the config file");
+	ostringstream buffer;
 	buffer << file.rdbuf();
 	file.close();
 	return buffer.str();
 }
 
-void ServerConf::splitLines(const std::string& buffer)
+vector<string> splitLines(const string& buffer)
 {
+	vector<string> lines;
 	size_t begin = 0;
 	size_t end = 0;
 
-	while ((end = buffer.find('\n', begin)) != std::string::npos)
+	do
 	{
-		lines_.push_back(buffer.substr(begin, end - begin));
+		end = buffer.find('\n', begin);
+		lines.push_back(buffer.substr(begin, end - begin));
 		begin = end + 1;
-	}
+	} while (end != string::npos);
+	return lines;
 }
 
-int skip(const char* str)
+string trim(const string& str)
 {
-	int i = 0;
-	while (str[i] && str[i] == 32)
-		i++;
-	return (i);
+	string chars;
+	
+	chars = " \t\n";
+	string trimmed = str;
+	trimmed.erase(0, trimmed.find_first_not_of(chars));
+	trimmed.erase(trimmed.find_last_not_of(chars) + 1);
+	return trimmed;
 }
 
-void ServerConf::serverParams(ConfigData& server, vecIt& it)
+vector <string> split(const string& str, const string& delim)
 {
-	while (it != lines_.end() && !it->empty())
+	vector <string> tokens;
+	size_t prev = 0, pos = 0;
+
+	do 
 	{
-		size_t equalPos = it->find('=');
-		if (equalPos != std::string::npos)
-		{
-			std::string key = it->substr(skip(it->c_str()), equalPos - skip(it->c_str()) - 1);
-			std::string value = it->substr(equalPos + 2);
-			if (key == "port")
-				server.port = std::atoi(value.c_str());
-			else if (key == "hostName")
-				server.hostName = value;
-			else if (key == "documentRoot")
-				server.documentRoot = value;
-		}
-		it++;
-	}
-	//! possible SGV
-	it--;
+		pos = str.find(delim, prev);
+		string token = str.substr(prev, pos - prev);
+
+		// if (!token.empty() && trim(token).size() > 0)
+			tokens.push_back(token);
+		prev = pos + delim.length();
+	} while (pos != string::npos);
+	return tokens;
 }
 
-void ServerConf::serverErrors(ConfigData& server, vecIt& it)
+vector<string> parseMethod(const string& methods)
 {
-	while (it != lines_.end() && !it->empty())
+	vector<string> tokens = split(methods, ",");
+	vector<string> result;
+
+	for (size_t i = 0; i < tokens.size(); i++)
 	{
-		size_t pos = it->find('=');
-		if (pos != std::string::npos)
-		{
-			std::string key = it->substr(skip(it->c_str()), pos - skip(it->c_str()) - 1);
-			std::string value = it->substr(pos + 2);
-			server.errorPages[key] = value;
-		}
-		it++;
+		string method = trim(tokens[i]);
+		if (method != "GET" && method != "POST" && method != "DELETE")
+			throw runtime_error("Error: Invalid method");
+		result.push_back(method);
 	}
-	//! possible SGV
-	it--;
+	return result;
 }
 
-void ServerConf::serverLocations(ConfigData& server, vecIt& it)
+Location parseLocation(const string& location, ConfigData& server)
 {
-	Location tmp;
-
-	while (it != lines_.end() && !it->empty())
+	vector<string> tokens = split(location, "\n");
+	Location loc;
+	
+	for (size_t i = 0; i < tokens.size(); i++)
 	{
-		size_t pos = it->find('=');
-		if (pos != std::string::npos)
+		size_t equalPos = tokens[i].find('=');
+		if (equalPos != string::npos)
 		{
-			std::string key = it->substr(skip(it->c_str()), pos - skip(it->c_str()) - 1);
-			std::string value = it->substr(pos + 2);
-			if (key == "path")
-				tmp.path = value;
+			string key = trim(tokens[i].substr(0, equalPos));
+			string value = trim(tokens[i].substr(equalPos + 1));
+			if (key == "path" || key == "root" || key == "index")
+				isFilePath(value);
+			if (key == "path")				
+				loc.path = value;
 			else if (key == "root")
-				tmp.root = value;
+				loc.root = value;
 			else if (key == "index")
-				tmp.index = value;
+				loc.index = value;
+			else if (key == "autoindex")
+			{
+				if (value != "on" && value != "off")
+					throw runtime_error("Error: Invalid autoindex value");	
+				loc.autoindex = value;
+			}
+			else if (key == "bodyLimit")
+			{
+				checkBodyLimit(value);	
+				loc.bodyLimit = value;
+			}
+			else if (key == "methods")
+				loc.methods = parseMethod(value);
+			else if (key == "redirect")
+			{
+				vector<string> redir = split(value, ",");
+				if (redir.size() % 2 != 0)
+					throw runtime_error("Error: Invalid redirect configuration");
+				for (size_t i = 0; i < redir.size(); i += 2)
+				{
+					string key = trim(redir[i]);
+					string value = trim(redir[i + 1]);
+					isFilePath(key);
+					isFilePath(value);
+					loc.redirect[key] = value;
+				}
+			}
+			else
+				throw runtime_error("Error: Invalid location settings key");
 		}
-		it++;
 	}
-	server.locations.push_back(tmp);
-	//! possible SGV
-	it--;
+	if (loc.bodyLimit.empty())
+		loc.bodyLimit = server.bodyLimit;
+	return loc;
 }
 
-void ServerConf::handleSrv(ConfigData& server, vecIt& it)
+void	serverLocations(ConfigData& server, const string& locations)
 {
-	serverParams(server, it);
-	while (it != lines_.end() && *it != "[[servers]]")
+	vector<string> tokens = split(locations.substr(18), "[server.location]");
+
+	for (size_t i = 0; i < tokens.size(); i++)
 	{
-		if (it->find("servers.errorPages") != std::string::npos)
-		{
-			serverErrors(server, it);
-		}
-		else if (it->find("servers.locations") != std::string::npos)
-		{
-			serverLocations(server, it);
-		}
-		it++;
+		Location loc = parseLocation(tokens[i], server);
+		server.locations.push_back(loc);
 	}
-	//! possible SGV
-	it--;
 }
 
-ServerConf::ServerConf(const std::string& configPath)
+void	serverErrors(ConfigData& server, const string& errors)
 {
-	std::string buffer = readFile(configPath);
-	splitLines(buffer);
+	istringstream obj(errors);
+	string key, value;
 
-	for (vecIt it = lines_.begin(); it != lines_.end(); it++)
+	if (errors.empty() || count(errors.begin(), errors.end(), ',') % 2 == 0)
+		throw runtime_error("Error: Invalid error pages configuration");
+	while (getline(obj, key, ',') && getline(obj, value, ','))
 	{
-		if (*it == "[[servers]]")
+		key = trim(key);
+		value = trim(value);
+
+		// cerr << RED << key << " - " << value << RESET << endl;
+		isFilePath(value);
+		checkStatusCode(key);
+		server.errorPages[key] = value;
+	}
+}
+
+void	serverPorts(ConfigData& server, const string& ports)
+{
+	vector <string> tmp = split(ports, ",");
+
+	for (size_t i = 0; i < tmp.size(); i++)
+	{
+		long port = atol(tmp[i].c_str());
+		if (!isNumber(trim(tmp[i])) || tmp[i].empty() || port < 0 || port > 65535)
+			throw runtime_error("Error: Invalid port number");
+		server.ports.push_back(atoi(tmp[i].c_str()));
+	}
+}
+
+void	serverParams(ConfigData& server, const vector<string>& settings)
+{
+	// settingsError(settings);
+	size_t equalPos = 0;
+	for (size_t i = 0; i < settings.size(); i++)
+	{
+		if (i == 0)
 		{
-			it++;
+			if (trim(settings[i]) != "[server]")
+				throw runtime_error("Error: each server must start with [server] tag");
+		}
+		else if ((equalPos = settings[i].find('=')) != string::npos)
+		{
+			string key = trim(settings[i].substr(0, equalPos));
+			string value = trim(settings[i].substr(equalPos + 1));
+			checkValues(value, key);
+			if (key == "ports")
+				serverPorts(server, value);
+			else if (key == "host")
+				server.host = value;
+			else if (key == "root")
+				server.root = value;
+			else if (key == "cgiPath")
+				server.cgiPath = value;
+			else if (key == "uploadPath")
+				server.uploadPath = value;
+			else if (key == "errorPages")
+				serverErrors(server, value);
+			else if (key == "bodyLimit")
+			{
+				checkBodyLimit(value);
+				server.bodyLimit = value;
+			}
+			else
+				throw runtime_error("Error: Invalid server settings key");
+		}
+		else
+		{
+			// cerr<<  << settings[i] << endl;
+			throw runtime_error("Error: Invalid server settings configuration");
+		}
+	}
+}
+
+vector<string> splitBuffer(const string& buffer)
+{
+	string token;
+	vector<string> servers;
+	size_t start = 0;
+	size_t end = 0;
+
+	while ((end = buffer.find("[server]", start + 1)) != string::npos)
+	{
+		token = buffer.substr(start, end - start);
+		servers.push_back(token);
+		start = end;
+	}
+	servers.push_back(buffer.substr(start));
+	return servers;
+}
+
+ServerConf::ServerConf(const string& configPath)
+{
+	try
+	{
+		string buffer = readFile(configPath);
+		vector<string> vecBuffer = splitBuffer(trim(buffer));
+
+		for (size_t i = 0; i < vecBuffer.size(); i++)
+		{
 			ConfigData server;
-			handleSrv(server, it);
+
+			string settings = vecBuffer[i].substr(0, vecBuffer[i].find("[server.location]"));
+			string locations = vecBuffer[i].substr(settings.size());
+			
+			settings = trim(settings);
+			// cerr << "<-- settings -->\n" << settings << endl;
+			serverParams(server, splitLines(settings));
+			serverLocations(server, locations);
 			servers.push_back(server);
 		}
+	}
+	catch (exception& e)
+	{
+		cerr << e.what() << endl;
 	}
 }
 
 // int main()
 // {
-//     ServerConf test("../default.toml");
+// 	ServerConf test("../default.conf");
+	
+// 	vector<ConfigData> servers = test.getServers();
 
-//     std::vector<ConfigData> servers = test.getServers();
-
-//     for (std::vector<ConfigData>::iterator it = servers.begin(); it != servers.end(); ++it) {
-//         std::cout << "Server Configuration:\n";
-//         std::cout << "  Port: " << it->port << '\n';
-//         std::cout << "  Hostname: " << it->hostName << '\n';
-//         std::cout << "  Document Root: " << it->documentRoot << '\n';
-
-//         std::cout << "  Error Pages:\n";
-//         for (std::map<std::string, std::string>::iterator errorIt = it->errorPages.begin(); errorIt != it->errorPages.end(); ++errorIt) {
-//             std::cout << "    Error Code: " << errorIt->first << ", Path: " << errorIt->second << '\n';
-//         }
-        
-// 		std::cout << "  Locations:\n";
-//         for (std::vector<Location>::iterator locIt = it->locations.begin(); locIt != it->locations.end(); ++locIt) {
-//             std::cout << "    Path: " << locIt->path << ", Root: " << locIt->root << ", Index: " << locIt->index << '\n';
-//         }
-//         std::cout << "-----------------------------\n";
-//     }
+// 	cerr << "Servers: " << servers.size() << endl;
+// 	for (size_t i = 0; i < servers.size(); i++)
+// 	{
+// 		cerr << "----------- Ports ------------\n";
+// 		for (size_t j = 0; j < servers[i].ports.size(); j++)
+// 		{
+// 			cerr << servers[i].ports[j] << endl;
+// 		}
+// 		cerr << "--------- Settings -----------\n";
+// 		cerr << "host: " << servers[i].host << endl;
+// 		cerr << "root: " << servers[i].root << endl;
+// 		cerr << "cgiPath: " << servers[i].cgiPath << endl;
+// 		cerr << "bodyLimit: " << servers[i].bodyLimit << endl;
+// 		cerr << "uploadPath: " << servers[i].uploadPath << endl;
+// 		cerr << "errorPages: " << endl;
+// 		for (map<string, string>::iterator it = servers[i].errorPages.begin(); it != servers[i].errorPages.end(); it++)
+// 			cerr << it->first << "-   -" << it->second << endl;
+// 		cerr << "--------- Locations -----------" << servers[i].locations.size() << "\n";
+// 		for (size_t j = 0; j < servers[i].locations.size(); j++)
+// 		{
+// 			cerr << "path: " << servers[i].locations[j].path << endl;
+// 			cerr << "root: " << servers[i].locations[j].root << endl;
+// 			cerr << "index: " << servers[i].locations[j].index << endl;
+// 			cerr << "autoindex: " << servers[i].locations[j].autoindex << endl;
+// 			cerr << "bodyLimit: " << servers[i].locations[j].bodyLimit << endl;
+// 			cerr << "methods: ";
+// 			for (size_t k = 0; k < servers[i].locations[j].methods.size(); k++)
+// 				cerr << servers[i].locations[j].methods[k] << "- -";
+// 			cerr << endl;
+// 			cerr << "redirect: ";
+// 			for (map<string, string>::iterator it = servers[i].locations[j].redirect.begin(); it != servers[i].locations[j].redirect.end(); it++)
+// 				cerr << it->first << "-   -" << it->second << endl;
+// 			cerr << "\n----------------------\n";
+// 		}
+// 	}
 // }

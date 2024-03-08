@@ -6,17 +6,18 @@
 /*   By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/24 14:56:22 by hoigag            #+#    #+#             */
-/*   Updated: 2024/03/07 10:43:51 by hoigag           ###   ########.fr       */
+/*   Updated: 2024/03/07 18:43:03 by hoigag           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <iostream>
 #include "ServerConf.hpp"
+#include <map>
 #include "Socket.hpp"
 #include "WebServer.hpp"
 #include "helpers.hpp"
 
-int main(int argc, char __unused **argv)
+int main(int argc, char **argv)
 {
     if (argc != 2)
     {
@@ -25,8 +26,8 @@ int main(int argc, char __unused **argv)
     }
     std::string configFile = argv[1];
     ServerConf conf(configFile);
-    const std::vector<ConfigData> serversConf = conf.getServers();
-    
+    std::vector<ConfigData> serversConf = conf.getServers();
+
     std::vector<Socket> httpServers;
     for (size_t i = 0; i < serversConf.size(); i++)
     {
@@ -44,29 +45,4 @@ int main(int argc, char __unused **argv)
     {
         std::cerr << e.what() << '\n';
     }
-    
-    // getContentType("hassan");
-    // try
-    // {
-    //     ServerConf conf(configFile);
-    //     const std::vector<ConfigData> serversFiles = conf.getServers();
-    //     const std::vector<WebServer> servers;
-    //     // serversFiles[0].
-    //     WebServer server(serversFiles[0]);
-    //         server.createSocket();
-    //         server.bindSocket();
-    //     try
-    //     {
-    //         server.listenForConnections();
-    //     }
-    //     catch(const std::exception& e)
-    //     {
-    //         std::cerr << "somwhere in my server" << '\n';
-    //     }
-        
-    // }
-    // catch(const std::exception& e)
-    // {
-    //     std::cerr << e.what() << '\n';
-    // }
 }
