@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   WebServer.hpp                                      :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+        */
+/*   By: hassan <hassan@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/25 13:25:40 by hoigag            #+#    #+#             */
-/*   Updated: 2024/03/07 13:23:41 by hoigag           ###   ########.fr       */
+/*   Updated: 2024/03/08 21:27:19 by hassan           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,7 +25,8 @@
 #include "Mimes.hpp"
 #include "Response.hpp"
 #include "Socket.hpp"
-#define BUFFER_SIZE 300000
+#include "Header.hpp"
+
 #include <map>
 struct Client
 {
@@ -36,6 +37,7 @@ struct Client
 	std::string header;
 	std::string content;
 	int isHeaderFinished;
+	Header headerObject;
 };
 
 struct ClientResponse
