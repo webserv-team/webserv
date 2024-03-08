@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   helpers.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+        */
+/*   By: hassan <hassan@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/27 10:37:31 by hoigag            #+#    #+#             */
-/*   Updated: 2024/03/07 14:01:55 by hoigag           ###   ########.fr       */
+/*   Updated: 2024/03/08 17:35:11 by hassan           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,7 +18,7 @@ void setSocketToBeReusable(int sock)
     int opt = 1;
     if (setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) == -1)
     {
-        std::cerr << "Setsockopt error: " << strerror(errno) << std::endl;
+        std::cerr << "Setsockopt error: " << sock << std::endl;
         exit (1);
     }
 }
@@ -74,7 +74,10 @@ std::string loadFile(const std::string& path)
     std::ifstream inFile;
     inFile.open(path.c_str());
     if (!inFile.is_open())
+    {
         throw std::runtime_error("could not open file load file function");
+        
+    }
 	std::ostringstream buffer;
 	buffer << inFile.rdbuf();
 	inFile.close();

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Cgi.hpp                                            :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+        */
+/*   By: hassan <hassan@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/25 10:11:55 by hoigag            #+#    #+#             */
-/*   Updated: 2024/03/07 10:44:33 by hoigag           ###   ########.fr       */
+/*   Updated: 2024/03/08 17:34:26 by hassan           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,7 +38,8 @@
 #include "Request.hpp"
 #include <ostream>
 #include <map>
-#include <string>
+#include <string.h>
+#include <sys/wait.h>
 #include "helpers.hpp"
 class Request;
 class Cgi

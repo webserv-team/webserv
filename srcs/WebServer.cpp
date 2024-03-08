@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   WebServer.cpp                                      :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+        */
+/*   By: hassan <hassan@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/25 13:25:34 by hoigag            #+#    #+#             */
-/*   Updated: 2024/03/07 18:49:28 by hoigag           ###   ########.fr       */
+/*   Updated: 2024/03/08 19:44:58 by hassan           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,12 +44,12 @@ Response	WebServer::formResponse(Request& req)
         resourceFullPath += url;
     if (access(resourceFullPath.c_str(), F_OK) != 0)    
     {
-        content = loadFile(conf.errorPages["not_found"]);
+        content = loadFile(conf.errorPages["404"]);
         response.setStatusCode(404);
     }
     else if (access(resourceFullPath.c_str(), R_OK) != 0)
     {
-        content = loadFile(conf.errorPages["forbidden"]);
+        content = loadFile(conf.errorPages["403"]);
         response.setStatusCode(403);
     }
     else if (isDirectory(resourceFullPath))
@@ -133,10 +133,12 @@ void WebServer::handleNewConnection(int serverFd)
 void WebServer::handleExistingConnection(int fd)
 {
     std::string dataRead = sread(fd);
+    std::cout << "<<data read == " << dataRead  << ">>"<< std::endl;
     Header headers;
     size_t carr_pos = dataRead.find("\r\n\r\n");
     if (carr_pos != std::string::npos)
     {
+        std::cout << "header finished" << std::endl;
         this->clients[fd].isHeaderFinished = true; 
         this->clients[fd].header += dataRead.substr(0, carr_pos);
         this->clients[fd].content = dataRead.substr(carr_pos + 4);
@@ -144,7 +146,7 @@ void WebServer::handleExistingConnection(int fd)
     }
     if (this->clients[fd].isHeaderFinished)
     {
-        headers =  Header(this->clients[fd].header);   
+        headers =  Header(this->clients[fd].header);
         if (headers.getMethod() == "GET")
             this->clients[fd].isRequestFinished = true;
         else if (headers.getMethod() == "POST")
@@ -169,8 +171,7 @@ void WebServer::handleExistingConnection(int fd)
         FD_SET(fd, &write_sockets);
         std::string httprequest = this->clients[fd].header + "\r\n\r\n" + this->clients[fd].content;
         Request req(httprequest);
-        std::cout << httprequest << std::endl;
-        std::cout << "length === " << req.getContentLength() << std::endl;
+        // std::cout << httprequest << std::endl;w
         // std::cout << req;
         this->clientResponses[fd].response = this->formResponse(req);
         this->clientResponses[fd].responseSize = this->clientResponses[fd].response.getResponseLength();

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Cgi.cpp                                            :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+        */
+/*   By: hassan <hassan@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/25 10:51:02 by hoigag            #+#    #+#             */
-/*   Updated: 2024/02/12 12:01:44 by hoigag           ###   ########.fr       */
+/*   Updated: 2024/03/08 17:53:24 by hassan           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -58,7 +58,7 @@ void Cgi::setEnv()
         this->env[i] = NULL;
         std::string value = it->first + "=" + it->second;
         this->env[i] = new char[value.size() + 1];
-        std::strcpy(this->env[i], value.c_str());
+        strcpy(this->env[i], value.c_str());
         i++;
         it++;
     }
@@ -128,9 +128,14 @@ std::string Cgi::executeScript(std::string script)
 
 Cgi::~Cgi()
 {
-    for (int i = 0; this->env[i]; i++)
-        delete this->env[i];
-    delete this->env;
+    if (!this->env)
+        return;
+    // for (int i = 0; this->env[i]; i++)
+    // {
+    //     if (this->env[i])
+    //         delete this->env[i];
+    // }
+    delete[] this->env;
 }
 std::string Cgi::getServerPort()
 {
