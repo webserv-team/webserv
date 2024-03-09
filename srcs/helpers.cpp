@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   helpers.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+        */
+/*   By: hassan <hassan@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/27 10:37:31 by hoigag            #+#    #+#             */
-/*   Updated: 2024/03/09 16:03:04 by hoigag           ###   ########.fr       */
+/*   Updated: 2024/03/09 21:41:52 by hassan           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,19 +36,24 @@ void setSocketToNonBlocking(int socket)
 
 std::string readfromFd(int fd)
 {
+    std::cout << "reading from fd" << std::endl;
     int r = 1;
     int readSize = 1024;
     char buffer[readSize + 1];
     std::string result = "";
     while (r)
     {
+        // std::cout << "in loop" << std::endl;
         r = read(fd, buffer, readSize);
-        if (r < 0)
+        // std::cout << "r == " << r << std::endl;
+        if (r <= 0)
             break;
         buffer[r] = '\0';
-        std::string line = std::string(buffer);
+        std::string line(buffer, r);
+        // std::cout << "line == " << line << std::endl;
         result += line;
     }
+    // std::cout << "result == " << result << std::endl;
     close(fd);
     return result;
 }

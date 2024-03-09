@@ -3,7 +3,7 @@ import cgi
 import os
 
 # Set the upload directory
-upload_dir = '/Users/hoigag/cursus/webserv/upload'
+upload_dir = '/home/hassan/cursus/webserv/upload'
 
 # Create an instance of the FieldStorage class to parse the form data
 form = cgi.FieldStorage()
@@ -25,14 +25,13 @@ if 'file' in form:
             f.write(file_item.file.read())
 
         # Print a success message
-        print("Content-Type: text/html")
-        print()
-        print(f"File {filename} uploaded successfully!")
+        print("<h1>File Upload</h1>")
+        print(f"<p style='color: green;'>File {filename} uploaded successfully!</p>")
+        # print(f"File {filename} uploaded successfully!")
     else:
         # Print an error message
-        print("Content-Type: text/html")
-        print()
-        print("Error: File upload failed.")
+        print("<p style='color: read;'>could not upload the file!</p>")
+        # print("Error: File upload failed.")
 else:
     # Print an error message if no file was uploaded
     print("Content-Type: text/html")
