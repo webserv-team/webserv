@@ -2,12 +2,16 @@
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Assuming you are expecting a file input named 'file'
     if (isset($_FILES['file'])) {
-        $fileContent = file_get_contents($_FILES['file']['tmp_name']);
+        $uploadDirectory = 'upload/';
+        $uploadedFileName = $_FILES['file']['name'];
+        $targetPath = $uploadDirectory . $uploadedFileName;
 
-        // Output the content
-        echo $fileContent;
-
-        // You might want to do further processing or save the content to a file, etc.
+        // Move the uploaded file to the desired directory
+        if (move_uploaded_file($_FILES['file']['tmp_name'], $targetPath)) {
+            echo "File uploaded successfully. Saved as: " . $targetPath;
+        } else {
+            echo "Error uploading file.";
+        }
     } else {
         echo "No file uploaded.";
     }

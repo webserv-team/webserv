@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Cgi.cpp                                            :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: hassan <hassan@student.42.fr>              +#+  +:+       +#+        */
+/*   By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/25 10:51:02 by hoigag            #+#    #+#             */
-/*   Updated: 2024/03/08 17:53:24 by hassan           ###   ########.fr       */
+/*   Updated: 2024/03/09 10:29:21 by hoigag           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -118,7 +118,11 @@ std::string Cgi::executeScript(std::string script)
     else
     {
         if (this->vars["REQUEST_METHOD"] == "POST")
+        {
+            if (this->req.getBody().length() == 0)
+                exit(125);
             write(pipes[1], this->req.getBody().c_str(), this->req.getContentLength());
+        }
         close(pipes[1]);
         waitpid(pid, NULL, 0);
         output = readfromFd(pipes[0]);

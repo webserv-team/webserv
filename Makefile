@@ -3,16 +3,16 @@
 #                                                         :::      ::::::::    #
 #    Makefile                                           :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
-#    By: hassan <hassan@student.42.fr>              +#+  +:+       +#+         #
+#    By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2023/10/27 11:05:58 by ogorfti           #+#    #+#              #
-#    Updated: 2024/03/08 17:31:00 by hassan           ###   ########.fr        #
+#    Updated: 2024/03/09 10:26:05 by hoigag           ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 CXX = c++
 
-CXXFLAGS = -Wall -Wextra -Werror  -fsanitize=address -g -I./include -I./parsing #-std=c++98
+CXXFLAGS = -Wall -Wextra -Werror   -I./include -I./parsing -std=c++98 #-fsanitize=address -g
 
 PARSING =	${addprefix parsing/, Request.cpp ServerConf.cpp ErrUtils.cpp}
 

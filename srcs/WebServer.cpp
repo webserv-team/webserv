@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   WebServer.cpp                                      :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: hassan <hassan@student.42.fr>              +#+  +:+       +#+        */
+/*   By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/25 13:25:34 by hoigag            #+#    #+#             */
-/*   Updated: 2024/03/08 23:40:21 by hassan           ###   ########.fr       */
+/*   Updated: 2024/03/09 12:47:56 by hoigag           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -125,7 +125,14 @@ void WebServer::handleNewConnection(int serverFd)
     FD_SET(connFd, &this->read_sockets);
     if (connFd > this->maxFd)
         this->maxFd = connFd;
-    Client newClient = {"" , false, 0, 0, "", "", false, Header()};
+    Client newClient;
+    newClient.request = "";
+    newClient.bytesRead = 0;
+    newClient.headerObject = Header();
+    newClient.isBody = false;
+    newClient.isHeaderFinished = false;
+    newClient.isRequestFinished = false;
+    newClient.contentlength = 0;
     this->clients[connFd] = newClient;
 }
 
@@ -135,30 +142,35 @@ void WebServer::handleExistingConnection(int fd)
     this->clients[fd].request.append(dataRead);
     size_t carr_pos = dataRead.find("\r\n\r\n");
     std::cout << "<<data read == " << dataRead << ">>" <<std::endl;
+    std::cout << "<< size of data read == " << dataRead.length() << ">>" <<std::endl;
+
     if (!this->clients[fd].isHeaderFinished && carr_pos != std::string::npos)
     {
-        std::cout << "header finished" << std::endl;
+        std::cout << GREEN << "header finished" << RESET <<  std::endl;
         this->clients[fd].isHeaderFinished = true; 
         std::string header = this->clients[fd].request.substr(0, carr_pos);
         this->clients[fd].headerObject = Header(header);
         std::string content = this->clients[fd].request.substr(carr_pos + 4);
         this->clients[fd].bytesRead = content.length();
-    }
+    }   
     if (this->clients[fd].isHeaderFinished)
     {
         if (this->clients[fd].headerObject.getMethod() == "GET")
             this->clients[fd].isRequestFinished = true;
         else if (this->clients[fd].headerObject.getMethod() == "POST")
         {
-                std::cout << "content length == " << this->clients[fd].headerObject.getContentLength() << std::endl;
-                std::cout << " bytesread == " << this->clients[fd].bytesRead << std::endl;
+            std::cout << RED << "before content length == " << this->clients[fd].headerObject.getContentLength() << " |||||    bytesread == " << this->clients[fd].bytesRead << RESET << std::endl; 
+            if (this->clients[fd].isBody)
+                this->clients[fd].bytesRead += dataRead.length();
+            else
+                this->clients[fd].isBody = true;
             if (this->clients[fd].bytesRead >= this->clients[fd].headerObject.getContentLength())
             {
+                std::cout << GREEN <<"request finished" << RESET << std::endl;    
                 this->clients[fd].isRequestFinished = true;
-                
             }
-            else
-                this->clients[fd].bytesRead += dataRead.length();
+            std::cout << "IS REQUEST FINISHED: " << this->clients[fd].isRequestFinished << std::endl;
+            std::cout << RED << "content length == " << this->clients[fd].headerObject.getContentLength() << " |||||    bytesread == " << this->clients[fd].bytesRead << RESET << std::endl; 
         }
             
     }
@@ -169,12 +181,12 @@ void WebServer::handleExistingConnection(int fd)
     //     this->clients[fd].header.append(dataRead);
     if (this->clients[fd].isRequestFinished)
     {
-        std::cout << "request finished" << std::endl;
         
         std::cout<< this->clients[fd].request;
         FD_CLR(fd, &read_sockets);
         FD_SET(fd, &write_sockets);
         Request req(this->clients[fd].request);
+		//Response response(reaq, std::vector<Socket>& servers)
         this->clientResponses[fd].response = this->formResponse(req);
         this->clientResponses[fd].responseSize = this->clientResponses[fd].response.getResponseLength();
         this->clientResponses[fd].totalDataSent = 0;

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   WebServer.hpp                                      :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: hassan <hassan@student.42.fr>              +#+  +:+       +#+        */
+/*   By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/25 13:25:40 by hoigag            #+#    #+#             */
-/*   Updated: 2024/03/08 21:27:19 by hassan           ###   ########.fr       */
+/*   Updated: 2024/03/09 11:03:21 by hoigag           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,6 +27,10 @@
 #include "Socket.hpp"
 #include "Header.hpp"
 
+#define GREEN "\033[1;32m"
+#define RED "\033[1;31m"
+#define RESET "\033[0m"
+
 #include <map>
 struct Client
 {
@@ -34,8 +38,7 @@ struct Client
     bool isRequestFinished;
 	int bytesRead;
 	int contentlength;
-	std::string header;
-	std::string content;
+	bool isBody;
 	int isHeaderFinished;
 	Header headerObject;
 };
