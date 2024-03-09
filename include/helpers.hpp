@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   helpers.hpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: hassan <hassan@student.42.fr>              +#+  +:+       +#+        */
+/*   By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/27 10:37:00 by hoigag            #+#    #+#             */
-/*   Updated: 2024/03/08 21:23:55 by hassan           ###   ########.fr       */
+/*   Updated: 2024/03/09 17:22:41 by hoigag           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,7 +27,7 @@
 #include "Request.hpp"
 #include "Header.hpp"
 
-#define BUFFER_SIZE 4024
+#define BUFFER_SIZE 100000
 
 void setSocketToBeReusable(int sock);
 void setSocketToNonBlocking(int socket);

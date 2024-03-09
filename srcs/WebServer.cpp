@@ -6,7 +6,7 @@
 /*   By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/25 13:25:34 by hoigag            #+#    #+#             */
-/*   Updated: 2024/03/09 12:47:56 by hoigag           ###   ########.fr       */
+/*   Updated: 2024/03/09 16:02:55 by hoigag           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,13 +23,13 @@
 
 Response	WebServer::formResponse(Request& req)
 {
-    std::cout << "forming response " << std::endl;
+    // std::cout << "forming response " << std::endl;
     Response response;
     std::string content;
     std::string header;
     std::string contentType;
     ConfigData conf = this->getServer(req.getPort()).getConfData();
-    std::cout << "got the right conf data " << std::endl;
+    // std::cout << "got the right conf data " << std::endl;
     std::string resourceFullPath = conf.root;
     std::string url = req.getURL();
     size_t pos = url.find("?");
@@ -141,12 +141,12 @@ void WebServer::handleExistingConnection(int fd)
     std::string dataRead = sread(fd);
     this->clients[fd].request.append(dataRead);
     size_t carr_pos = dataRead.find("\r\n\r\n");
-    std::cout << "<<data read == " << dataRead << ">>" <<std::endl;
-    std::cout << "<< size of data read == " << dataRead.length() << ">>" <<std::endl;
+    // std::cout << "<<data read == " << dataRead << ">>" <<std::endl;
+    // std::cout << "<< size of data read == " << dataRead.length() << ">>" <<std::endl;
 
     if (!this->clients[fd].isHeaderFinished && carr_pos != std::string::npos)
     {
-        std::cout << GREEN << "header finished" << RESET <<  std::endl;
+        // std::cout << GREEN << "header finished" << RESET <<  std::endl;
         this->clients[fd].isHeaderFinished = true; 
         std::string header = this->clients[fd].request.substr(0, carr_pos);
         this->clients[fd].headerObject = Header(header);
@@ -159,17 +159,17 @@ void WebServer::handleExistingConnection(int fd)
             this->clients[fd].isRequestFinished = true;
         else if (this->clients[fd].headerObject.getMethod() == "POST")
         {
-            std::cout << RED << "before content length == " << this->clients[fd].headerObject.getContentLength() << " |||||    bytesread == " << this->clients[fd].bytesRead << RESET << std::endl; 
+            // std::cout << RED << "before content length == " << this->clients[fd].headerObject.getContentLength() << " |||||    bytesread == " << this->clients[fd].bytesRead << RESET << std::endl; 
             if (this->clients[fd].isBody)
                 this->clients[fd].bytesRead += dataRead.length();
             else
                 this->clients[fd].isBody = true;
             if (this->clients[fd].bytesRead >= this->clients[fd].headerObject.getContentLength())
             {
-                std::cout << GREEN <<"request finished" << RESET << std::endl;    
+                // std::cout << GREEN <<"request finished" << RESET << std::endl;    
                 this->clients[fd].isRequestFinished = true;
             }
-            std::cout << "IS REQUEST FINISHED: " << this->clients[fd].isRequestFinished << std::endl;
+            // std::cout << "IS REQUEST FINISHED: " << this->clients[fd].isRequestFinished << std::endl;
             std::cout << RED << "content length == " << this->clients[fd].headerObject.getContentLength() << " |||||    bytesread == " << this->clients[fd].bytesRead << RESET << std::endl; 
         }
             
@@ -182,7 +182,7 @@ void WebServer::handleExistingConnection(int fd)
     if (this->clients[fd].isRequestFinished)
     {
         
-        std::cout<< this->clients[fd].request;
+        // std::cout<< this->clients[fd].request;
         FD_CLR(fd, &read_sockets);
         FD_SET(fd, &write_sockets);
         Request req(this->clients[fd].request);

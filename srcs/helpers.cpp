@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   helpers.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: hassan <hassan@student.42.fr>              +#+  +:+       +#+        */
+/*   By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/27 10:37:31 by hoigag            #+#    #+#             */
-/*   Updated: 2024/03/08 17:35:11 by hassan           ###   ########.fr       */
+/*   Updated: 2024/03/09 16:03:04 by hoigag           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -70,7 +70,7 @@ bool isSupportedCgiScript(std::string script)
 
 std::string loadFile(const std::string& path)
 {
-    std::cout << "path == " << path << std::endl;
+    // std::cout << "path == " << path << std::endl;
     std::ifstream inFile;
     inFile.open(path.c_str());
     if (!inFile.is_open())
