@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   WebServer.cpp                                      :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: hassan <hassan@student.42.fr>              +#+  +:+       +#+        */
+/*   By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/25 13:25:34 by hoigag            #+#    #+#             */
-/*   Updated: 2024/03/09 21:27:55 by hassan           ###   ########.fr       */
+/*   Updated: 2024/03/11 17:32:34 by hoigag           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,8 +33,8 @@ Response	WebServer::formResponse(Request& req)
     std::string resourceFullPath = conf.root;
     std::string url = req.getURL();
     size_t pos = url.find("?");
-    // if (req.getMethod() == "POST" && req.getContentType().find("multipart/form-data") != string::npos)
-    //     uploadFiles(req);
+    if (req.getMethod() == "POST" && req.getContentType().find("multipart/form-data") != string::npos)
+        uploadFiles(req);
     if (url == "/")
         url = "/index.html";
     if (pos != std::string::npos)

@@ -3,7 +3,7 @@ import cgi
 import os
 
 # Set the upload directory
-upload_dir = '/home/hassan/cursus/webserv/upload'
+upload_dir = '/Users/hoigag/cursus/webserv/upload'
 
 # Create an instance of the FieldStorage class to parse the form data
 form = cgi.FieldStorage()

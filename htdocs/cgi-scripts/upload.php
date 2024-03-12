@@ -1,20 +1,31 @@
 <?php
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    // Assuming you are expecting a file input named 'file'
-    if (isset($_FILES['file'])) {
-        $uploadDirectory = '/home/hassan/cursus/webserv/upload/';
-        $uploadedFileName = $_FILES['file']['name'];
-        $targetPath = $uploadDirectory . $uploadedFileName;
-        // Move the uploaded file to the desired directory
-        if (move_uploaded_file($_FILES['file']['tmp_name'], $targetPath)) {
-            echo "File uploaded successfully. Saved as: " . $targetPath;
+header("Content-Type: text/html; charset=UTF-8");
+
+// Check if the form was submitted
+if ($_SERVER["REQUEST_METHOD"] === "POST") {
+    // Check if file was uploaded
+    if (isset($_FILES["file"])) {
+        $file = $_FILES["file"];
+
+        // Check for errors
+        if ($file["error"] === UPLOAD_ERR_OK) {
+            $upload_dir = realpath('../../upload');
+            $filename = basename($file["name"]);
+            $target_path = $upload_dir . '/' . $filename;
+            
+            // Move uploaded file to the specified directory
+            if (move_uploaded_file($file["tmp_name"], $target_path)) {
+                echo "File '" . $filename . "' uploaded successfully!";
+            } else {
+                echo "Failed to move uploaded file.";
+            }
         } else {
-            echo "Error uploading file.";
+            echo "Error occurred during file upload: " . $file["error"];
         }
     } else {
         echo "No file uploaded.";
     }
 } else {
-    echo "Invalid request method.";
+    echo "No POST request received.";
 }
 ?>

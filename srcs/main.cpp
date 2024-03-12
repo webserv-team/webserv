@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   main.cpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: hassan <hassan@student.42.fr>              +#+  +:+       +#+        */
+/*   By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/24 14:56:22 by hoigag            #+#    #+#             */
-/*   Updated: 2024/03/08 17:33:26 by hassan           ###   ########.fr       */
+/*   Updated: 2024/03/11 10:38:37 by hoigag           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,7 +37,7 @@ int main(int argc, char **argv)
 
     try
     {
-        signal(SIGPIPE, SIG_IGN);
+        // signal(SIGPIPE, SIG_IGN);
         WebServer entry(httpServers);
         entry.listenForConnections();
     }

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Cgi.cpp                                            :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: hassan <hassan@student.42.fr>              +#+  +:+       +#+        */
+/*   By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/25 10:51:02 by hoigag            #+#    #+#             */
-/*   Updated: 2024/03/09 22:08:43 by hassan           ###   ########.fr       */
+/*   Updated: 2024/03/11 17:29:44 by hoigag           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -72,10 +72,12 @@ std::string Cgi::executeScript(std::string script)
     std::string output = "error";
     const char *command[3];
     if (getFileExtension(script) == ".py")
-        command[0] = strdup("/usr/bin/python3");
+        command[0] = strdup("/Users/hoigag/.brew/bin/python3");
     else
-        command[0] = strdup("/usr/bin/php-cgi");
+        command[0] = strdup("htdocs/cgi-bin/php-cgi");
     command[1] = script.c_str();
+            std::cout << "command[0] " << command[0] << std::endl;
+        std::cout << "command[1] " << command[1] << std::endl;
     std::cout << "the file being exectuted " << command[1] << std::endl;
     command[2] = NULL;
     int pipes[2];
@@ -104,13 +106,16 @@ std::string Cgi::executeScript(std::string script)
             std::cerr << "error while duppingg" << std::endl;
             exit(1);
         }
-        if (close(pipes[0]) < 0 || close(pipes[1]) < 0) 
+        // if (dup2(pipes[1], 2) < 0)
+        // {
+        //     std::cerr << "error while duppingg" << std::endl;
+        //     exit(1);
+        // }
+        if (close(pipes[0]) < 0 || close(pipes[1]) < 0)
         {
             std::cerr << "error while closing pipes" << std::endl;
             exit(1);
         }
-        std::cout << "command[0] " << command[0] << std::endl;
-        std::cout << "command[1] " << command[1] << std::endl;
         if (execve(command[0], (char * const *)command, this->env) < 0)
         {
             std::cerr << "error while executing the cgi script" << std::endl;
@@ -123,15 +128,16 @@ std::string Cgi::executeScript(std::string script)
         {
             if (this->req.getBody().length() == 0)
                 exit(125);
-            //send data in chunks
-            std::cout << "sending data in chunks" << std::endl;
+            // send data in chunks
+            std::cout << "sending data in chunks" << std::endl; 
             int totalDataSent = 0;
             while (1)
             {
                 if (totalDataSent >= this->req.getContentLength())
                     break;
                 std::cout << "before writing to pipe" << std::endl;
-                int dataSent = write(pipes[1], this->req.getBody().c_str() + totalDataSent, this->req.getBody().size() - totalDataSent);
+                int dataSent = write(pipes[1], this->req.getBody().c_str() + totalDataSent , this->req.getBody().size() - totalDataSent);
+                std::cout << "after writing to pipe" << std::endl;
                 std::cout << "dataSent == " << dataSent << std::endl;
                 if (dataSent < 0)
                 {
@@ -146,7 +152,8 @@ std::string Cgi::executeScript(std::string script)
         close(pipes[1]);
         waitpid(pid, NULL, 0);
         output = readfromFd(pipes[0]);
-        std::cout << "output from cgi script " << output << std::endl;
+        close(pipes[0]);
+        // std::cout << "output from cgi script " << output << std::endl;
     }
     return output;
 }
