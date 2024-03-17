@@ -6,7 +6,7 @@
 /*   By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/27 10:37:31 by hoigag            #+#    #+#             */
-/*   Updated: 2024/03/11 17:28:51 by hoigag           ###   ########.fr       */
+/*   Updated: 2024/03/12 15:52:20 by hoigag           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -179,6 +179,8 @@ void uploadFiles(Request& req)
 {
     std::cout << "uploading files" << std::endl;
     vector<s_tuple > data = req.getMultipart();
+    std::cout << " -----> req: "<< req.getBody().size() << std::endl;
+    
     std::string body = "";
     std::cout << "url === " << req.getURL() << std::endl;
     for (size_t i = 0; i < data.size(); i++)
@@ -194,7 +196,14 @@ void uploadFiles(Request& req)
                 if (data[i].value.empty())
                     std::cerr << "the file content is empty" << std::endl;
                 else
-                    outfile << data[i].value;
+                {
+                    // std::cout << "file content == " << data[i].value.length() << std::endl;
+                    // std::cout << "writing to file" << std::endl;
+                    outfile.write(data[i].value.data(), data[i].value.size());
+                    std::cout << " -----> len: "<< data[i].value.size() << std::endl;
+                    // std::cout << "done writing to file" << std::endl;
+                    outfile.close();
+                }
             }
     }
     // req.setBody(body);

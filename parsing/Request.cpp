@@ -6,7 +6,7 @@
 /*   By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/01 16:18:37 by ogorfti           #+#    #+#             */
-/*   Updated: 2024/03/05 15:40:05 by hoigag           ###   ########.fr       */
+/*   Updated: 2024/03/12 15:57:20 by hoigag           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -90,6 +90,7 @@ void Request::parseMultipart()
 	size_t start = 14;
 	size_t pos = 0;
 
+	// std::cout << "body_ == " << body_.size() << std::endl;
 	while ((pos = body_.find("\r\n\r\n", start)) != std::string::npos)
 	{
 		s_tuple tmp;
@@ -110,7 +111,9 @@ void Request::parseMultipart()
 		size_t pos5 = body_.find("\r\n", pos + 4);
 		if (pos5 != string::npos)
 		{
-			tmp.value = body_.substr(pos + 4, pos5 - pos - 4);
+			// tmp.value = body_.substr(pos + 4, pos5 - pos - 4);
+			tmp.value = body_.substr(pos + 4);
+			// std::cout << "after body_ == " << tmp.value.size() << std::endl;
 		}
 		this->multipart_.push_back(tmp);
 		start = pos + 4;

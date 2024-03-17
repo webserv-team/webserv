@@ -6,7 +6,7 @@
 /*   By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/25 13:25:34 by hoigag            #+#    #+#             */
-/*   Updated: 2024/03/11 17:32:34 by hoigag           ###   ########.fr       */
+/*   Updated: 2024/03/17 17:45:22 by hoigag           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,9 +33,9 @@ Response	WebServer::formResponse(Request& req)
     std::string resourceFullPath = conf.root;
     std::string url = req.getURL();
     size_t pos = url.find("?");
-    if (req.getMethod() == "POST" && req.getContentType().find("multipart/form-data") != string::npos)
-        uploadFiles(req);
-    if (url == "/")
+    // if (req.getMethod() == "POST" && req.getContentType().find("multipart/form-data") != string::npos)
+    //     uploadFiles(req);
+    if (url == "/")     
         url = "/index.html";
     if (pos != std::string::npos)
         resourceFullPath += url.substr(0, pos);
@@ -181,10 +181,10 @@ void WebServer::handleExistingConnection(int fd)
     //     this->clients[fd].header.append(dataRead);
     if (this->clients[fd].isRequestFinished)
     {
-        
         // std::cout<< this->clients[fd].request;
         FD_CLR(fd, &read_sockets);
         FD_SET(fd, &write_sockets);
+        std::cout << RED << this->clients[fd].request << RESET <<std::endl;
         Request req(this->clients[fd].request);
 		//Response response(reaq, std::vector<Socket>& servers)
         this->clientResponses[fd].response = this->formResponse(req);
@@ -192,6 +192,7 @@ void WebServer::handleExistingConnection(int fd)
         this->clientResponses[fd].totalDataSent = 0;
         this->clientResponses[fd].isResponseFinished = false;
     }
+        std::cout << GREEN << "request finished" << RESET << std::endl;        
 }
 
 int sendChunk(int sock, ClientResponse& cr)
@@ -211,15 +212,21 @@ int sendChunk(int sock, ClientResponse& cr)
 
 void WebServer::listenForConnections()  
 {
+    struct timeval timeout;
+    timeout.tv_sec = 20;
+    timeout.tv_usec = 0;
     while (true)
     {
         this->read_copy_sockets = this->read_sockets;
         this->write_copy_sockets = this->write_sockets;
-        if (select(this->maxFd + 1, &this->read_copy_sockets, &this->write_copy_sockets, NULL, NULL) < 0)
+        int res = select(this->maxFd + 1, &this->read_copy_sockets, &this->write_copy_sockets, NULL, &timeout);
+        if (res < 0)
         {
             std::cerr << "error occured on select" << std::endl;
             exit(1);
         }
+        else if (res == 0)
+            std::runtime_error("timeout occured");
         for (int i = 0; i <= this->maxFd; i++)
         {
             if (FD_ISSET(i, &this->read_copy_sockets))
