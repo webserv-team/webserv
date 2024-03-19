@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   helpers.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+        */
+/*   By: ogorfti <ogorfti@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/27 10:37:31 by hoigag            #+#    #+#             */
-/*   Updated: 2024/03/09 16:03:04 by hoigag           ###   ########.fr       */
+/*   Updated: 2024/03/19 02:01:58 by ogorfti          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,69 +15,69 @@
 
 void setSocketToBeReusable(int sock)
 {
-    int opt = 1;
-    if (setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) == -1)
-    {
-        std::cerr << "Setsockopt error: " << sock << std::endl;
-        exit (1);
-    }
+	int opt = 1;
+	if (setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) == -1)
+	{
+		std::cerr << "Setsockopt error: " << sock << std::endl;
+		exit (1);
+	}
 }
 
 void setSocketToNonBlocking(int socket)
 {
-    int status = fcntl(socket, F_SETFL, O_NONBLOCK, FD_CLOEXEC);
-    if (status < 0)
-    {
-        std::cout << "could not set socket " << socket << "to non blocking" << std::endl;
-        exit(1);
-    }
+	int status = fcntl(socket, F_SETFL, O_NONBLOCK, FD_CLOEXEC);
+	if (status < 0)
+	{
+		std::cout << "could not set socket " << socket << "to non blocking" << std::endl;
+		exit(1);
+	}
 }
 
 
 std::string readfromFd(int fd)
 {
-    int r = 1;
-    int readSize = 1024;
-    char buffer[readSize + 1];
-    std::string result = "";
-    while (r)
-    {
-        r = read(fd, buffer, readSize);
-        if (r < 0)
-            break;
-        buffer[r] = '\0';
-        std::string line = std::string(buffer);
-        result += line;
-    }
-    close(fd);
-    return result;
+	int r = 1;
+	int readSize = 1024;
+	char buffer[readSize + 1];
+	std::string result = "";
+	while (r)
+	{
+		r = read(fd, buffer, readSize);
+		if (r < 0)
+			break;
+		buffer[r] = '\0';
+		std::string line = std::string(buffer);
+		result += line;
+	}
+	close(fd);
+	return result;
 }
 
 std::string getFileExtension(std::string filename)
 {
-    std::string ext = "";
-    size_t pos = filename.find(".");
-    if (pos != std::string::npos)
-        ext = filename.substr(pos);
-    return ext;
+	std::string ext = "";
+	size_t pos = filename.find(".");
+	if (pos != std::string::npos)
+		ext = filename.substr(pos);
+	return ext;
 }
 
 bool isSupportedCgiScript(std::string script)
 {
-    std::string ext = getFileExtension(script);
-    return (ext == ".py" || ext == ".php") ? true : false;    
+	std::string ext = getFileExtension(script);
+	return (ext == ".py" || ext == ".php") ? true : false;    
 }
 
 std::string loadFile(const std::string& path)
 {
-    // std::cout << "path == " << path << std::endl;
-    std::ifstream inFile;
-    inFile.open(path.c_str());
-    if (!inFile.is_open())
-    {
-        throw std::runtime_error("could not open file load file function");
-        
-    }
+	// std::cout << "path == " << path << std::endl;
+	std::ifstream inFile;
+	inFile.open(path.c_str());
+	if (!inFile.is_open())
+	{
+		throw std::runtime_error("could not open file load file function");
+		
+	}
 	std::ostringstream buffer;
 	buffer << inFile.rdbuf();
 	inFile.close();
@@ -87,123 +87,123 @@ std::string loadFile(const std::string& path)
 
 std::string getContentTypeFromCgiOutput(std::string& content)
 {
-        
-    if (content.empty())
-        return "text/html";
-    std::stringstream stream;
-    std::string line;
-    stream.str(content);
-    std::getline(stream, line);
-    std::getline(stream, line);
-    size_t semiPos = line.find(";");
-    std::string header = line.substr(0, semiPos);
-    size_t colonPos = header.find(":");
-    std::string contentType = header.substr(colonPos + 2);
-    return contentType;
+		
+	if (content.empty())
+		return "text/html";
+	std::stringstream stream;
+	std::string line;
+	stream.str(content);
+	std::getline(stream, line);
+	std::getline(stream, line);
+	size_t semiPos = line.find(";");
+	std::string header = line.substr(0, semiPos);
+	size_t colonPos = header.find(":");
+	std::string contentType = header.substr(colonPos + 2);
+	return contentType;
 }
 
 
 void urlValidator(std::string& url)
 {
-    for (int i = 0; url[i]; i++)
-        if (url[i] == '/' && url[i + 1] && url[i + 1] == '/')
-            url.erase(i, 1);
+	for (int i = 0; url[i]; i++)
+		if (url[i] == '/' && url[i + 1] && url[i + 1] == '/')
+			url.erase(i, 1);
 }
 
 
 bool isDirectory(std::string& path)
 {
-    struct stat info;
-    if (stat(path.c_str(), &info) < 0)
-    {
-        std::cerr << "could not open file : " << path << std::endl;
-        return false;
-    }
-    return S_ISDIR(info.st_mode);
+	struct stat info;
+	if (stat(path.c_str(), &info) < 0)
+	{
+		std::cerr << "could not open file : " << path << std::endl;
+		return false;
+	}
+	return S_ISDIR(info.st_mode);
 }
 std::string directoryListing(std::string& path)
 {
-    size_t pos = path.find("/");
-    std::string relativePath;
-    if (pos != std::string::npos)
-        relativePath = path.substr(pos + 1);
-    std::string content = "<!DOCTYPE html> <html lang=\"en\" <head>\
-    <meta charset=\"UTF-8\">\
-    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\
-    <title>File List</title>\
-    <link rel=\"stylesheet\" href=\"/styles/listing.css\">\
+	size_t pos = path.find("/");
+	std::string relativePath;
+	if (pos != std::string::npos)
+		relativePath = path.substr(pos + 1);
+	std::string content = "<!DOCTYPE html> <html lang=\"en\" <head>\
+	<meta charset=\"UTF-8\">\
+	<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\
+	<title>File List</title>\
+	<link rel=\"stylesheet\" href=\"/styles/listing.css\">\
 </head>\
 <body>\
-    <h1>Directory Listing</h1>\
-    <hr>\
-    <ul>";
-    
-    struct dirent *stdir;
-    DIR *dir = opendir(path.c_str());
-    if (!dir)
-        return  ("<p>could not open the directory " + path + " </p>");
-    
-    content += "<li><strong>Directory: " + path + "</strong></li><br>";
+	<h1>Directory Listing</h1>\
+	<hr>\
+	<ul>";
+	
+	struct dirent *stdir;
+	DIR *dir = opendir(path.c_str());
+	if (!dir)
+		return  ("<p>could not open the directory " + path + " </p>");
+	
+	content += "<li><strong>Directory: " + path + "</strong></li><br>";
 
-    stdir = readdir(dir);
-    while (stdir)
-    {
-        if (stdir)
-        {   
-            std::string filename(stdir->d_name);
-            if (filename != "." && filename != "..")
-            {
-                std::string directory = path + "/" + filename;
-                std::string href = "/" + relativePath + "/" + filename;
-                std::string link;
-                if (isDirectory(directory))
-                    link += "<li><span class=\"icon\">📁</span><a href=\"" + href + "\" class=\"directory\">" + filename + "</a></li>";
-                else
-                    link += "<li><span class=\"icon\">📄</span><a href=\"" + href + "\" class=\"file\">" + filename + "</a></li>";
-                content += link;
-            }
-        }
-        stdir = readdir(dir);
-    }
-    content += "</ul></body></html>";
-    closedir(dir);
+	stdir = readdir(dir);
+	while (stdir)
+	{
+		if (stdir)
+		{   
+			std::string filename(stdir->d_name);
+			if (filename != "." && filename != "..")
+			{
+				std::string directory = path + "/" + filename;
+				std::string href = "/" + relativePath + "/" + filename;
+				std::string link;
+				if (isDirectory(directory))
+					link += "<li><span class=\"icon\">📁</span><a href=\"" + href + "\" class=\"directory\">" + filename + "</a></li>";
+				else
+					link += "<li><span class=\"icon\">📄</span><a href=\"" + href + "\" class=\"file\">" + filename + "</a></li>";
+				content += link;
+			}
+		}
+		stdir = readdir(dir);
+	}
+	content += "</ul></body></html>";
+	closedir(dir);
 
-    return content; 
+	return content; 
 }
 
 void uploadFiles(Request& req)
 {
-    std::cout << "uploading files" << std::endl;
-    vector<s_tuple > data = req.getMultipart();
-    std::string body = "";
-    std::cout << "url === " << req.getURL() << std::endl;
-    for (size_t i = 0; i < data.size(); i++)
-    {
-        if (data[i].fileName.empty())
-            body += data[i].name + "=" + data[i].value + "&";
-        else
-            {
-                std::cout << "filename === " << data[i].fileName << std::endl;
-                std::ofstream outfile("upload/" + data[i].fileName);
-                if (!outfile.is_open())
-                    throw std::runtime_error("could not open the file upload");
-                if (data[i].value.empty())
-                    std::cerr << "the file content is empty" << std::endl;
-                else
-                    outfile << data[i].value;
-            }
-    }
-    // req.setBody(body);
+	std::cout << "uploading files" << std::endl;
+	vector<s_tuple > data = req.getMultipart();
+	std::string body = "";
+	// std::cout << "url === " << req.getURL() << std::endl;
+	for (size_t i = 0; i < data.size(); i++)
+	{
+		if (data[i].fileName.empty())
+			body += data[i].name + "=" + data[i].value + "&";
+		else
+		{
+			std::cout << "filename === " << data[i].fileName << std::endl;
+			std::ofstream outfile("upload/" + data[i].fileName);
+			if (!outfile.is_open())
+				throw std::runtime_error("could not open the file upload");
+			if (data[i].value.empty())
+				std::cerr << "the file content is empty" << std::endl;
+			else
+				outfile << data[i].value;
+		}
+	}
+	// req.setBody(body);
 }
 
 std::string sread(int socket)
 {
-    char dataRead[BUFFER_SIZE + 1];
-    int bytesRead = recv(socket, dataRead, BUFFER_SIZE, 0);
-    if (bytesRead < 0)
-        std::runtime_error("recv error : could not read from socket");
-    dataRead[bytesRead] = '\0';
-    return std::string(dataRead, bytesRead);
+	char dataRead[BUFFER_SIZE + 1];
+	int bytesRead = recv(socket, dataRead, BUFFER_SIZE, 0);
+	if (bytesRead < 0)
+		std::runtime_error("recv error : could not read from socket");
+	dataRead[bytesRead] = '\0';
+	return std::string(dataRead, bytesRead);
 }
 
 // int sendChunk(int sock, ClientResponse& cr)

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   WebServer.cpp                                      :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+        */
+/*   By: ogorfti <ogorfti@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/25 13:25:34 by hoigag            #+#    #+#             */
-/*   Updated: 2024/03/09 16:02:55 by hoigag           ###   ########.fr       */
+/*   Updated: 2024/03/19 02:03:21 by ogorfti          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,8 +33,8 @@ Response	WebServer::formResponse(Request& req)
     std::string resourceFullPath = conf.root;
     std::string url = req.getURL();
     size_t pos = url.find("?");
-    // if (req.getMethod() == "POST" && req.getContentType().find("multipart/form-data") != string::npos)
-    //     uploadFiles(req);
+    if (req.getMethod() == "POST" && req.getContentType().find("multipart/form-data") != string::npos)
+        uploadFiles(req);
     if (url == "/")
         url = "/index.html";
     if (pos != std::string::npos)
@@ -56,14 +56,15 @@ Response	WebServer::formResponse(Request& req)
     else if (isSupportedCgiScript(resourceFullPath))
     {
         std::cout << "this is a cgi script" << std::endl;
-        Cgi cgi(req);
-        content = cgi.executeScript(resourceFullPath);
-        size_t pos = content.find("\r\n\r\n");
-        if (pos != std::string::npos)
-        {
-            content = content.substr(pos);
-            header = content.substr(0, pos);
-        }
+        // Cgi cgi(req);
+        // content = cgi.executeScript(resourceFullPath);
+        // size_t pos = content.find("\r\n\r\n");
+        // if (pos != std::string::npos)
+        // {
+        //     content = content.substr(pos);
+        //     header = content.substr(0, pos);
+        // }
+        content = "hello";
     }
     else
         content = loadFile(conf.root + url);
@@ -186,6 +187,9 @@ void WebServer::handleExistingConnection(int fd)
         FD_CLR(fd, &read_sockets);
         FD_SET(fd, &write_sockets);
         Request req(this->clients[fd].request);
+        // cerr << req << endl;
+        // cerr << "body size: " << req.getBody().size() << endl;
+        // cerr << "getContentLength size: " << req.getContentLength() << endl;
 		//Response response(reaq, std::vector<Socket>& servers)
         this->clientResponses[fd].response = this->formResponse(req);
         this->clientResponses[fd].responseSize = this->clientResponses[fd].response.getResponseLength();
