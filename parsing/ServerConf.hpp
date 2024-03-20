@@ -3,16 +3,16 @@
 /*                                                        :::      ::::::::   */
 /*   ServerConf.hpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: hassan <hassan@student.42.fr>              +#+  +:+       +#+        */
+/*   By: ogorfti <ogorfti@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/11 18:08:24 by ogorfti           #+#    #+#             */
-/*   Updated: 2024/03/08 17:37:23 by hassan           ###   ########.fr       */
+/*   Updated: 2024/03/20 20:52:11 by ogorfti          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #pragma once
 
-#include "lib.hpp"
+#include "../include/lib.hpp"
 using namespace std;
 #include <algorithm>
 
@@ -24,6 +24,8 @@ class Location
 		string index;
 		string autoindex;
 		string bodyLimit;
+		string uploadPath;
+		string cgiPath;
 		map <string, string> redirect;
 		vector<string> methods;
 };
@@ -34,9 +36,9 @@ class ConfigData
 		vector <int> ports;
 		string host;
 		string root;
-		string cgiPath;
 		string bodyLimit;
 		string uploadPath;
+		string serverName;
 		map <string, string> errorPages;
 		vector<Location> locations;
 };

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ServerConf.cpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: hassan <hassan@student.42.fr>              +#+  +:+       +#+        */
+/*   By: ogorfti <ogorfti@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/11 19:01:46 by ogorfti           #+#    #+#             */
-/*   Updated: 2024/03/08 17:37:08 by hassan           ###   ########.fr       */
+/*   Updated: 2024/03/20 20:52:58 by ogorfti          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -92,6 +92,23 @@ vector<string> parseMethod(const string& methods)
 	return result;
 }
 
+void	overideLocations(ConfigData& server, Location& loc)
+{
+	// need to verify if overide is needed in some values
+	// if (loc.path.empty())
+	// 	loc.path = "/";
+	// if (loc.root.empty())
+	// 	loc.root = server.root;
+	// if (loc.index.empty())
+	// 	loc.index = "index.html";
+	if (loc.autoindex.empty())
+		loc.autoindex = "off";
+	if (loc.bodyLimit.empty())
+		loc.bodyLimit = server.bodyLimit;
+	if (loc.uploadPath.empty())
+		loc.uploadPath = server.uploadPath;
+}
+
 Location parseLocation(const string& location, ConfigData& server)
 {
 	vector<string> tokens = split(location, "\n");
@@ -104,14 +121,18 @@ Location parseLocation(const string& location, ConfigData& server)
 		{
 			string key = trim(tokens[i].substr(0, equalPos));
 			string value = trim(tokens[i].substr(equalPos + 1));
-			if (key == "path" || key == "root" || key == "index")
+			if (key == "path" || key == "root" || key == "index" || key == "uploadPath")
 				isFilePath(value);
-			if (key == "path")				
+			if (key == "path")
 				loc.path = value;
 			else if (key == "root")
 				loc.root = value;
 			else if (key == "index")
 				loc.index = value;
+			else if (key == "uploadPath")
+				loc.uploadPath = value;
+			else if (key == "cgiPath")
+				loc.cgiPath = value;
 			else if (key == "autoindex")
 			{
 				if (value != "on" && value != "off")
@@ -143,8 +164,7 @@ Location parseLocation(const string& location, ConfigData& server)
 				throw runtime_error("Error: Invalid location settings key");
 		}
 	}
-	if (loc.bodyLimit.empty())
-		loc.bodyLimit = server.bodyLimit;
+	overideLocations(server, loc);
 	return loc;
 }
 
@@ -214,8 +234,8 @@ void	serverParams(ConfigData& server, const vector<string>& settings)
 				server.host = value;
 			else if (key == "root")
 				server.root = value;
-			else if (key == "cgiPath")
-				server.cgiPath = value;
+			else if (key == "serverName")
+				server.serverName = value;
 			else if (key == "uploadPath")
 				server.uploadPath = value;
 			else if (key == "errorPages")
@@ -280,45 +300,58 @@ ServerConf::ServerConf(const string& configPath)
 	}
 }
 
+// c++ -std=c++98 -Wall -Wextra -Werror -fsanitize=address -g  ServerConf.cpp ErrUtils.cpp&& ./a.out
 // int main()
 // {
-// 	ServerConf test("../default.conf");
-	
-// 	vector<ConfigData> servers = test.getServers();
-
-// 	cerr << "Servers: " << servers.size() << endl;
-// 	for (size_t i = 0; i < servers.size(); i++)
+// 	try
 // 	{
-// 		cerr << "----------- Ports ------------\n";
-// 		for (size_t j = 0; j < servers[i].ports.size(); j++)
+// 		ServerConf test("../default.conf");
+		
+// 		vector<ConfigData> servers = test.getServers();
+
+// 		cerr << "Servers: " << servers.size() << endl;
+// 		for (size_t i = 0; i < servers.size(); i++)
 // 		{
-// 			cerr << servers[i].ports[j] << endl;
-// 		}
-// 		cerr << "--------- Settings -----------\n";
-// 		cerr << "host: " << servers[i].host << endl;
-// 		cerr << "root: " << servers[i].root << endl;
-// 		cerr << "cgiPath: " << servers[i].cgiPath << endl;
-// 		cerr << "bodyLimit: " << servers[i].bodyLimit << endl;
-// 		cerr << "uploadPath: " << servers[i].uploadPath << endl;
-// 		cerr << "errorPages: " << endl;
-// 		for (map<string, string>::iterator it = servers[i].errorPages.begin(); it != servers[i].errorPages.end(); it++)
-// 			cerr << it->first << "-   -" << it->second << endl;
-// 		cerr << "--------- Locations -----------" << servers[i].locations.size() << "\n";
-// 		for (size_t j = 0; j < servers[i].locations.size(); j++)
-// 		{
-// 			cerr << "path: " << servers[i].locations[j].path << endl;
-// 			cerr << "root: " << servers[i].locations[j].root << endl;
-// 			cerr << "index: " << servers[i].locations[j].index << endl;
-// 			cerr << "autoindex: " << servers[i].locations[j].autoindex << endl;
-// 			cerr << "bodyLimit: " << servers[i].locations[j].bodyLimit << endl;
-// 			cerr << "methods: ";
-// 			for (size_t k = 0; k < servers[i].locations[j].methods.size(); k++)
-// 				cerr << servers[i].locations[j].methods[k] << "- -";
-// 			cerr << endl;
-// 			cerr << "redirect: ";
-// 			for (map<string, string>::iterator it = servers[i].locations[j].redirect.begin(); it != servers[i].locations[j].redirect.end(); it++)
+// 			cerr << "----------- Ports ------------\n";
+// 			for (size_t j = 0; j < servers[i].ports.size(); j++)
+// 			{
+// 				cerr << servers[i].ports[j] << endl;
+// 			}
+// 			cerr << "--------- Settings -----------\n";
+// 			cerr << "host: " << servers[i].host << endl;
+// 			cerr << "root: " << servers[i].root << endl;
+// 			cerr << "bodyLimit: " << servers[i].bodyLimit << endl;
+// 			cerr << "serverName: " << servers[i].serverName << endl;
+// 			cerr << "uploadPath: " << servers[i].uploadPath << endl;
+// 			cerr << "errorPages: " << endl;
+// 			for (map<string, string>::iterator it = servers[i].errorPages.begin(); it != servers[i].errorPages.end(); it++)
 // 				cerr << it->first << "-   -" << it->second << endl;
-// 			cerr << "\n----------------------\n";
-// 		}
+// 			cerr << "--------- Locations -----------" << servers[i].locations.size() << "\n";
+// 			for (size_t j = 0; j < servers[i].locations.size(); j++)
+// 			{
+// 				cerr << "path: " << servers[i].locations[j].path << endl;
+// 				cerr << "root: " << servers[i].locations[j].root << endl;
+// 				cerr << "index: " << servers[i].locations[j].index << endl;
+// 				cerr << "autoindex: " << servers[i].locations[j].autoindex << endl;
+// 				cerr << "cgiPath: " << servers[i].locations[j].cgiPath << endl;
+// 				cerr << "uploadPath: " << servers[i].locations[j].uploadPath << endl;
+// 				cerr << "bodyLimit: " << servers[i].locations[j].bodyLimit << endl;
+// 				cerr << "methods: ";
+// 				for (size_t k = 0; k < servers[i].locations[j].methods.size(); k++)
+// 					cerr << servers[i].locations[j].methods[k] << "- -";
+// 				cerr << endl;
+// 				cerr << "redirect: ";
+// 				for (map<string, string>::iterator it = servers[i].locations[j].redirect.begin(); it != servers[i].locations[j].redirect.end(); it++)
+// 					cerr << it->first << "-   -" << it->second << endl;
+// 				cerr << "\n----------------------\n";
+// 			}
+// 			server name, alias, upload path every location, cgi on/off
+// 			if u didnt find cgiPath in location send error 403 forbidden to client
+// 		}		
 // 	}
+// 	catch (exception& e)
+// 	{
+// 		cerr << e.what() << endl;
+// 	}
+// 	return 0;
 // }
