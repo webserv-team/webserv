@@ -6,7 +6,7 @@
 /*   By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/25 13:25:40 by hoigag            #+#    #+#             */
-/*   Updated: 2024/03/09 11:03:21 by hoigag           ###   ########.fr       */
+/*   Updated: 2024/03/21 16:45:29 by hoigag           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -45,7 +45,7 @@ struct Client
 
 struct ClientResponse
 {
-	Response response;
+	std::string response;
 	int totalDataSent;
 	int responseSize;
 	bool isResponseFinished;

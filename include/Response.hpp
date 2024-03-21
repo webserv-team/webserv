@@ -6,7 +6,7 @@
 /*   By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/19 13:50:27 by hoigag            #+#    #+#             */
-/*   Updated: 2024/03/19 15:51:54 by hoigag           ###   ########.fr       */
+/*   Updated: 2024/03/21 17:13:21 by hoigag           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,6 +20,10 @@
 #include <ostream>
 #include "Request.hpp"
 #include "ServerConf.hpp"
+#include "Cgi.hpp"
+#include "helpers.hpp"
+#include "Mimes.hpp"
+
 
 #define GREEN "\033[1;32m"
 #define RED "\033[1;31m"
@@ -30,6 +34,7 @@ class Response
 {
 	public:
 		Response();
+		Response(Request &req, ConfigData &conf);
 		~Response();
 		// Response(const Response& other);
 		// Response& operator=(const Response& other);
@@ -49,7 +54,6 @@ class Response
 		std::string getBody();
 		std::string getStatusLine();
 	private:
-		std::string delim;
 		std::string statusCode;
 		std::string contentType;
 		std::string contentLength;
@@ -58,6 +62,7 @@ class Response
 		std::string httpVersion;
 		std::string response;
 		std::string statusLine;
+		Mimes mimes;
 		void setStatusReason(short status);
 };
 

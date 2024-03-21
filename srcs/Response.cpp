@@ -6,7 +6,7 @@
 /*   By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/19 15:22:39 by hoigag            #+#    #+#             */
-/*   Updated: 2024/03/19 15:52:26 by hoigag           ###   ########.fr       */
+/*   Updated: 2024/03/21 17:14:15 by hoigag           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,9 +17,67 @@ Response::Response()
     this->response = "";
     this->httpVersion = "HTTP/1.1";
     this->contentType = "text/html";
-    this->delim = "\r\n";
     this->setStatusCode(200);
 }
+
+Response::Response(Request &req, ConfigData &conf)
+{
+    this->httpVersion = "HTTP/1.1";
+    this->contentType = "text/html";
+    this->setStatusCode(200);
+    std::string content;
+    std::string header;
+    std::string contentType;
+    std::string resourceFullPath = conf.root;
+    std::string url = req.getURL();
+    size_t pos = url.find("?");
+    if (req.getMethod() == "POST" && req.getContentType().find("multipart/form-data") != std::string::npos)
+        uploadFiles(req);
+    if (url == "/")
+        url = "/index.html";
+    if (pos != std::string::npos)
+        resourceFullPath += url.substr(0, pos);
+    else
+        resourceFullPath += url;
+    std::cout << "resourceFullPath == " << resourceFullPath << std::endl;
+    if (access(resourceFullPath.c_str(), F_OK) != 0)    
+    {
+        content = loadFile(conf.errorPages["not_found"]);
+        this->setStatusCode(404);
+    }
+    else if (access(resourceFullPath.c_str(), R_OK) != 0)
+    {
+        content = loadFile(conf.errorPages["forbidden"]);
+        this->setStatusCode(403);
+    }
+    else if (isDirectory(resourceFullPath))
+        content = directoryListing(resourceFullPath);
+    else if (isSupportedCgiScript(resourceFullPath))
+    {
+        Cgi cgi(req);
+        content = cgi.executeScript(resourceFullPath);
+        size_t pos = content.find("\r\n\r\n");
+        if (pos != std::string::npos)
+        {
+            content = content.substr(pos);
+            header = content.substr(0, pos);
+        }
+    }
+    else
+        content = loadFile(conf.root + url);
+    if (!isSupportedCgiScript(url))
+    {
+        std::string ext = getFileExtension(url);
+        contentType = this->mimes.getContentType(ext);
+    }
+    else if (isSupportedCgiScript(url))
+        contentType = getContentTypeFromCgiOutput(header);
+    this->setContentType(contentType);
+    this->setContentLength(content.size());
+    this->setBody(content);
+    this->buildResponse();
+}
+
 Response::~Response(){}
 
 // Response::Response(const Response& other)
@@ -80,24 +138,13 @@ void Response::setStatusLine()
 
 void Response::buildResponse()
 {
-    this->response = this->statusLine + this->delim;
-    this->response += "Content-Type: " + this->contentType + this->delim;
-    this->response += "Content-Length: " + this->contentLength + this->delim;
-    this->response += this->delim;
+    this->response = this->statusLine + "\r\n";
+    this->response += "Content-Type: " + this->contentType + "\r\n";
+    this->response += "Content-Length: " + this->contentLength + "\r\n";
+    this->response += "\r\n";
     this->response += this->body;
 }
 
-void Response::sendIt(int sock)
-{
-    int totalDataSent = 0;
-    int dataSent = 0;
-    int responseLength = this->response.length();
-    dataSent = send(sock, this->response.c_str() + dataSent, responseLength - totalDataSent, 0);
-    if (dataSent < 0)
-        std::cerr << "error: Could not send data" << std::endl;
-    else
-        totalDataSent += dataSent;
-}
 std::string Response::getStatusCode()
 {
     return this->statusCode;
