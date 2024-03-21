@@ -6,7 +6,7 @@
 /*   By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/01 16:18:37 by ogorfti           #+#    #+#             */
-/*   Updated: 2024/03/12 15:57:20 by hoigag           ###   ########.fr       */
+/*   Updated: 2024/03/19 15:54:29 by hoigag           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -237,8 +237,9 @@ std::ostream &operator<<(std::ostream &stream, Request &req)
     char buffer[80];
     std::strftime(buffer, sizeof(buffer), "%Y-%m-%d %H:%M:%S", std::localtime(&currentTime));
 
-	stream << "\033[32m[" << buffer << "]\033[0m " << req.getHostName() << ":" << req.getPort() << " " << req.getMethod() << " " << req.getURL() << std::endl;	
-    // Convert the time to a string representation
+	// stream << "\033[32m[REQUEST " << buffer << "]\033[0m " << req.getHostName() << ":" << req.getPort() << " " << req.getMethod() << " " << req.getURL() << std::endl;	
+    stream << BLUE << "[REQUEST " << buffer << "] " << RESET << GREEN << req.getHostName() << ":" << req.getPort() << " " << req.getMethod() << " " << req.getURL() << RESET << std::endl;
+	// Convert the time to a string representation
 	// stream << "----------------------- Request start --------------------------------------" << std::endl;
 	// stream << "method        : " << req.getMethod() << std::endl;
 	// stream << "url           : " << req.getURL() << std::endl;

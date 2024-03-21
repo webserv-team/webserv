@@ -6,7 +6,7 @@
 /*   By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/25 13:25:34 by hoigag            #+#    #+#             */
-/*   Updated: 2024/03/17 17:45:22 by hoigag           ###   ########.fr       */
+/*   Updated: 2024/03/20 14:02:53 by hoigag           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,6 +21,17 @@
     
 // }
 
+// /images/faces/men/face1.jpg
+// Location isCorrectLocation(std::string& uri, std::vector<Location>& locations)
+// {
+//     for (size_t i = 0; i < locations.size(); i++)
+//     {
+//         std::string locationUri = locations[i].path;
+//     }
+//     return Location();
+// }
+
+
 Response	WebServer::formResponse(Request& req)
 {
     // std::cout << "forming response " << std::endl;
@@ -28,19 +39,34 @@ Response	WebServer::formResponse(Request& req)
     std::string content;
     std::string header;
     std::string contentType;
+    std::string queryString = "";
     ConfigData conf = this->getServer(req.getPort()).getConfData();
     // std::cout << "got the right conf data " << std::endl;
     std::string resourceFullPath = conf.root;
+    // std::cout << conf.locations[0].index << std::endl;
     std::string url = req.getURL();
     size_t pos = url.find("?");
+    // std::cout << "url == " << url << std::endl;
     // if (req.getMethod() == "POST" && req.getContentType().find("multipart/form-data") != string::npos)
     //     uploadFiles(req);
-    if (url == "/")     
+    std::cout << "url == " << url << std::endl;
+    if (url == "/") 
         url = "/index.html";
     if (pos != std::string::npos)
+    {
         resourceFullPath += url.substr(0, pos);
+        queryString = url.substr(pos + 1);
+    }
     else
         resourceFullPath += url;
+
+    // std::cout << "locations" << std::endl;
+    // for (size_t i = 0; i < conf.locations.size(); i++)
+    // {
+    //     std::cout << conf.locations[i].path << std::endl;
+    //     std::cout << conf.locations[i].root << std::endl;
+    //     std::cout << conf.locations[i].index << std::endl;
+    // }
     if (access(resourceFullPath.c_str(), F_OK) != 0)    
     {
         content = loadFile(conf.errorPages["404"]);
@@ -78,6 +104,7 @@ Response	WebServer::formResponse(Request& req)
     response.setContentLength(content.size());
     response.setBody(content);
     response.buildResponse();
+    std::cout << response << std::endl;
     return response;
 }
 
@@ -184,15 +211,16 @@ void WebServer::handleExistingConnection(int fd)
         // std::cout<< this->clients[fd].request;
         FD_CLR(fd, &read_sockets);
         FD_SET(fd, &write_sockets);
-        std::cout << RED << this->clients[fd].request << RESET <<std::endl;
+        // std::cout << RED << this->clients[fd].request << RESET <<std::endl;
         Request req(this->clients[fd].request);
+        std::cout << req;
 		//Response response(reaq, std::vector<Socket>& servers)
         this->clientResponses[fd].response = this->formResponse(req);
         this->clientResponses[fd].responseSize = this->clientResponses[fd].response.getResponseLength();
         this->clientResponses[fd].totalDataSent = 0;
         this->clientResponses[fd].isResponseFinished = false;
     }
-        std::cout << GREEN << "request finished" << RESET << std::endl;        
+        // std::cout << GREEN << "request finished" << RESET << std::endl;
 }
 
 int sendChunk(int sock, ClientResponse& cr)

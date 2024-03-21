@@ -6,7 +6,7 @@
 /*   By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/19 13:50:27 by hoigag            #+#    #+#             */
-/*   Updated: 2024/03/07 12:46:17 by hoigag           ###   ########.fr       */
+/*   Updated: 2024/03/19 15:51:54 by hoigag           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,6 +21,10 @@
 #include "Request.hpp"
 #include "ServerConf.hpp"
 
+#define GREEN "\033[1;32m"
+#define RED "\033[1;31m"
+#define BLUE "\033[1;34m"
+#define RESET "\033[0m"
 
 class Response
 {

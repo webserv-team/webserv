@@ -6,7 +6,7 @@
 /*   By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/19 15:22:39 by hoigag            #+#    #+#             */
-/*   Updated: 2024/03/07 12:44:22 by hoigag           ###   ########.fr       */
+/*   Updated: 2024/03/19 15:52:26 by hoigag           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -120,13 +120,19 @@ std::string Response::getStatusLine()
 }
 std::ostream& operator<<(std::ostream& stream, Response& res)
 {
-    stream << "++++++++++++++++++ Response +++++++++++++++++++++++++\n";
-    stream << res.getStatusLine() << std::endl;
-    stream << res.getContentType() << std::endl;
-    stream << res.getContentLength() << std::endl;
-    stream  << std::endl;
-    stream  << res.getBody() << std::endl;
-    stream << "++++++++++++++++++++++++++++++++++++++++++++++++++++\n";
+    std::time_t currentTime;
+    std::time(&currentTime);
+    char buffer[80];
+    std::strftime(buffer, sizeof(buffer), "%Y-%m-%d %H:%M:%S", std::localtime(&currentTime));
+    std::string color = (res.getStatusCode() == "200") ? GREEN : RED;
+	stream << BLUE << "[RESPONSE " << buffer << "] " << RESET << color << res.getStatusLine() << RESET << std::endl;
+    // stream << "++++++++++++++++++ Response +++++++++++++++++++++++++\n";
+    // stream << res.getStatusLine() << std::endl;
+    // stream << res.getContentType() << std::endl;
+    // stream << res.getContentLength() << std::endl;
+    // stream  << std::endl;
+    // stream  << res.getBody() << std::endl;
+    // stream << "++++++++++++++++++++++++++++++++++++++++++++++++++++\n";
     return stream;
 }
 

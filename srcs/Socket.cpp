@@ -6,7 +6,7 @@
 /*   By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/04 12:19:12 by hoigag            #+#    #+#             */
-/*   Updated: 2024/03/08 10:49:47 by hoigag           ###   ########.fr       */
+/*   Updated: 2024/03/20 19:14:57 by hoigag           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,7 +40,7 @@ int Socket::start()
         std::cerr << "could not bind socket " << sock << std::endl; 
         exit(1);
     }
-    if ((listen(sock, 3)) < 0)
+    if ((listen(sock, SOMAXCONN)) < 0)
     {
         std::cerr << "error happened during listening for requests" << std::endl;
         exit(1);

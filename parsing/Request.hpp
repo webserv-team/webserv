@@ -6,7 +6,7 @@
 /*   By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/08 09:36:38 by ogorfti           #+#    #+#             */
-/*   Updated: 2024/03/07 12:44:00 by hoigag           ###   ########.fr       */
+/*   Updated: 2024/03/19 15:53:48 by hoigag           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,6 +18,11 @@
 #include <map>
 #include <ostream>
 #include <tuple>
+
+#define GREEN "\033[1;32m"
+#define RED "\033[1;31m"
+#define BLUE "\033[1;34m"
+#define RESET "\033[0m"
 
 using namespace std;
 struct s_tuple
