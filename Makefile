@@ -6,35 +6,36 @@
 #    By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2023/10/27 11:05:58 by ogorfti           #+#    #+#              #
-#    Updated: 2024/03/12 14:54:19 by hoigag           ###   ########.fr        #
+#    Updated: 2024/03/21 17:25:13 by hoigag           ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 CXX = c++
 
-CXXFLAGS = -Wall -Wextra -Werror   -I./include -I./parsing -std=c++98 -fsanitize=address -g
+CXXFLAGS = -Wall -Wextra -Werror   -I./include -I./parsing -std=c++98 #-fsanitize=address -g
 
-PARSING =	${addprefix parsing/, Request.cpp ServerConf.cpp ErrUtils.cpp}
+SRCS = $(wildcard srcs/*.cpp) $(wildcard parsing/*.cpp)
+
+HEADERS = $(wildcard include/*.hpp) $(wildcard parsing/*.hpp)
+
+OBJ_DIR = obj
+
+OBJS = $(patsubst %.cpp, $(OBJ_DIR)/%.o, $(SRCS))
 
 NAME = server
 
-SRCS = $(addprefix srcs/, main.cpp WebServer.cpp Cgi.cpp helpers.cpp Response.cpp Mimes.cpp Socket.cpp Header.cpp)  $(PARSING) 
-# SRCS = $(addprefix srcs/, main.cpp )  $(PARSING) 
-
-HEADERS = parsing/Request.hpp parsing/ServerConf.hpp WebServer.hpp
-
-OBJS = $(SRCS:.cpp=.o)
+$(OBJ_DIR)/%.o: %.cpp
+	@mkdir -p $(@D)
+	$(CXX) $(CXXFLAGS) -o $@ -c $<
 
 all: $(NAME)
 
-%.o: %.cpp 
-	$(CXX) $(CXXFLAGS) -c $< -o $@
-
-$(NAME): $(OBJS) 
+$(NAME): $(OBJS)
 	$(CXX) $(CXXFLAGS) $(OBJS) -o $(NAME)
+	@echo "\033[1;32mDONE!\033[0m"
 
 clean:
-	rm -f $(OBJS)
+	rm -rf $(OBJ_DIR)
 
 fclean: clean
 	rm -f $(NAME)

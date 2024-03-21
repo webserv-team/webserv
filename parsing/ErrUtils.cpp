@@ -6,7 +6,7 @@
 /*   By: ogorfti <ogorfti@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/12 14:00:49 by ogorfti           #+#    #+#             */
-/*   Updated: 2024/03/03 17:00:16 by ogorfti          ###   ########.fr       */
+/*   Updated: 2024/03/19 22:58:23 by ogorfti          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -60,7 +60,7 @@ void	checkValues(const string& value, const string& key)
 		throw runtime_error("Error: Missing server settings");
 	for (size_t i = 0; i < value.size(); i++)
 	{
-		if (!isalnum(value[i]) && value[i] != '/' && key != "errorPages" && key != "ports")
+		if (!isalnum(value[i]) && value[i] != '/' && key != "host" && key != "errorPages" && key != "ports")
 		{
 			// cerr << RED << value << RESET << endl;
 			throw runtime_error("Error: Invalid server settings value");
