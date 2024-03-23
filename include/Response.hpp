@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Response.hpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+        */
+/*   By: ogorfti <ogorfti@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/19 13:50:27 by hoigag            #+#    #+#             */
-/*   Updated: 2024/03/21 17:13:21 by hoigag           ###   ########.fr       */
+/*   Updated: 2024/03/23 20:01:41 by ogorfti          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,42 +30,35 @@
 #define BLUE "\033[1;34m"
 #define RESET "\033[0m"
 
+typedef struct s_data
+{
+	string statusCode;
+	string contentType;
+	string contentLength;
+	string body;
+	string statusLine;
+	string httpVersion;
+	string statusReason;
+} t_data;
+
 class Response
 {
-	public:
+	private:
 		Response();
+		Response(const Response& other);
+		void buildResponse(t_data& data);
+		
+		Mimes mimes;
+		string response;
+		t_data data;
+	public:
 		Response(Request &req, ConfigData &conf);
 		~Response();
-		// Response(const Response& other);
-		// Response& operator=(const Response& other);
-		void setStatusCode(short status);
-		void setContentType(std::string contentType);
-		void setContentLength(int contentLength);
-		void setBody(std::string body);
-		void sendIt(int sock);
-		void setStatusLine();
-		void buildResponse();
-		int getResponseLength();
 
 		std::string getResponseString();
-		std::string getStatusCode();
-		std::string getContentType();
-		std::string getContentLength();
-		std::string getBody();
-		std::string getStatusLine();
-	private:
-		std::string statusCode;
-		std::string contentType;
-		std::string contentLength;
-		std::string body;
-		std::string statusReason;
-		std::string httpVersion;
-		std::string response;
-		std::string statusLine;
-		Mimes mimes;
-		void setStatusReason(short status);
 };
 
-std::ostream& operator<<(std::ostream& stream, Response& res);
+// std::ostream& operator<<(std::ostream& stream, Response& res);
+string defaultError(string errorCode, string errorMessage);
 
 #endif

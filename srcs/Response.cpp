@@ -3,244 +3,277 @@
 /*                                                        :::      ::::::::   */
 /*   Response.cpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+        */
+/*   By: ogorfti <ogorfti@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/19 15:22:39 by hoigag            #+#    #+#             */
-/*   Updated: 2024/03/21 17:14:15 by hoigag           ###   ########.fr       */
+/*   Updated: 2024/03/23 23:48:41 by ogorfti          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Response.hpp"
 
-Response::Response()
+/*-------------------- Constructors --------------------*/
+
+Response::~Response(){}
+
+// Response::Response(const Response& other){}
+
+// Response& Response::operator=(const Response& other){}
+
+/*-------------------- Tmp functions --------------------*/
+
+ostream& operator<<(ostream& os, Location& loc)
 {
-    this->response = "";
-    this->httpVersion = "HTTP/1.1";
-    this->contentType = "text/html";
-    this->setStatusCode(200);
+	os << "Location: " << loc.path << endl;
+	os << "Root: " << loc.root << endl;
+	os << "Index: " << loc.index << endl;
+	os << "Methods: ";
+	for (size_t i = 0; i < loc.methods.size(); i++)
+		os << loc.methods[i] << " ";
+	os << endl;
+	os << "Cgi: " << loc.cgiPath << endl;
+	os << "Autoindex: " << loc.autoindex << endl;
+	os << "Upload: " << loc.uploadPath << endl;
+	os << "MaxBody: " << loc.bodyLimit << endl;
+	return os;
+}
+
+// std::ostream& operator<<(std::ostream& stream, Response& res)
+// {
+// 	(void)res;
+// 	std::time_t currentTime;
+// 	std::time(&currentTime);
+// 	char buffer[80];
+// 	std::strftime(buffer, sizeof(buffer), "%Y-%m-%d %H:%M:%S", std::localtime(&currentTime));
+// 	// std::string color = (res.getStatusCode() == "200") ? GREEN : RED;
+// 	// stream << BLUE << "[RESPONSE " << buffer << "] " << RESET << color << res.getStatusLine() << RESET << std::endl;
+// 	// stream << "++++++++++++++++++ Response +++++++++++++++++++++++++\n";
+// 	// stream << res.getStatusLine() << std::endl;
+// 	// stream << res.getContentType() << std::endl;
+// 	// stream << res.getContentLength() << std::endl;
+// 	// stream  << std::endl;
+// 	// stream  << res.getBody() << std::endl;
+// 	// stream << "++++++++++++++++++++++++++++++++++++++++++++++++++++\n";
+// 	return stream;
+// }
+
+/*-------------------- Member functions --------------------*/
+
+string getStatusReason(string& status)
+{
+	if (status == "200")
+		return "OK";
+	else if (status == "400")
+		return "Bad Request";
+	else if (status == "403")
+		return "Forbidden";
+	else if (status == "404")
+		return "Not Found";
+	else
+		return "";
+}
+
+Location getMatchingLocation(const string& url, ConfigData& conf)
+{
+	Location* longestMatch = nullptr;
+	
+	for (size_t i = 0; i < conf.locations.size(); i++)
+	{
+		Location* loc = &conf.locations[i];
+		if (url.find(loc->path) == 0)
+		{
+			if (longestMatch == nullptr || loc->path.size() > longestMatch->path.size())
+				longestMatch = loc;
+		}
+	}
+	return *longestMatch;
+}
+
+long long toBytes(string& bodyLimit)
+{
+    char* end;
+    long long value = strtol(bodyLimit.c_str(), &end, 10);
+    char unit = tolower(*end);
+
+    switch (unit)
+    {
+        case 'k':
+            value *= 1024;
+            break;
+        case 'm':
+            value *= 1024 * 1024;
+            break;
+        case 'g':
+            value *= 1024 * 1024 * 1024;
+            break;
+        case 'b':
+        default:
+            break;
+    }
+
+    return value;
+}
+
+// when i submit a file its got downloaded!! and its uploaded to the server
+bool bodyLimitExceeded(Request& req, Location& loc)
+{
+	// cerr << "req.getBody().size() == " << req.getBody().size() << endl;
+	// cerr << "toBytes(loc.bodyLimit) == " << toBytes(loc.bodyLimit) << endl;
+	if (toBytes(loc.bodyLimit) < (long long)req.getBody().size())
+		return true;
+	return false;
+}
+
+bool chrURL(string& url)
+{
+	string str = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz-./:;=@[]!&'*+,%";
+
+	for (size_t i = 0; i < url.size(); i++)
+	{
+		if (str.find(url[i]) == string::npos)
+			return true;
+	}
+	return false;
+}
+
+string loadErrorPages(ConfigData& conf, t_data& data, string statusCode, string errorMessage)
+{
+	map <string, string>::iterator it = conf.errorPages.find(statusCode);
+	string content;
+
+	data.statusCode = statusCode;
+	if (it != conf.errorPages.end())
+		content = loadFile(it->second);
+	else
+		content = defaultError(statusCode, errorMessage);
+	return content;
+}
+
+// if tansfer-encoding is exist and its value is different than chunked
+bool transferEncodingChunked(Request& req)
+{
+	map<string, string> headers = req.getHeaders();
+	if (headers.find("Transfer-Encoding") != headers.end() && headers["Transfer-Encoding"] != "chunked")
+	{
+		cerr << RED << "Transfer-Encoding: " << headers["Transfer-Encoding"] << RESET << endl;	
+		return true;
+	}
+	return false;
+}
+
+string	urlErrors(Request& req, ConfigData& conf, t_data& data)
+{
+	Location loc = getMatchingLocation(req.getURL(), conf);
+	string method = req.getMethod();
+	string url = req.getURL();
+	bool methodFound = false;
+	string content;
+	
+	for (size_t i = 0; i < loc.methods.size(); i++)
+	{
+		if (loc.methods[i] == method)
+			methodFound = true;
+	}
+	if (!methodFound)
+		return loadErrorPages(conf, data, "405", "Method Not Allowed");
+	else if (url.length() > 2048)
+		return loadErrorPages(conf, data, "414", "Request-URI Too Long");
+	else if (chrURL(url))
+		return loadErrorPages(conf, data, "400", "Bad Request");
+	else if (bodyLimitExceeded(req, loc))
+		return loadErrorPages(conf, data, "413", "Request Entity Too Large");
+	// else if (transferEncodingChunked(req))
+	// 	return loadErrorPages(conf, data, "501", "Not Implemented");
+	// headers
+	// map<string, string> headers = req.getHeaders();
+	// cerr << RED << "Transfer-Encoding: " << headers["Transfer-Encoding"] << RESET << endl;
+	return content;
 }
 
 Response::Response(Request &req, ConfigData &conf)
 {
-    this->httpVersion = "HTTP/1.1";
-    this->contentType = "text/html";
-    this->setStatusCode(200);
-    std::string content;
-    std::string header;
-    std::string contentType;
-    std::string resourceFullPath = conf.root;
-    std::string url = req.getURL();
-    size_t pos = url.find("?");
-    if (req.getMethod() == "POST" && req.getContentType().find("multipart/form-data") != std::string::npos)
-        uploadFiles(req);
-    if (url == "/")
-        url = "/index.html";
-    if (pos != std::string::npos)
-        resourceFullPath += url.substr(0, pos);
-    else
-        resourceFullPath += url;
-    std::cout << "resourceFullPath == " << resourceFullPath << std::endl;
-    if (access(resourceFullPath.c_str(), F_OK) != 0)    
-    {
-        content = loadFile(conf.errorPages["not_found"]);
-        this->setStatusCode(404);
-    }
-    else if (access(resourceFullPath.c_str(), R_OK) != 0)
-    {
-        content = loadFile(conf.errorPages["forbidden"]);
-        this->setStatusCode(403);
-    }
-    else if (isDirectory(resourceFullPath))
-        content = directoryListing(resourceFullPath);
-    else if (isSupportedCgiScript(resourceFullPath))
-    {
-        Cgi cgi(req);
-        content = cgi.executeScript(resourceFullPath);
-        size_t pos = content.find("\r\n\r\n");
-        if (pos != std::string::npos)
-        {
-            content = content.substr(pos);
-            header = content.substr(0, pos);
-        }
-    }
-    else
-        content = loadFile(conf.root + url);
-    if (!isSupportedCgiScript(url))
-    {
-        std::string ext = getFileExtension(url);
-        contentType = this->mimes.getContentType(ext);
-    }
-    else if (isSupportedCgiScript(url))
-        contentType = getContentTypeFromCgiOutput(header);
-    this->setContentType(contentType);
-    this->setContentLength(content.size());
-    this->setBody(content);
-    this->buildResponse();
+	data.httpVersion = "HTTP/1.1";
+	data.contentType = "text/html";
+	data.statusCode = "200";
+	std::string content;
+	std::string header;
+	std::string contentType;
+	std::string resourceFullPath = conf.root;
+	std::string url = req.getURL();
+	size_t pos = url.find("?");
+	if (req.getMethod() == "POST" && req.getContentType().find("multipart/form-data") != std::string::npos)
+		uploadFiles(req);
+	
+	// get the full path
+	if (url == "/")
+		url = "/index.html";
+	if (pos != std::string::npos)
+		resourceFullPath += url.substr(0, pos);
+	else
+		resourceFullPath += url;
+	cerr << BLUE << "resourceFullPath == " << resourceFullPath << RESET << endl;
+	
+	content = urlErrors(req, conf, data);
+	if (content.size() != 0)
+	{
+		// this->setStatusCode(405);
+		// data.statusCode = "405";
+	}
+	
+	else if (access(resourceFullPath.c_str(), F_OK) != 0)    
+	{
+		data.statusCode = "404";
+		content = loadFile(conf.errorPages["404"]);
+	}
+	else if (access(resourceFullPath.c_str(), R_OK) != 0)
+	{
+		content = loadFile(conf.errorPages["403"]);
+		data.statusCode = "403";
+	}
+	else if (isDirectory(resourceFullPath))
+		content = directoryListing(resourceFullPath);
+	else if (isSupportedCgiScript(resourceFullPath))
+	{
+		Cgi cgi(req);
+		content = cgi.executeScript(resourceFullPath);
+		size_t pos = content.find("\r\n\r\n");
+		if (pos != std::string::npos)
+		{
+			content = content.substr(pos);
+			header = content.substr(0, pos);
+		}
+	}
+	else
+		content = loadFile(conf.root + url);
+	
+	// get content type
+	if (!isSupportedCgiScript(url))
+	{
+		std::string ext = getFileExtension(url);
+		contentType = this->mimes.getContentType(ext);
+	}
+	else if (isSupportedCgiScript(url))
+		contentType = getContentTypeFromCgiOutput(header);
+	
+	data.contentType = contentType;
+	data.contentLength = std::to_string(content.size());
+	data.body = content;
+	this->buildResponse(data);
 }
 
-Response::~Response(){}
-
-// Response::Response(const Response& other)
-// {
-
-// }
-
-// Response& Response::operator=(const Response& other)
-// {
-
-// }
-
-void Response::setStatusCode(short status)
+void Response::buildResponse(t_data& data)
 {
-    this->statusCode = std::to_string(status);
-    this->setStatusReason(status);
-    this->setStatusLine();
+	this->response = data.httpVersion + " " + data.statusCode + " ";
+	this->response += getStatusReason(data.statusCode) + "\r\n";
+	this->response += "Content-Type: " + data.contentType + "\r\n";
+	this->response += "Content-Length: " + data.contentLength + "\r\n";
+	this->response += "\r\n";
+	this->response += data.body;
 }
 
-void Response::setContentType(std::string contentType)
-{
-    this->contentType = contentType;
-}
-
-void Response::setContentLength(int contentLength)
-{
-    this->contentLength = std::to_string(contentLength);
-}
-
-void Response::setBody(std::string body)
-{
-    this->body = body;
-}
-
-void Response::setStatusReason(short status)
-{
-    if (status == 200)
-        this->statusReason =  "OK";
-    else if (status == 400)
-        this->statusReason =  "Bad Request";
-    else if (status == 403)
-        this->statusReason =  "Forbidden";
-    else if (status == 404)
-        this->statusReason =  "Not Found";
-    else
-        this->statusReason = "";
-}
+/*-------------------- Getters --------------------*/
 
 std::string Response::getResponseString()
 {
-    return this->response;
+	return this->response;
 }
-
-void Response::setStatusLine()
-{
-    this->statusLine = this->httpVersion + " " + this->statusCode + " " + this->statusReason;
-}
-
-void Response::buildResponse()
-{
-    this->response = this->statusLine + "\r\n";
-    this->response += "Content-Type: " + this->contentType + "\r\n";
-    this->response += "Content-Length: " + this->contentLength + "\r\n";
-    this->response += "\r\n";
-    this->response += this->body;
-}
-
-std::string Response::getStatusCode()
-{
-    return this->statusCode;
-}
-std::string Response::getContentType()
-{
-    return this->contentType;
-}
-std::string Response::getContentLength()
-{
-    return this->contentLength;
-}
-std::string Response::getBody()
-{
-    return this->body;
-}
-std::string Response::getStatusLine()
-{
-    return this->statusLine;
-}
-std::ostream& operator<<(std::ostream& stream, Response& res)
-{
-    std::time_t currentTime;
-    std::time(&currentTime);
-    char buffer[80];
-    std::strftime(buffer, sizeof(buffer), "%Y-%m-%d %H:%M:%S", std::localtime(&currentTime));
-    std::string color = (res.getStatusCode() == "200") ? GREEN : RED;
-	stream << BLUE << "[RESPONSE " << buffer << "] " << RESET << color << res.getStatusLine() << RESET << std::endl;
-    // stream << "++++++++++++++++++ Response +++++++++++++++++++++++++\n";
-    // stream << res.getStatusLine() << std::endl;
-    // stream << res.getContentType() << std::endl;
-    // stream << res.getContentLength() << std::endl;
-    // stream  << std::endl;
-    // stream  << res.getBody() << std::endl;
-    // stream << "++++++++++++++++++++++++++++++++++++++++++++++++++++\n";
-    return stream;
-}
-
-int Response::getResponseLength()
-{
-    return this->response.length();
-}
-
-// void	Response::formResponse(Request& req)
-// {
-//     Response response;
-//     std::string content;
-//     std::string header;
-//     std::string contentType;
-//     ConfigData conf = this->getServer(req.getPort()).getConfData();
-//     std::string resourceFullPath = conf.documentRoot;
-//     std::string url = req.getURL();
-//     size_t pos = url.find("?");
-//     if (req.getMethod() == "POST" && req.getContentType().find("multipart/form-data") != string::npos)
-//         uploadFiles(req);
-//     if (url == "/")
-//         url = "/index.html";
-//     if (pos != std::string::npos)
-//         resourceFullPath += url.substr(0, pos);
-//     else
-//         resourceFullPath += url;
-//     if (access(resourceFullPath.c_str(), F_OK) != 0)    
-//     {
-//         content = loadFile(conf.errorPages["not_found"]);
-//         response.setStatusCode(404);
-//     }
-//     else if (access(resourceFullPath.c_str(), R_OK) != 0)
-//     {
-//         content = loadFile(conf.errorPages["forbidden"]);
-//         response.setStatusCode(403);
-//     }
-//     else if (isDirectory(resourceFullPath))
-//         content = this->directoryListing(resourceFullPath);
-//     else if (isSupportedCgiScript(resourceFullPath))
-//     {
-//         Cgi cgi(req);
-//         content = cgi.executeScript(resourceFullPath);
-//         size_t pos = content.find("\r\n\r\n");
-//         if (pos != std::string::npos)
-//         {
-//             content = content.substr(pos);
-//             header = content.substr(0, pos);
-//         }
-//     }
-//     else
-//         content = loadFile(conf.documentRoot + url);
-//     if (!isSupportedCgiScript(url))
-//     {
-//         std::string ext = getFileExtension(url);
-//         contentType = mimes.getContentType(ext);
-//     }
-//     else if (isSupportedCgiScript(url))
-//         contentType = getContentTypeFromCgiOutput(header);
-//     response.setContentType(contentType);
-//     response.setContentLength(content.size());
-//     response.setBody(content);
-//     response.buildResponse();
-//     return response;
-// }
