@@ -6,7 +6,7 @@
 /*   By: ogorfti <ogorfti@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/19 15:22:39 by hoigag            #+#    #+#             */
-/*   Updated: 2024/03/23 23:48:41 by ogorfti          ###   ########.fr       */
+/*   Updated: 2024/03/24 15:11:25 by ogorfti          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -182,11 +182,8 @@ string	urlErrors(Request& req, ConfigData& conf, t_data& data)
 		return loadErrorPages(conf, data, "400", "Bad Request");
 	else if (bodyLimitExceeded(req, loc))
 		return loadErrorPages(conf, data, "413", "Request Entity Too Large");
-	// else if (transferEncodingChunked(req))
-	// 	return loadErrorPages(conf, data, "501", "Not Implemented");
-	// headers
-	// map<string, string> headers = req.getHeaders();
-	// cerr << RED << "Transfer-Encoding: " << headers["Transfer-Encoding"] << RESET << endl;
+	else if (transferEncodingChunked(req))
+		return loadErrorPages(conf, data, "501", "Not Implemented");
 	return content;
 }
 
@@ -211,7 +208,7 @@ Response::Response(Request &req, ConfigData &conf)
 		resourceFullPath += url.substr(0, pos);
 	else
 		resourceFullPath += url;
-	cerr << BLUE << "resourceFullPath == " << resourceFullPath << RESET << endl;
+	// cerr << BLUE << "resourceFullPath == " << resourceFullPath << RESET << endl;
 	
 	content = urlErrors(req, conf, data);
 	if (content.size() != 0)

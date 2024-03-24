@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   WebServer.cpp                                      :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+        */
+/*   By: ogorfti <ogorfti@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/25 13:25:34 by hoigag            #+#    #+#             */
-/*   Updated: 2024/03/21 17:19:30 by hoigag           ###   ########.fr       */
+/*   Updated: 2024/03/24 15:01:41 by ogorfti          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -154,8 +154,8 @@ void WebServer::handleExistingConnection(int fd)
             Request req(this->clients[fd].request);
             std::cout << req;
             ConfigData conf = this->getServer(req.getPort()).getConfData();
-            Response res = Response(req, conf);
-            std::cout << res;
+            Response res(req, conf);
+            // std::cout << res;
             //Response response(reaq, std::vector<Socket>& servers)
             this->clientResponses[fd].response = res.getResponseString();
             this->clientResponses[fd].responseSize = this->clientResponses[fd].response.length();
