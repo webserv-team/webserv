@@ -6,7 +6,7 @@
 /*   By: ogorfti <ogorfti@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/19 13:50:27 by hoigag            #+#    #+#             */
-/*   Updated: 2024/03/23 20:01:41 by ogorfti          ###   ########.fr       */
+/*   Updated: 2024/03/24 22:48:08 by ogorfti          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,12 +33,12 @@
 typedef struct s_data
 {
 	string statusCode;
-	string contentType;
-	string contentLength;
 	string body;
 	string statusLine;
 	string httpVersion;
 	string statusReason;
+	map<string, string> headers;
+	bool isRedirect;
 } t_data;
 
 class Response

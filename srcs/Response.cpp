@@ -6,7 +6,7 @@
 /*   By: ogorfti <ogorfti@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/19 15:22:39 by hoigag            #+#    #+#             */
-/*   Updated: 2024/03/24 16:44:22 by ogorfti          ###   ########.fr       */
+/*   Updated: 2024/03/24 23:28:57 by ogorfti          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -69,6 +69,16 @@ string getStatusReason(string& status)
 		return "Forbidden";
 	else if (status == "404")
 		return "Not Found";
+	else if (status == "405")
+		return "Method Not Allowed";
+	else if (status == "413")
+		return "Request Entity Too Large";
+	else if (status == "414")
+		return "Request-URI Too Long";
+	else if (status == "501")
+		return "Not Implemented";
+	else if (status == "301")
+		return "Moved Permanently";
 	else
 		return "";
 }
@@ -194,21 +204,31 @@ string	urlErrors(Request& req, ConfigData& conf, t_data& data)
 		return loadErrorPages(conf, data, "413", "Request Entity Too Large");
 	else if (url.length() > 2048)
 		return loadErrorPages(conf, data, "414", "Request-URI Too Long");
-	else if (transferEncodingChunked(req))
-		return loadErrorPages(conf, data, "501", "Not Implemented");
+	// else if (transferEncodingChunked(req))
+	// 	return loadErrorPages(conf, data, "501", "Not Implemented");
+	else if (loc.redirect.find(url) != loc.redirect.end())
+	{
+		cerr << RED << "redirecting from " << url << " to " << loc.redirect[url] << RESET << endl;
+		data.isRedirect = true;
+		data.statusCode = "301";
+		data.headers["Location"] = loc.redirect[url];
+	}
 	return content;
 }
 
 Response::Response(Request &req, ConfigData &conf)
 {
+	cerr << BLUE << req << RESET << endl;
 	data.httpVersion = "HTTP/1.1";
-	data.contentType = "text/html";
+	data.headers["Content-Type"] = "text/html";
 	data.statusCode = "200";
+	data.isRedirect = false;
 	std::string content;
 	std::string header;
 	std::string contentType;
 	std::string resourceFullPath = conf.root;
 	std::string url = req.getURL();
+	Location loc = getMatchingLocation(url, conf);
 	size_t pos = url.find("?");
 	if (req.getMethod() == "POST" && req.getContentType().find("multipart/form-data") != std::string::npos)
 		uploadFiles(req);
@@ -223,12 +243,11 @@ Response::Response(Request &req, ConfigData &conf)
 	// cerr << BLUE << "resourceFullPath == " << resourceFullPath << RESET << endl;
 	
 	content = urlErrors(req, conf, data);
-	if (content.size() != 0)
+	if (content.size() != 0 || data.isRedirect)
 	{
 		// this->setStatusCode(405);
 		// data.statusCode = "405";
 	}
-	
 	else if (access(resourceFullPath.c_str(), F_OK) != 0)    
 	{
 		data.statusCode = "404";
@@ -264,8 +283,10 @@ Response::Response(Request &req, ConfigData &conf)
 	else if (isSupportedCgiScript(url))
 		contentType = getContentTypeFromCgiOutput(header);
 	
-	data.contentType = contentType;
-	data.contentLength = std::to_string(content.size());
+	// data.contentType = contentType;
+	// data.contentLength = std::to_string(content.size());
+	data.headers["Content-Type"] = contentType;
+	data.headers["Content-Length"] = std::to_string(content.size());
 	data.body = content;
 	this->buildResponse(data);
 }
@@ -274,8 +295,10 @@ void Response::buildResponse(t_data& data)
 {
 	this->response = data.httpVersion + " " + data.statusCode + " ";
 	this->response += getStatusReason(data.statusCode) + "\r\n";
-	this->response += "Content-Type: " + data.contentType + "\r\n";
-	this->response += "Content-Length: " + data.contentLength + "\r\n";
+	// this->response += "Content-Type: " + data.contentType + "\r\n";
+	// this->response += "Content-Length: " + data.contentLength + "\r\n";
+	for (map<string, string>::iterator it = data.headers.begin(); it != data.headers.end(); it++)
+		this->response += it->first + ": " + it->second + "\r\n";
 	this->response += "\r\n";
 	this->response += data.body;
 }
