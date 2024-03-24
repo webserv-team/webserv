@@ -6,7 +6,7 @@
 /*   By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/25 13:25:34 by hoigag            #+#    #+#             */
-/*   Updated: 2024/03/23 17:20:58 by hoigag           ###   ########.fr       */
+/*   Updated: 2024/03/24 20:49:18 by hoigag           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -123,12 +123,13 @@ void WebServer::handleExistingConnection(int fd)
         {
             // std::cout<< this->clients[fd].request;
             FD_CLR(fd, &read_sockets);
+            // this->clients.erase(fd);
             FD_SET(fd, &write_sockets);
             // std::cout << RED << this->clients[fd].request << RESET <<std::endl;
             Request req(this->clients[fd].request);
             std::cout << req;
             ConfigData conf = this->getServer(req.getPort()).getConfData();
-            Response res = Response(req, conf);
+            Response res(req, conf);
             std::cout << res;
             //Response response(reaq, std::vector<Socket>& servers)
             this->clientResponses[fd].response = res.getResponseString();
@@ -156,6 +157,8 @@ int sendChunk(int sock, ClientResponse& cr)
 
 void WebServer::listenForConnections()  
 {
+    try
+    {
         struct timeval timeout;
         timeout.tv_sec = 20;
         timeout.tv_usec = 0;
@@ -202,10 +205,17 @@ void WebServer::listenForConnections()
                 if (this->clientResponses[i].isResponseFinished)
                 {
                     FD_CLR(i, &this->write_sockets);
+                    // this->clientResponses.erase(i);
+                    // this->clients.erase(i);
                     close(i);
                 }
             }
         }
+    }
+        }
+    catch(const std::exception& e)
+    {
+        std::cerr << e.what() << '\n';
     }
 }
 

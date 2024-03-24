@@ -6,7 +6,7 @@
 /*   By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/01 16:18:37 by ogorfti           #+#    #+#             */
-/*   Updated: 2024/03/22 12:49:17 by hoigag           ###   ########.fr       */
+/*   Updated: 2024/03/24 17:53:44 by hoigag           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,7 +19,16 @@ Request::Request(Request &request)
 	*this = request;
 }
 
-Request::Request() {}
+Request::Request() {
+	this->request_ = "";
+	this->method_ = "";
+	this->url_ = "";
+	this->protocol_ = "";
+	this->body_ = "";
+	this->lines_ = std::vector<std::string>();
+	this->headers_ = std::map<std::string, std::string>();
+	
+}
 
 Request &Request::operator=(Request &request)
 {
@@ -326,3 +335,4 @@ void printMultiForm(vector<s_tuple> &multipart)
 
 // 	return 0;
 // }
+

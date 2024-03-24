@@ -6,7 +6,7 @@
 /*   By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/04 12:32:37 by hoigag            #+#    #+#             */
-/*   Updated: 2024/02/04 12:48:20 by hoigag           ###   ########.fr       */
+/*   Updated: 2024/03/24 19:53:20 by hoigag           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,6 +24,7 @@ class Mimes
 		Mimes();
 		~Mimes();
 		std::string getContentType(std::string& ext);
+		bool isMime(std::string& ext);
 		// Mimes(const Mimes& other);
 		// Mimes& operator=(const Mimes& other);
 	private:

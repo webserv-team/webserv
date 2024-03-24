@@ -55,9 +55,63 @@ Location getCorrectLocation(std::string uri, std::vector<Location>& locations)
     return locations[0];
 }
 
-std::string handleGetRequest(Request& req, Location& location, ConfigData& __unused conf)
+bool isFileExists(const std::string& path)
 {
-    std::string uri = req.getURL();
+    return access(path.c_str(), F_OK) == 0;
+}
+
+std::string Response::handleExistingFile(std::string path, Location& location)
+{
+    
+    std::string content;
+    if (isDirectory(path))
+    {
+        if (path.back() != '/')
+        {
+            setStatusCode(301);
+            return "redirect";
+        }
+        std::string indexFile = path + "/" + location.index;
+        if (!location.index.empty() && isFileExists(indexFile))
+        {
+            std::cout << "serving the index file" << std::endl;
+            content = loadFile(indexFile);
+        }
+        else if (location.autoindex == "on")
+        {
+            std::cout << "directory listing" << std::endl;
+            content = directoryListing(path);
+        }
+        else
+        {
+            this->setStatusCode(403);
+            content = loadFile(conf.errorPages[this->getStatusCode()]);
+        }
+    }
+    else
+    {
+        std::cout << "serving the file" << std::endl;
+        content = loadFile(path);
+        this->setContentType(getFileExtension(path));
+    }
+    return content;
+}
+
+// std::string Response::handleNonExistingFile(std::string path, Location& __unused location)
+// {
+//     std::cout << "file not found" << std::endl;
+//     std::cout << "path == " << path << std::endl;
+//     std::string ext = getFileExtension(path);
+//     if (this->mimes.isMime(ext))
+//         std::cout << "mime found" << std::endl;
+//     else
+//         std::cout << "mime not found" << std::endl; 
+//     return path + " not found";
+// }
+std::string Response::handleGetRequest(Location& location)
+{
+    std::string uri = this->req.getURL();
+    std::string content;
     size_t pos = uri.find("?");
     std::string queryString;
     if (pos != std::string::npos)
@@ -66,17 +120,30 @@ std::string handleGetRequest(Request& req, Location& location, ConfigData& __unu
         uri = uri.substr(0, pos);
     }
     std::string requestedResource = location.root + uri;
-    std::cout << "requested == " << requestedResource << std::endl;
-    return "hello world";
+    // std::cout << "requested == " << requestedResource << std::endl;
+    if (isFileExists(requestedResource))
+        content = this->handleExistingFile(requestedResource, location);
+    else
+    {
+        this->setStatusCode(404);
+        content = loadFile(conf.errorPages[this->getStatusCode()]);
+    }
+    return content;
 }
 Response::Response(Request &req, ConfigData &conf)
 {
+    this->req = req;
+    this->conf = conf;
     this->httpVersion = "HTTP/1.1";
     this->contentType = "text/html";
     this->setStatusCode(200);
+    this->formatResponse();
+}
+
+void Response::formatResponse()
+{
     std::string content;
     std::string header;
-    std::string contentType;
     std::string queryString;
     std::string url = req.getURL();
     std::string resourceFullPath = conf.root;
@@ -89,26 +156,24 @@ Response::Response(Request &req, ConfigData &conf)
         url = url.substr(0, pos);
     }
     Location location = getCorrectLocation(url, conf.locations);
-    std::cout << location << std::endl; 
+    // std::cout << location << std::endl; 
     if (!isMethodAllowed(req.getMethod(), location.methods))
     {
-        std::cout << "method not allowed" << std::endl;
+        // std::cout << "method not allowed" << std::endl;
         this->setStatusCode(405);
         content = loadFile(conf.errorPages[this->getStatusCode()]);
     }
     else
     {
         if (req.getMethod() == "GET")
-            content = handleGetRequest(req, location, conf);
+            content = handleGetRequest(location);
     }
-    
-    this->setContentType(contentType);
+
     this->setContentLength(content.size());
     this->setBody(content);
     this->buildResponse();
-    // std::cout << this->getResponseString() << std::endl; 
-    // std::cout << this->body << std::endl;
 }
+
 // Response::Response(Request &req, ConfigData &conf)
 // {
 //     this->httpVersion = "HTTP/1.1";
@@ -262,10 +327,12 @@ void Response::setStatusCode(short status)
     this->setStatusLine();
 }
 
-void Response::setContentType(std::string contentType)
+void Response::setContentType(std::string extention)
 {
-    this->contentType = contentType;
+    
+    this->contentType = this->mimes.getContentType(extention);;
 }
+
 
 void Response::setContentLength(int contentLength)
 {

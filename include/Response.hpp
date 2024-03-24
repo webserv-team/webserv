@@ -6,7 +6,7 @@
 /*   By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/19 13:50:27 by hoigag            #+#    #+#             */
-/*   Updated: 2024/03/24 15:57:49 by hoigag           ###   ########.fr       */
+/*   Updated: 2024/03/24 18:21:39 by hoigag           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -46,6 +46,10 @@ class Response
 		void setStatusLine();
 		void buildResponse();
 		int getResponseLength();
+		void formatResponse();
+		std::string handleExistingFile(std::string path, Location& location);
+		std::string handleNonExistingFile(std::string path, Location& location);
+		std::string handleGetRequest(Location& location);
 
 		std::string getResponseString();
 		std::string getStatusCode();
@@ -62,6 +66,8 @@ class Response
 		std::string httpVersion;
 		std::string response;
 		std::string statusLine;
+		Request req;
+		ConfigData conf;
 		Mimes mimes;
 		void setStatusReason(short status);
 };
