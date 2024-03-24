@@ -6,7 +6,7 @@
 /*   By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/25 13:25:34 by hoigag            #+#    #+#             */
-/*   Updated: 2024/03/21 17:19:30 by hoigag           ###   ########.fr       */
+/*   Updated: 2024/03/23 17:20:58 by hoigag           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,32 +20,6 @@
 // {
     
 // }
-
-// /images/faces/men/face1.jpg
-bool getCorrectLocation(std::string& uri, std::vector<Location>& locations)
-{
-    while (true)
-    {
-        for (size_t i = 0; i < locations.size(); i++)
-        {
-            std::cout << "location path == " << locations[i].path << std::endl;
-            std::cout << "uri == " << uri << std::endl;
-            if (uri == locations[i].path)
-            {
-                std::cout << "found the right location" << std::endl;
-                return true;
-            }
-        }
-        std::cout << std::endl;
-        size_t pos = uri.find_last_of("/");
-        if (pos == std::string::npos)
-            return false;
-        uri = uri.substr(0, pos);
-        if (uri.empty())
-            uri = "/";
-    }
-    return false;
-}
 
 Socket WebServer::getServer(int port)
 {
@@ -165,23 +139,23 @@ void WebServer::handleExistingConnection(int fd)
             // std::cout << GREEN << "request finished" << RESET << std::endl;
     }
 
-    int sendChunk(int sock, ClientResponse& cr)
-    {
-        int dataSent = 0;
-        dataSent = send(sock, cr.response.c_str() + cr.totalDataSent, cr.responseSize - cr.totalDataSent, 0);
-        if (dataSent < 0)
-        {   
-            std::cerr << "error: Could not send data" << std::endl;
-            return 0;
-        }
-        cr.totalDataSent += dataSent;
-        if (cr.totalDataSent >= cr.responseSize)
-            cr.isResponseFinished = true;
-        return 1;
+int sendChunk(int sock, ClientResponse& cr)
+{
+    int dataSent = 0;
+    dataSent = send(sock, cr.response.c_str() + cr.totalDataSent, cr.responseSize - cr.totalDataSent, 0);
+    if (dataSent < 0)
+    {   
+        std::cerr << "error: Could not send data" << std::endl;
+        return 0;
     }
+    cr.totalDataSent += dataSent;
+    if (cr.totalDataSent >= cr.responseSize)
+        cr.isResponseFinished = true;
+    return 1;
+}
 
-    void WebServer::listenForConnections()  
-    {
+void WebServer::listenForConnections()  
+{
         struct timeval timeout;
         timeout.tv_sec = 20;
         timeout.tv_usec = 0;
@@ -204,7 +178,18 @@ void WebServer::handleExistingConnection(int fd)
                 if (this->isServerFd(i))
                     this->handleNewConnection(i);
                 else
-                    this->handleExistingConnection(i);
+                {
+                    try
+                    {
+                        this->handleExistingConnection(i);
+                    }
+                    catch(const std::exception& e)
+                    {
+                        std::cerr << e.what() << '\n';
+                    }
+                    
+                    // this->handleExistingConnection(i);
+                }
             }
             if (FD_ISSET(i, &this->write_copy_sockets))
             {

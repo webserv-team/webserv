@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ServerConf.cpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ogorfti <ogorfti@student.42.fr>            +#+  +:+       +#+        */
+/*   By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/11 19:01:46 by ogorfti           #+#    #+#             */
-/*   Updated: 2024/03/20 20:52:58 by ogorfti          ###   ########.fr       */
+/*   Updated: 2024/03/24 13:54:17 by hoigag           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -298,6 +298,25 @@ ServerConf::ServerConf(const string& configPath)
 	{
 		cerr << e.what() << endl;
 	}
+}
+
+ostream& operator<<(ostream& os, const Location& location)
+{
+	os << "path: " << location.path << endl;
+	os << "root: " << location.root << endl;
+	os << "index: " << location.index << endl;
+	os << "autoindex: " << location.autoindex << endl;
+	os << "bodyLimit: " << location.bodyLimit << endl;
+	os << "uploadPath: " << location.uploadPath << endl;
+	os << "cgiPath: " << location.cgiPath << endl;
+	os << "methods: ";
+	for (size_t i = 0; i < location.methods.size(); i++)
+		os << location.methods[i] << " ";
+	os << endl;
+	os << "redirect: ";
+	for (map<string, string>::const_iterator it = location.redirect.begin(); it != location.redirect.end(); it++)
+		os << it->first << " - " << it->second << endl;
+	return os;
 }
 
 // c++ -std=c++98 -Wall -Wextra -Werror -fsanitize=address -g  ServerConf.cpp ErrUtils.cpp&& ./a.out

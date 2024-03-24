@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ServerConf.hpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ogorfti <ogorfti@student.42.fr>            +#+  +:+       +#+        */
+/*   By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/11 18:08:24 by ogorfti           #+#    #+#             */
-/*   Updated: 2024/03/20 20:52:11 by ogorfti          ###   ########.fr       */
+/*   Updated: 2024/03/24 13:53:57 by hoigag           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,7 +15,7 @@
 #include "../include/lib.hpp"
 using namespace std;
 #include <algorithm>
-
+#include <ostream>
 class Location
 {
 	public:
@@ -57,3 +57,5 @@ void	isFilePath(const string& path);
 int		isNumber(const string& str);
 void	checkValues(const string& value, const string& key);
 void	checkBodyLimit(const string& bodyLimit);
+
+ostream& operator<<(ostream& os, const Location& location);

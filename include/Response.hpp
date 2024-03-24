@@ -6,7 +6,7 @@
 /*   By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/19 13:50:27 by hoigag            #+#    #+#             */
-/*   Updated: 2024/03/21 17:13:21 by hoigag           ###   ########.fr       */
+/*   Updated: 2024/03/24 15:57:49 by hoigag           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -69,3 +69,5 @@ class Response
 std::ostream& operator<<(std::ostream& stream, Response& res);
 
 #endif
+
+

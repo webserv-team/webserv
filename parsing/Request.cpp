@@ -6,7 +6,7 @@
 /*   By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/01 16:18:37 by ogorfti           #+#    #+#             */
-/*   Updated: 2024/03/21 17:17:49 by hoigag           ###   ########.fr       */
+/*   Updated: 2024/03/22 12:49:17 by hoigag           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -246,14 +246,14 @@ std::ostream &operator<<(std::ostream &stream, Request &req)
 	char buffer[80];
 	std::strftime(buffer, sizeof(buffer), "%Y-%m-%d %H:%M:%S", std::localtime(&currentTime));
 
-	stream << "\033[32m[" << buffer << "]\033[0m " << req.getHostName() << ":" << req.getPort() << " " << req.getMethod() << " " << req.getURL() << std::endl;	
+	stream << BLUE << "[REQUEST " << buffer << "] " << RESET << GREEN << req.getHostName() << ":" << req.getPort() << " " << req.getMethod() << " " << req.getURL() << RESET << std::endl;	
 	// Convert the time to a string representation
-	stream << "----------------------- Request start --------------------------------------" << std::endl;
-	stream << "method        : " << req.getMethod() << std::endl;
-	stream << "url           : " << req.getURL() << std::endl;
-	stream << "content type  : " << req.getContentType() << std::endl;
-	stream << "content length: " << req.getContentLength() << std::endl;
-	stream << "port: " << req.getPort() << std::endl;
+	// stream << "----------------------- Request start --------------------------------------" << std::endl;
+	// stream << "method        : " << req.getMethod() << std::endl;
+	// stream << "url           : " << req.getURL() << std::endl;
+	// stream << "content type  : " << req.getContentType() << std::endl;
+	// stream << "content length: " << req.getContentLength() << std::endl;
+	// stream << "port: " << req.getPort() << std::endl;
 	// std::cout << "\n---- Headers ----" << std::endl;
 	// const std::map<std::string, std::string>& headers = req.getHeaders();
 
@@ -277,7 +277,7 @@ std::ostream &operator<<(std::ostream &stream, Request &req)
 	// stream << req.getContentLength() << endl;
 	// stream << req.getBody().size() << endl;
 	
-	stream << "----------------------- Request end --------------------------------------" << std::endl;
+	// stream << "----------------------- Request end --------------------------------------" << std::endl;
 
 	return stream;
 }
