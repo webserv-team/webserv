@@ -6,7 +6,7 @@
 /*   By: ogorfti <ogorfti@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/19 15:22:39 by hoigag            #+#    #+#             */
-/*   Updated: 2024/03/24 15:11:25 by ogorfti          ###   ########.fr       */
+/*   Updated: 2024/03/24 16:44:22 by ogorfti          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -91,27 +91,27 @@ Location getMatchingLocation(const string& url, ConfigData& conf)
 
 long long toBytes(string& bodyLimit)
 {
-    char* end;
-    long long value = strtol(bodyLimit.c_str(), &end, 10);
-    char unit = tolower(*end);
+	char* end;
+	long long value = strtol(bodyLimit.c_str(), &end, 10);
+	char unit = tolower(*end);
 
-    switch (unit)
-    {
-        case 'k':
-            value *= 1024;
-            break;
-        case 'm':
-            value *= 1024 * 1024;
-            break;
-        case 'g':
-            value *= 1024 * 1024 * 1024;
-            break;
-        case 'b':
-        default:
-            break;
-    }
+	switch (unit)
+	{
+		case 'k':
+			value *= 1024;
+			break;
+		case 'm':
+			value *= 1024 * 1024;
+			break;
+		case 'g':
+			value *= 1024 * 1024 * 1024;
+			break;
+		case 'b':
+		default:
+			break;
+	}
 
-    return value;
+	return value;
 }
 
 // when i submit a file its got downloaded!! and its uploaded to the server
@@ -161,6 +161,18 @@ bool transferEncodingChunked(Request& req)
 	return false;
 }
 
+// if transfer-encoding is not exist and content-length is not exist the method is POST
+bool verifyPostReq(Request& req)
+{
+	if (req.getMethod() == "POST")
+	{
+		map<string, string> headers = req.getHeaders();
+		if (headers.find("Content-Length") == headers.end() && headers.find("Transfer-Encoding") == headers.end())
+			return true;
+	}
+	return false;
+}
+
 string	urlErrors(Request& req, ConfigData& conf, t_data& data)
 {
 	Location loc = getMatchingLocation(req.getURL(), conf);
@@ -176,12 +188,12 @@ string	urlErrors(Request& req, ConfigData& conf, t_data& data)
 	}
 	if (!methodFound)
 		return loadErrorPages(conf, data, "405", "Method Not Allowed");
-	else if (url.length() > 2048)
-		return loadErrorPages(conf, data, "414", "Request-URI Too Long");
-	else if (chrURL(url))
+	else if (chrURL(url) || verifyPostReq(req))
 		return loadErrorPages(conf, data, "400", "Bad Request");
 	else if (bodyLimitExceeded(req, loc))
 		return loadErrorPages(conf, data, "413", "Request Entity Too Large");
+	else if (url.length() > 2048)
+		return loadErrorPages(conf, data, "414", "Request-URI Too Long");
 	else if (transferEncodingChunked(req))
 		return loadErrorPages(conf, data, "501", "Not Implemented");
 	return content;
