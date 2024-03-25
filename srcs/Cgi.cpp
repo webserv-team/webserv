@@ -6,7 +6,7 @@
 /*   By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/25 10:51:02 by hoigag            #+#    #+#             */
-/*   Updated: 2024/03/11 17:29:44 by hoigag           ###   ########.fr       */
+/*   Updated: 2024/03/25 22:50:08 by hoigag           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,33 +17,36 @@ Cgi::Cgi()
 }
 
 
-Cgi::Cgi(Request& req)
+Cgi::Cgi(Request& req, Location& __unused location)
 {
     
     this->req = req;
-    this->REQUEST_URI = req.getURL();
+    std::string path;
+    // this->REQUEST_URI = req.getURL();
+    this->vars["REQUEST_METHOD"] = req.getMethod();
+    if (this->vars["REQUEST_METHOD"] == "GET")
+    {
+        size_t pos = req.getURL().find("?");
+        if (pos != std::string::npos)
+        {
+            this->vars["QUERY_STRING"] = req.getURL().substr(pos + 1);
+            path = req.getURL().substr(0, pos);
+        }
+        else
+            path = req.getURL();
+    }
     this->vars["DOCUMENT_ROOT"] = "htdocs";
     this->vars["REQUEST_URI"] = req.getURL();
     this->vars["REDIRECT_STATUS"] = "200";
-    this->vars["SCRIPT_NAME"] = req.getURL();
-    this->vars["SCRIPT_FILENAME"] = "htdocs/" + req.getURL();
+    this->vars["SCRIPT_NAME"] = path.substr(path.find_last_of("/"));
+    this->vars["SCRIPT_FILENAME"] = location.root + path;
     if (req.getContentType() != "")
         this->vars["CONTENT_TYPE"] = req.getContentType();
     if (req.getContentLength() > 0)
         this->vars["CONTENT_LENGTH"] = std::to_string(req.getContentLength());  
     this->vars["SERVER_SOFTWARE"] = "webserv/1.0";
 	this->vars["GATEWAY_INTERFACE"] = "CGI/1.1";
-    this->vars["REQUEST_METHOD"] = req.getMethod();
-    std::map<std::string, std::string> headers = req.getHeaders();
-    std::string host = headers.find("Host")->second;
-    size_t pos = host.find(":");
-    this->vars["SERVER_PORT"] = host.substr(pos + 1);
-    if (this->vars["REQUEST_METHOD"] == "GET")
-    {
-        size_t pos = req.getURL().find("?");
-        if (pos != std::string::npos)
-            this->vars["QUERY_STRING"] = req.getURL().substr(pos + 1);
-    }
+    this->vars["SERVER_PORT"] = req.getPort();
     this->setEnv();
 }
 

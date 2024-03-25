@@ -6,7 +6,7 @@
 /*   By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/25 13:25:34 by hoigag            #+#    #+#             */
-/*   Updated: 2024/03/25 20:47:08 by hoigag           ###   ########.fr       */
+/*   Updated: 2024/03/25 21:09:06 by hoigag           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -101,17 +101,28 @@ void WebServer::handleExistingConnection(int fd)
             else if (this->clients[fd].headerObject.getMethod() == "POST")
             {
                 // std::cout << RED << "before content length == " << this->clients[fd].headerObject.getContentLength() << " |||||    bytesread == " << this->clients[fd].bytesRead << RESET << std::endl; 
-                if (this->clients[fd].isBody)
-                    this->clients[fd].bytesRead += dataRead.length();
-                else
-                    this->clients[fd].isBody = true;
-                if (this->clients[fd].bytesRead >= this->clients[fd].headerObject.getContentLength())
+                if (this->clients[fd].headerObject.isChunked())
                 {
-                    // std::cout << GREEN <<"request finished" << RESET << std::endl;    
-                    this->clients[fd].isRequestFinished = true;
+                    if (dataRead.find("0\r\n\r\n") != std::string::npos)
+                    {
+                        // std::cout << "request chunked finished" << std::endl;
+                        this->clients[fd].isRequestFinished = true;
+                    }
                 }
-                // std::cout << "IS REQUEST FINISHED: " << this->clients[fd].isRequestFinished << std::endl;
-                std::cout << RED << "content length == " << this->clients[fd].headerObject.getContentLength() << " |||||    bytesread == " << this->clients[fd].bytesRead << RESET << std::endl; 
+                else
+                {
+                    if (this->clients[fd].isBody)
+                        this->clients[fd].bytesRead += dataRead.length();
+                    else
+                        this->clients[fd].isBody = true;
+                    if (this->clients[fd].bytesRead >= this->clients[fd].headerObject.getContentLength())
+                    {
+                        // std::cout << GREEN <<"request finished" << RESET << std::endl;    
+                        this->clients[fd].isRequestFinished = true;
+                    }
+                    // std::cout << "IS REQUEST FINISHED: " << this->clients[fd].isRequestFinished << std::endl;
+                    std::cout << RED << "content length == " << this->clients[fd].headerObject.getContentLength() << " |||||    bytesread == " << this->clients[fd].bytesRead << RESET << std::endl;        
+                }
             }
                 
         }
@@ -122,7 +133,7 @@ void WebServer::handleExistingConnection(int fd)
         //     this->clients[fd].header.append(dataRead);
         if (this->clients[fd].isRequestFinished)
         {
-            std::cout << "request " << this->clients[fd].headerObject.getMethod() << " finished" << std::endl;
+            // std::cout << "request " << this->clients[fd].headerObject.getMethod() << " finished" << std::endl;
             // std::cout<< this->clients[fd].request;
             FD_CLR(fd, &read_sockets);
             // this->clients.erase(fd);

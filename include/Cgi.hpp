@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Cgi.hpp                                            :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: hassan <hassan@student.42.fr>              +#+  +:+       +#+        */
+/*   By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/25 10:11:55 by hoigag            #+#    #+#             */
-/*   Updated: 2024/03/08 17:34:26 by hassan           ###   ########.fr       */
+/*   Updated: 2024/03/25 22:17:44 by hoigag           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -41,11 +41,13 @@
 #include <string.h>
 #include <sys/wait.h>
 #include "helpers.hpp"
+#include "ServerConf.hpp"
+
 class Request;
 class Cgi
 {
 	public:
-		Cgi(Request& req);
+		Cgi(Request& req, Location& location);
 		Cgi();
 		~Cgi();
 		std::string getServerPort();

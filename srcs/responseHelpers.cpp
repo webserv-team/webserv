@@ -6,7 +6,7 @@
 /*   By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/25 19:18:19 by hoigag            #+#    #+#             */
-/*   Updated: 2024/03/25 19:20:32 by hoigag           ###   ########.fr       */
+/*   Updated: 2024/03/25 22:40:39 by hoigag           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -75,9 +75,9 @@ bool bodyLimitExceeded(Request& req, Location& loc)
 
 bool chrURL(string& url)
 {
-	string str = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz-./:;=@[]!&'*+,%";
+	string str = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz-./?:;=@[]!&'*+,%";
 
-	for (size_t i = 0; i < url.size(); i++)
+	for (size_t i = 0; i < url.size(); i++)	
 	{
 		if (str.find(url[i]) == string::npos)
 			return true;

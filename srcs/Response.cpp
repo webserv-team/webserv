@@ -12,6 +12,16 @@
 
 #include "Response.hpp"
 
+bool isAllowdCgiExtension(std::string path)
+{
+	std::cout << "checking cgi extension" << std::endl;
+	std::cout << "path =========== " << path << std::endl;
+	std::string extension = path.substr(path.find_last_of(".") + 1);
+	if (extension == "php" || extension == "py")
+		return true;
+	return false;
+}
+
 string	Response::urlErrors()
 {
 	Location loc = getMatchingLocation(req.getURL(), conf);
@@ -64,15 +74,21 @@ std::string Response::handleExistingFile(std::string path, Location& location)
         {
 			std::cout << "redirecting to the directory" << std::endl;
 			this->data.isRedirect = true;
-            this->data.statusCode = "301";
+            this->data.statusCode = "301";	
 			this->data.headers["Location"] = this->req.getURL() + "/";
             return "redirecting to the directory\n";
         }
-        std::string indexFile = path + "/" + location.index;
-        if (!location.index.empty() && isFileExists(indexFile))
+        std::string indexFile = path + "/" + location.index;	
+        if (!location.index.empty())
         {
             std::cout << "serving the index file" << std::endl;
-            content = loadFile(indexFile);
+			if (isFileExists(indexFile))
+				content = loadFile(indexFile);
+			else
+			{
+				this->data.statusCode = "404";
+			   content = loadErrorPages(this->data.statusCode, "Not Found");
+			}
         }
         else if (location.autoindex == "on")
         {
@@ -82,14 +98,23 @@ std::string Response::handleExistingFile(std::string path, Location& location)
         else
         {
             this->data.statusCode = "403";
-            content = loadFile(this->conf.errorPages[this->data.statusCode]);
+            content = loadErrorPages(this->data.statusCode, "Forbidden");
         }
     }
     else
     {
-        std::cout << "serving the file" << std::endl;
-        content = loadFile(path);
-		this->data.headers["Content-Type"] = this->mimes.getContentType(path);
+		if (!location.cgiPath.empty() && isAllowdCgiExtension(path))
+		{
+			Cgi cgi(this->req, location);
+			content = cgi.executeScript(path);
+			std::cout << "content from cgi == " << content << std::endl;
+			this->data.headers["Content-Type"] = getContentTypeFromCgiOutput(content);
+		}
+		else
+		{
+			content = loadFile(path);
+			this->data.headers["Content-Type"] = this->mimes.getContentType(path);
+		}
     }
     return content;
 }
@@ -123,6 +148,8 @@ Response::Response(Request &req, ConfigData &conf)
     this->conf = conf;
     this->data.httpVersion = "HTTP/1.1";
     this->data.headers["Content-Type"] = "text/html";
+	this->data.headers["Server"] = "webserv/1.0";
+	this->data.headers["Connection"] = "keep-alive";
     this->data.statusCode = "200";
 	this->data.isRedirect = false;
     this->formatResponse();
@@ -145,7 +172,6 @@ void Response::formatResponse()
     }
     Location location = getMatchingLocation(url, conf);
 	content = urlErrors();
-    // std::cout << location << std::endl; 
 	if (content.empty() && data.isRedirect == false)
     {
         if (req.getMethod() == "GET")
@@ -153,7 +179,7 @@ void Response::formatResponse()
     }
 	if (!data.isRedirect)
 	{
-		this->data.headers["Content-Length"] = content.size();
+		this->data.headers["Content-Length"] = to_string(content.size());
 		this->data.body = content;
 	}
     this->buildResponse();
