@@ -6,7 +6,7 @@
 /*   By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/25 13:25:34 by hoigag            #+#    #+#             */
-/*   Updated: 2024/03/24 20:49:18 by hoigag           ###   ########.fr       */
+/*   Updated: 2024/03/25 20:47:08 by hoigag           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -95,8 +95,9 @@ void WebServer::handleExistingConnection(int fd)
         }   
         if (this->clients[fd].isHeaderFinished)
         {
-            if (this->clients[fd].headerObject.getMethod() == "GET")
+            if (this->clients[fd].headerObject.getMethod() == "GET" || this->clients[fd].headerObject.getMethod() == "DELETE")
                 this->clients[fd].isRequestFinished = true;
+            
             else if (this->clients[fd].headerObject.getMethod() == "POST")
             {
                 // std::cout << RED << "before content length == " << this->clients[fd].headerObject.getContentLength() << " |||||    bytesread == " << this->clients[fd].bytesRead << RESET << std::endl; 
@@ -121,6 +122,7 @@ void WebServer::handleExistingConnection(int fd)
         //     this->clients[fd].header.append(dataRead);
         if (this->clients[fd].isRequestFinished)
         {
+            std::cout << "request " << this->clients[fd].headerObject.getMethod() << " finished" << std::endl;
             // std::cout<< this->clients[fd].request;
             FD_CLR(fd, &read_sockets);
             // this->clients.erase(fd);

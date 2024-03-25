@@ -6,7 +6,7 @@
 /*   By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/04 12:35:14 by hoigag            #+#    #+#             */
-/*   Updated: 2024/03/24 19:53:36 by hoigag           ###   ########.fr       */
+/*   Updated: 2024/03/25 18:28:00 by hoigag           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -61,8 +61,9 @@ void Mimes::loadFile()
     }
 }
 
-std::string Mimes::getContentType(std::string& ext)
+std::string Mimes::getContentType(std::string& path)
 {
+    std::string ext = getFileExtension(path);
     if (ext.empty() || this->extensions.find(ext) == this->extensions.end())
         return "text/html";
     std::string extension = this->extensions[ext];

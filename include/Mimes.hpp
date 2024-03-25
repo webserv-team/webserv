@@ -6,7 +6,7 @@
 /*   By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/04 12:32:37 by hoigag            #+#    #+#             */
-/*   Updated: 2024/03/24 19:53:20 by hoigag           ###   ########.fr       */
+/*   Updated: 2024/03/25 18:28:11 by hoigag           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,7 +17,7 @@
 #include <map>
 #include <fstream>
 #include <sstream>
-
+#include "helpers.hpp"
 class Mimes
 {
 	public:
