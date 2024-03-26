@@ -6,7 +6,7 @@
 /*   By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/25 10:11:55 by hoigag            #+#    #+#             */
-/*   Updated: 2024/03/25 22:17:44 by hoigag           ###   ########.fr       */
+/*   Updated: 2024/03/26 16:21:04 by hoigag           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -55,13 +55,14 @@ class Cgi
 		std::string getRequestUri();
 		std::string getRequestMethod();
 		std::map<std::string, std::string> getVars();
-		std::string executeScript(std::string script);
+		std::string executeCgiScript();
 		
 		void setEnv();
 		// Cgi(const Cgi& other);
 		// Cgi& operator=(const Cgi& other);
 	private:
 		Request req;
+		std::string cgiPath;
 		std::map<std::string, std::string> vars;
 		std::string SERVER_PORT;
 		std::string QUERY_STRING;

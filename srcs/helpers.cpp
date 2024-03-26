@@ -6,7 +6,7 @@
 /*   By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/27 10:37:31 by hoigag            #+#    #+#             */
-/*   Updated: 2024/03/21 17:18:39 by hoigag           ###   ########.fr       */
+/*   Updated: 2024/03/26 22:11:07 by hoigag           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -171,7 +171,7 @@ std::string directoryListing(std::string& path)
 	return content; 
 }
 
-void uploadFiles(Request& req)
+void uploadFiles(Request& req, Location& location)
 {
     std::cout << "uploading files" << std::endl;
     vector<s_tuple > data = req.getMultipart();
@@ -186,7 +186,7 @@ void uploadFiles(Request& req)
         else
             {
                 std::cout << "filename === " << data[i].fileName << std::endl;
-                std::ofstream outfile("upload/" + data[i].fileName);
+                std::ofstream outfile(location.uploadPath + "/" + data[i].fileName);
                 if (!outfile.is_open())
                     throw std::runtime_error("could not open the file upload");
                 if (data[i].value.empty())

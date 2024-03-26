@@ -1,12 +1,10 @@
 <?php
 header("Content-Type: text/html; charset=UTF-8");
-
 // Check if the form was submitted
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
     // Check if file was uploaded
     if (isset($_FILES["file"])) {
         $file = $_FILES["file"];
-
         // Check for errors
         if ($file["error"] === UPLOAD_ERR_OK) {
             $upload_dir = realpath('../../upload');

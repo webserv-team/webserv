@@ -6,7 +6,7 @@
 /*   By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/27 10:37:00 by hoigag            #+#    #+#             */
-/*   Updated: 2024/03/09 17:22:41 by hoigag           ###   ########.fr       */
+/*   Updated: 2024/03/26 22:10:02 by hoigag           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,6 +26,7 @@
 #include <dirent.h>
 #include "Request.hpp"
 #include "Header.hpp"
+#include "ServerConf.hpp"
 
 #define BUFFER_SIZE 100000
 
@@ -39,7 +40,7 @@ std::string getContentType(std::string file);
 std::string getContentTypeFromCgiOutput(std::string& content);
 bool isDirectory(std::string& path);
 std::string directoryListing(std::string& path);
-void uploadFiles(Request& req);
+void uploadFiles(Request& req, Location& location);
 std::string sread(int socket);
 // int sendChunk(int sock, ClientResponse& cr);
 

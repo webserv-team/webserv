@@ -6,7 +6,7 @@
 /*   By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/25 10:51:02 by hoigag            #+#    #+#             */
-/*   Updated: 2024/03/25 22:50:08 by hoigag           ###   ########.fr       */
+/*   Updated: 2024/03/26 22:49:52 by hoigag           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,28 +17,29 @@ Cgi::Cgi()
 }
 
 
-Cgi::Cgi(Request& req, Location& __unused location)
+Cgi::Cgi(Request& req, Location& location)
 {
-    
     this->req = req;
+    this->cgiPath = location.cgiPath;
     std::string path;
-    // this->REQUEST_URI = req.getURL();
     this->vars["REQUEST_METHOD"] = req.getMethod();
-    if (this->vars["REQUEST_METHOD"] == "GET")
+    size_t pos = req.getURL().find("?");
+    if (pos != std::string::npos)
     {
-        size_t pos = req.getURL().find("?");
-        if (pos != std::string::npos)
-        {
-            this->vars["QUERY_STRING"] = req.getURL().substr(pos + 1);
-            path = req.getURL().substr(0, pos);
-        }
-        else
-            path = req.getURL();
+        this->vars["QUERY_STRING"] = req.getURL().substr(pos + 1);
+        path = req.getURL().substr(0, pos);
     }
-    this->vars["DOCUMENT_ROOT"] = "htdocs";
+    else
+        path = req.getURL();
+    
+    this->vars["DOCUMENT_ROOT"] = location.root;
     this->vars["REQUEST_URI"] = req.getURL();
     this->vars["REDIRECT_STATUS"] = "200";
+    if (req.getURL().back() == '/')
+        path += location.index;
+    std::cout << "path == " << path << std::endl;
     this->vars["SCRIPT_NAME"] = path.substr(path.find_last_of("/"));
+    std::cout << "inside the constructor" << std::endl;
     this->vars["SCRIPT_FILENAME"] = location.root + path;
     if (req.getContentType() != "")
         this->vars["CONTENT_TYPE"] = req.getContentType();
@@ -70,17 +71,13 @@ void Cgi::setEnv()
 
 
 
-std::string Cgi::executeScript(std::string script)
+std::string Cgi::executeCgiScript()
 {
     std::string output = "error";
     const char *command[3];
-    if (getFileExtension(script) == ".py")
-        command[0] = strdup("/Users/hoigag/.brew/bin/python3");
-    else
-        command[0] = strdup("htdocs/cgi-bin/php-cgi");
-    command[1] = script.c_str();
-            std::cout << "command[0] " << command[0] << std::endl;
-        std::cout << "command[1] " << command[1] << std::endl;
+    std::cout << "cgi path == " << this->cgiPath << std::endl; 
+    command[0] = this->cgiPath.c_str();
+    command[1] = this->vars["SCRIPT_FILENAME"].c_str();
     std::cout << "the file being exectuted " << command[1] << std::endl;
     command[2] = NULL;
     int pipes[2];
@@ -129,28 +126,28 @@ std::string Cgi::executeScript(std::string script)
     {
         if (this->vars["REQUEST_METHOD"] == "POST")
         {
-            if (this->req.getBody().length() == 0)
-                exit(125);
-            // send data in chunks
-            std::cout << "sending data in chunks" << std::endl; 
-            int totalDataSent = 0;
-            while (1)
-            {
-                if (totalDataSent >= this->req.getContentLength())
-                    break;
-                std::cout << "before writing to pipe" << std::endl;
-                int dataSent = write(pipes[1], this->req.getBody().c_str() + totalDataSent , this->req.getBody().size() - totalDataSent);
-                std::cout << "after writing to pipe" << std::endl;
-                std::cout << "dataSent == " << dataSent << std::endl;
-                if (dataSent < 0)
-                {
-                    std::cerr << "error while writing to pipe" << std::endl;
-                    exit(1);
-                }
-                totalDataSent += dataSent;
-            }
+            write(pipes[1], this->req.getBody().c_str(), this->req.getBody().size());
             std::cout << "finished sending data in chunks" << std::endl;
-            // write(pipes[1], this->req.getBody().c_str(), this->req.getContentLength());
+            // send data in chunks
+        //     std::cout << "sending data in chunks" << std::endl; 
+        //     int totalDataSent = 0;
+        //     while (1)
+        //     {
+        //         if (totalDataSent >= this->req.getContentLength())
+        //             break;
+        //         std::cout << "before writing to pipe" << std::endl;
+        //         int dataSent = write(pipes[1], this->req.getBody().c_str() + totalDataSent , this->req.getBody().size() - totalDataSent);
+        //         std::cout << "after writing to pipe" << std::endl;
+        //         std::cout << "dataSent == " << dataSent << std::endl;
+        //         if (dataSent < 0)
+        //         {
+        //             std::cerr << "error while writing to pipe" << std::endl;
+        //             exit(1);
+        //         }
+        //         totalDataSent += dataSent;
+        //     }
+        //     std::cout << "finished sending data in chunks" << std::endl;
+        //     // write(pipes[1], this->req.getBody().c_str(), this->req.getContentLength());
         }
         close(pipes[1]);
         waitpid(pid, NULL, 0);

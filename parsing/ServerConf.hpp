@@ -6,7 +6,7 @@
 /*   By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/11 18:08:24 by ogorfti           #+#    #+#             */
-/*   Updated: 2024/03/24 13:53:57 by hoigag           ###   ########.fr       */
+/*   Updated: 2024/03/26 16:09:42 by hoigag           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,6 +28,11 @@ class Location
 		string cgiPath;
 		map <string, string> redirect;
 		vector<string> methods;
+		//copy constructor
+		// Location();
+		// Location(const Location& location);
+		// //copy assignment operator
+		// Location& operator=(const Location& location);
 };
 
 class ConfigData

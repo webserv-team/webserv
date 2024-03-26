@@ -14,8 +14,6 @@
 
 bool isAllowdCgiExtension(std::string path)
 {
-	std::cout << "checking cgi extension" << std::endl;
-	std::cout << "path =========== " << path << std::endl;
 	std::string extension = path.substr(path.find_last_of(".") + 1);
 	if (extension == "php" || extension == "py")
 		return true;
@@ -69,7 +67,6 @@ std::string Response::handleExistingFile(std::string path, Location& location)
     std::string content;
     if (isDirectory(path))
     {
-			// std::cout << "url === " << this->req.getURL() << std::endl;
         if (path.back() != '/')
         {
 			std::cout << "redirecting to the directory" << std::endl;
@@ -83,7 +80,26 @@ std::string Response::handleExistingFile(std::string path, Location& location)
         {
             std::cout << "serving the index file" << std::endl;
 			if (isFileExists(indexFile))
-				content = loadFile(indexFile);
+			{
+				if (!location.cgiPath.empty() && isAllowdCgiExtension(indexFile))
+				{
+					Cgi cgi(this->req, location);
+					content = cgi.executeCgiScript();
+					std::string header;
+					size_t pos = content.find("\r\n\r\n");
+					if (pos != std::string::npos)
+					{
+						content = content.substr(pos + 4);
+						header = content.substr(0, pos);
+					}
+					this->data.headers["Content-Type"] = getContentTypeFromCgiOutput(header);
+				}
+				else
+				{
+					content = loadFile(indexFile);
+					this->data.headers["Content-Type"] = this->mimes.getContentType(indexFile);
+				}
+			}
 			else
 			{
 				this->data.statusCode = "404";
@@ -103,12 +119,20 @@ std::string Response::handleExistingFile(std::string path, Location& location)
     }
     else
     {
+		std::cout << "a file not a directory" << std::endl;
 		if (!location.cgiPath.empty() && isAllowdCgiExtension(path))
 		{
+			std::cout << "cgi file" << std::endl;
 			Cgi cgi(this->req, location);
-			content = cgi.executeScript(path);
-			std::cout << "content from cgi == " << content << std::endl;
-			this->data.headers["Content-Type"] = getContentTypeFromCgiOutput(content);
+			content = cgi.executeCgiScript();
+			std::string header;
+			size_t pos = content.find("\r\n\r\n");
+			if (pos != std::string::npos)
+			{
+				content = content.substr(pos + 4);
+				header = content.substr(0, pos);
+			}
+			this->data.headers["Content-Type"] = getContentTypeFromCgiOutput(header);
 		}
 		else
 		{
@@ -119,7 +143,7 @@ std::string Response::handleExistingFile(std::string path, Location& location)
     return content;
 }
 
-std::string Response::handleGetRequest(Location& location)
+std::string Response::handleRequest(Location& location)
 {
     std::string uri = this->req.getURL();
     std::string content;
@@ -131,7 +155,13 @@ std::string Response::handleGetRequest(Location& location)
         uri = uri.substr(0, pos);
     }
     std::string requestedResource = location.root + uri;
-    // std::cout << "requested == " << requestedResource << std::endl;
+	std::cout << "requestedResource == " << requestedResource << std::endl;
+	if (this->req.getMethod() == "POST" && this->req.getContentType().find("multipart/form-data") != std::string::npos && !isAllowdCgiExtension(requestedResource))
+	{
+		std::cout << "no cgi upload" << std::endl;
+		uploadFiles(this->req, location);
+	}
+	std::cout << "requestedResource == " << requestedResource << std::endl;
     if (isFileExists(requestedResource))
         content = this->handleExistingFile(requestedResource, location);
     else
@@ -142,6 +172,7 @@ std::string Response::handleGetRequest(Location& location)
     }
     return content;
 }
+
 Response::Response(Request &req, ConfigData &conf)
 {
     this->req = req;
@@ -173,10 +204,7 @@ void Response::formatResponse()
     Location location = getMatchingLocation(url, conf);
 	content = urlErrors();
 	if (content.empty() && data.isRedirect == false)
-    {
-        if (req.getMethod() == "GET")
-            content = handleGetRequest(location);
-    }
+        content = handleRequest(location);
 	if (!data.isRedirect)
 	{
 		this->data.headers["Content-Length"] = to_string(content.size());

@@ -57,6 +57,13 @@
     else    
     {
         echo '<div class="welcome-container">';
+        echo '<h1>Access denied!</h1>';
+        echo '<p>You need to login first.</p>';
+        if (isset($_GET['username']) && isset($_GET['password']))
+        {
+            echo '<p> username : ' . $_GET['username'] . '</p>';
+            echo '<p> password : ' . $_GET['password'] . '</p>';
+        }
         echo '<a href="form.html">login</a>';
         echo '</div>';
     }

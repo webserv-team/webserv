@@ -6,7 +6,7 @@
 /*   By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/19 13:50:27 by hoigag            #+#    #+#             */
-/*   Updated: 2024/03/25 19:57:43 by hoigag           ###   ########.fr       */
+/*   Updated: 2024/03/26 22:06:45 by hoigag           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -50,7 +50,7 @@ class Response
 		Response(const Response& other);
 		void buildResponse();
 		std::string handleExistingFile(std::string path, Location& location);
-		std::string handleGetRequest(Location& location);
+		std::string handleRequest(Location& location);
 		void formatResponse();
 		string	urlErrors();
 		string loadErrorPages(string statusCode, string errorMessage);

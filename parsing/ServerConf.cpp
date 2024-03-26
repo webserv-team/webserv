@@ -6,7 +6,7 @@
 /*   By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/11 19:01:46 by ogorfti           #+#    #+#             */
-/*   Updated: 2024/03/24 13:54:17 by hoigag           ###   ########.fr       */
+/*   Updated: 2024/03/26 16:09:32 by hoigag           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -318,6 +318,35 @@ ostream& operator<<(ostream& os, const Location& location)
 		os << it->first << " - " << it->second << endl;
 	return os;
 }
+
+//default constructor
+// Location::Location()
+// {
+
+// }
+
+// //copy constructor
+// Location::Location(const Location& location)
+// {
+// 	*this = location;
+// }
+
+// //copy assignment operator
+// Location& Location::operator=(const Location& location)
+// {
+// 	if (this == &location)
+// 		return *this;
+// 	this->path = location.path;
+// 	this->root = location.root;
+// 	this->index = location.index;
+// 	this->autoindex = location.autoindex;
+// 	this->bodyLimit = location.bodyLimit;
+// 	this->uploadPath = location.uploadPath;
+// 	this->cgiPath = location.cgiPath;
+// 	this->redirect = location.redirect;
+// 	this->methods = location.methods;
+// 	return *this;
+// }
 
 // c++ -std=c++98 -Wall -Wextra -Werror -fsanitize=address -g  ServerConf.cpp ErrUtils.cpp&& ./a.out
 // int main()
