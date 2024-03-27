@@ -129,10 +129,17 @@ std::string Response::handleExistingFile(std::string path, Location& location)
 			size_t pos = content.find("\r\n\r\n");
 			if (pos != std::string::npos)
 			{
-				content = content.substr(pos + 4);
 				header = content.substr(0, pos);
+				content = content.substr(pos + 4);
 			}
-			this->data.headers["Content-Type"] = getContentTypeFromCgiOutput(header);
+			std::string contentType = getContentTypeFromCgiOutput(header);
+			if (!contentType.empty())
+				this->data.headers["Content-Type"] = contentType;
+			else
+			{
+				this->data.statusCode = "500";
+				content = loadErrorPages(this->data.statusCode, "Internal Server Error");
+			}
 		}
 		else
 		{
@@ -149,6 +156,7 @@ std::string Response::handleRequest(Location& location)
     std::string content;
     size_t pos = uri.find("?");
     std::string queryString;
+	bool safe = true;
     if (pos != std::string::npos)
     {
         queryString = uri.substr(pos + 1);
@@ -157,12 +165,14 @@ std::string Response::handleRequest(Location& location)
     std::string requestedResource = location.root + uri;
 	std::cout << "requestedResource == " << requestedResource << std::endl;
 	if (this->req.getMethod() == "POST" && this->req.getContentType().find("multipart/form-data") != std::string::npos && !isAllowdCgiExtension(requestedResource))
+		safe = uploadFiles(this->req, location);
+	if (!safe)
 	{
-		std::cout << "no cgi upload" << std::endl;
-		uploadFiles(this->req, location);
+		std::cout << "upload error" << std::endl;
+		this->data.statusCode = "500";
+		content = loadErrorPages(this->data.statusCode, "Internal Server Error");
 	}
-	std::cout << "requestedResource == " << requestedResource << std::endl;
-    if (isFileExists(requestedResource))
+    else if (isFileExists(requestedResource))
         content = this->handleExistingFile(requestedResource, location);
     else
     {
@@ -194,8 +204,6 @@ void Response::formatResponse()
     std::string url = req.getURL();
     std::string resourceFullPath = conf.root;
     size_t pos = url.find("?");
-    // if (req.getMethod() == "POST" && req.getContentType().find("multipart/form-data") != std::string::npos)
-    //     uploadFiles(req);
     if (pos != std::string::npos)
     {
         queryString = url.substr(pos + 1);

@@ -6,7 +6,7 @@
 /*   By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/25 19:19:57 by hoigag            #+#    #+#             */
-/*   Updated: 2024/03/25 19:23:54 by hoigag           ###   ########.fr       */
+/*   Updated: 2024/03/27 12:25:17 by hoigag           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,7 +25,7 @@ bool bodyLimitExceeded(Request& req, Location& loc);
 bool chrURL(string& url);
 bool verifyPostReq(Request& req);
 bool transferEncodingChunked(Request& req);
-bool isFileExists(const std::string& path);
+// bool isFileExists(const std::string& path);
 Location getMatchingLocation(const string& url, ConfigData& conf);
 
 #endif

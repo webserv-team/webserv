@@ -6,7 +6,7 @@
 /*   By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/27 10:37:00 by hoigag            #+#    #+#             */
-/*   Updated: 2024/03/26 22:10:02 by hoigag           ###   ########.fr       */
+/*   Updated: 2024/03/27 13:05:24 by hoigag           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,8 +40,9 @@ std::string getContentType(std::string file);
 std::string getContentTypeFromCgiOutput(std::string& content);
 bool isDirectory(std::string& path);
 std::string directoryListing(std::string& path);
-void uploadFiles(Request& req, Location& location);
+bool uploadFiles(Request& req, Location& location);
 std::string sread(int socket);
+bool isFileExists(const std::string& path);
 // int sendChunk(int sock, ClientResponse& cr);
 
 #endif

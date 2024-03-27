@@ -6,7 +6,7 @@
 /*   By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/27 10:37:31 by hoigag            #+#    #+#             */
-/*   Updated: 2024/03/26 22:11:07 by hoigag           ###   ########.fr       */
+/*   Updated: 2024/03/27 14:21:51 by hoigag           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -84,21 +84,23 @@ std::string loadFile(const std::string& path)
 	return buffer.str();
 }
 
+bool isFileExists(const std::string& path)
+{
+    return access(path.c_str(), F_OK) == 0;
+}
 
 std::string getContentTypeFromCgiOutput(std::string& content)
 {
 		
 	if (content.empty())
-		return "text/html";
-	std::stringstream stream;
-	std::string line;
-	stream.str(content);
-	std::getline(stream, line);
-	std::getline(stream, line);
-	size_t semiPos = line.find(";");
-	std::string header = line.substr(0, semiPos);
-	size_t colonPos = header.find(":");
-	std::string contentType = header.substr(colonPos + 2);
+		return "";
+	size_t pos = content.find("Content-Type: ");
+	if (pos == std::string::npos)
+		return "";
+	std::string contentType = content.substr(pos + 14);
+	pos = contentType.find(";");
+	if (pos != std::string::npos)
+		contentType = contentType.substr(0, pos);
 	return contentType;
 }
 
@@ -171,38 +173,33 @@ std::string directoryListing(std::string& path)
 	return content; 
 }
 
-void uploadFiles(Request& req, Location& location)
+bool uploadFiles(Request& req, Location& location)
 {
-    std::cout << "uploading files" << std::endl;
     vector<s_tuple > data = req.getMultipart();
-    std::cout << " -----> req: "<< req.getBody().size() << std::endl;
-    
     std::string body = "";
-    std::cout << "url === " << req.getURL() << std::endl;
     for (size_t i = 0; i < data.size(); i++)
     {
         if (data[i].fileName.empty())
             body += data[i].name + "=" + data[i].value + "&";
         else
             {
-                std::cout << "filename === " << data[i].fileName << std::endl;
-                std::ofstream outfile(location.uploadPath + "/" + data[i].fileName);
+				std::string uploadDir = location.root + location.uploadPath;
+				if (!isFileExists(uploadDir))
+					return false;
+				std::string uploadPath = uploadDir + "/" + data[i].fileName;
+                std::ofstream outfile(uploadPath);
                 if (!outfile.is_open())
-                    throw std::runtime_error("could not open the file upload");
+                    return false;
                 if (data[i].value.empty())
                     std::cerr << "the file content is empty" << std::endl;
                 else
                 {
-                    // std::cout << "file content == " << data[i].value.length() << std::endl;
-                    // std::cout << "writing to file" << std::endl;
                     outfile.write(data[i].value.data(), data[i].value.size());
-                    std::cout << " -----> len: "<< data[i].value.size() << std::endl;
-                    // std::cout << "done writing to file" << std::endl;
                     outfile.close();
                 }
             }
     }
-    // req.setBody(body);
+	return true;
 }
 
 std::string sread(int socket)
@@ -214,18 +211,3 @@ std::string sread(int socket)
 	dataRead[bytesRead] = '\0';
 	return std::string(dataRead, bytesRead);
 }
-
-// int sendChunk(int sock, ClientResponse& cr)
-// {
-//     int dataSent = 0;
-//     dataSent = send(sock, cr.response.getResponseString().c_str() + cr.totalDataSent, cr.responseSize - cr.totalDataSent, 0);
-//     if (dataSent < 0)
-//     {   
-//         std::cerr << "error: Could not send data" << std::endl;
-//         return 0;
-//     }
-//     cr.totalDataSent += dataSent;
-//     if (cr.totalDataSent >= cr.responseSize)
-//         cr.isResponseFinished = true;
-//     return 1;
-// }

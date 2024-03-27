@@ -6,7 +6,7 @@
 /*   By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/25 19:18:19 by hoigag            #+#    #+#             */
-/*   Updated: 2024/03/25 22:40:39 by hoigag           ###   ########.fr       */
+/*   Updated: 2024/03/27 13:13:39 by hoigag           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,6 +28,8 @@ string getStatusReason(string& status)
 		return "Request Entity Too Large";
 	else if (status == "414")
 		return "Request-URI Too Long";
+	else if (status == "500")
+		return "Internal Server Error";
 	else if (status == "501")
 		return "Not Implemented";
 	else if (status == "301")
@@ -106,10 +108,6 @@ bool transferEncodingChunked(Request& req)
 	return false;
 }
 
-bool isFileExists(const std::string& path)
-{
-    return access(path.c_str(), F_OK) == 0;
-}
 
 Location getMatchingLocation(const string& url, ConfigData& conf)
 {
