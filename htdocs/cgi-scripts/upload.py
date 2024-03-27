@@ -2,6 +2,9 @@
 import os
 import cgi
 
+def printHeader():
+    print("Content-Type: text/html\r\n\r\n", end="")
+
 # Set the upload directory
 upload_dir = '/Users/hoigag/cursus/webserv/upload'
 
@@ -12,6 +15,7 @@ form = cgi.FieldStorage()
 if 'file' in form:
     # If the form field is a list, iterate over each file
     if isinstance(form['file'], list):
+        printHeader()
         for file_item in form['file']:
             # Check if the file was successfully uploaded
             if file_item.file and file_item.filename:
@@ -32,6 +36,7 @@ if 'file' in form:
                 print("<p style='color: red;'>Could not upload one or more files!</p>")
     else:
         # Handle the case when only one file is uploaded
+        printHeader()
         file_item = form['file']
 
         # Check if the file was successfully uploaded
@@ -54,5 +59,6 @@ if 'file' in form:
             print("<p style='color: red;'>Could not upload the file!</p>")
 else:
     # Print an error message if no file was uploaded
+    printHeader()
     print("<h1>File Upload</h1>")
     print("<p style='color: red;'>Error: No file uploaded.</p>")

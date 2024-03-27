@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Socket.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: hassan <hassan@student.42.fr>              +#+  +:+       +#+        */
+/*   By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/04 12:14:45 by hoigag            #+#    #+#             */
-/*   Updated: 2024/03/08 17:36:06 by hassan           ###   ########.fr       */
+/*   Updated: 2024/03/27 18:03:13 by hoigag           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,16 +27,13 @@ class Socket
 {
 	public:
 		Socket();
-		Socket(const ConfigData& conf);
+		Socket(short port, std::string& hostname);
 		int getFd();
-		ConfigData getConfData();
-		int start();
 		static int acceptNewConnetction(int serverFd);
 		~Socket();
 		// Socket(const Socket& other);
 		// Socket& operator=(const Socket& other);
 	private:
-		ConfigData conf;
 		int fd;
 };
 

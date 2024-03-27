@@ -6,22 +6,39 @@
 /*   By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/04 12:19:12 by hoigag            #+#    #+#             */
-/*   Updated: 2024/03/24 20:37:25 by hoigag           ###   ########.fr       */
+/*   Updated: 2024/03/27 21:56:26 by hoigag           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Socket.hpp"
 
+
+unsigned int convertIpToInt(std::string ip)
+{
+   unsigned int result = 0;
+    while (ip.size() > 0)
+    {
+        size_t pos = ip.find(".");
+        if (pos == std::string::npos)
+        {
+            result = result * 256 + std::stoi(ip);
+            break;
+        }
+        result = result * 256 + std::stoi(ip.substr(0, pos));
+        ip = ip.substr(pos + 1);
+    }
+    return result;
+}
+
 Socket::Socket()
 {
 }
-Socket::Socket(const ConfigData& conf)
+/// @brief 
+/// @param port 
+/// @param hostname 
+Socket::Socket(short port, std::string& hostname)
 {
-    this->conf = conf;
-}
-
-int Socket::start()
-{
+    // std::cout << "address == " << convertIpToInt(hostname) << std::endl; 
     int sock = socket(AF_INET, SOCK_STREAM, 0);
     if (sock < 0)
     {
@@ -33,8 +50,9 @@ int Socket::start()
     struct sockaddr_in servaddr;
     bzero(&servaddr, sizeof(servaddr));
     servaddr.sin_family = AF_INET;
-    servaddr.sin_addr.s_addr = htonl(INADDR_ANY);
-    servaddr.sin_port = htons(this->conf.ports[0]);
+    hostname = (hostname == "localhost" ? "127.0.0.1" : hostname);
+    servaddr.sin_addr.s_addr = htonl(convertIpToInt(hostname));
+    servaddr.sin_port = htons(port);
     if(bind(sock, (struct sockaddr *) &servaddr, sizeof(servaddr)) < 0)
     {
         std::cerr << "could not bind socket " << sock << std::endl; 
@@ -46,8 +64,6 @@ int Socket::start()
         exit(1);
     }
     this->fd = sock;
-    std::cout << "listening on port : " << conf.ports[0] << std::endl;
-    return sock;
 }
 
 int Socket::acceptNewConnetction(int serverFd)
@@ -67,11 +83,6 @@ int Socket::acceptNewConnetction(int serverFd)
 int Socket::getFd()
 {
     return this->fd;
-}
-
-ConfigData Socket::getConfData()
-{
-    return this->conf;
 }
 
 Socket::~Socket()

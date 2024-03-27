@@ -6,7 +6,7 @@
 /*   By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/24 14:56:22 by hoigag            #+#    #+#             */
-/*   Updated: 2024/03/23 17:19:15 by hoigag           ###   ########.fr       */
+/*   Updated: 2024/03/27 18:09:29 by hoigag           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,9 +14,10 @@
 #include "ServerConf.hpp"
 #include <map>
 #include "Socket.hpp"
-#include "WebServer.hpp"
+#include "ServersMonitor.hpp"
 #include "helpers.hpp"
 #include  <signal.h>
+#include "HttpServer.hpp"
 int main(int argc, char **argv)
 {
     if (argc != 2)
@@ -28,17 +29,13 @@ int main(int argc, char **argv)
     ServerConf conf(configFile);
     std::vector<ConfigData> serversConf = conf.getServers();
 
-    std::vector<Socket> httpServers;
+    std::vector<HttpServer> httpServers;
     for (size_t i = 0; i < serversConf.size(); i++)
-    {
-        Socket server(serversConf[i]);
-        httpServers.push_back(server);
-    }
-
+        httpServers.push_back(HttpServer(serversConf[i]));
     try
     {
         signal(SIGPIPE, SIG_IGN);
-        WebServer entry(httpServers);
+        ServersMonitor entry(httpServers);
         entry.listenForConnections();
     }
     catch(const std::exception& e)
