@@ -6,7 +6,7 @@
 /*   By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/19 13:50:27 by hoigag            #+#    #+#             */
-/*   Updated: 2024/03/26 22:06:45 by hoigag           ###   ########.fr       */
+/*   Updated: 2024/03/27 22:19:50 by hoigag           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,6 +17,7 @@
 #include <iostream>
 #include <unistd.h>
 #include <sys/socket.h>
+#include <dirent.h>
 #include <ostream>
 #include "Request.hpp"
 #include "ServerConf.hpp"
@@ -51,9 +52,10 @@ class Response
 		void buildResponse();
 		std::string handleExistingFile(std::string path, Location& location);
 		std::string handleRequest(Location& location);
-		void formatResponse();
-		string	urlErrors();
 		string loadErrorPages(string statusCode, string errorMessage);
+		string handleDeleteRequest(Location& loc);
+		void formatResponse();
+		string urlErrors();
 		
 		Request req;
 		ConfigData conf;
@@ -71,5 +73,3 @@ std::ostream& operator<<(std::ostream& stream, Response& res);
 string defaultError(string errorCode, string errorMessage);
 
 #endif
-
-
