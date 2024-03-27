@@ -128,6 +128,44 @@ Response::Response(Request &req, ConfigData &conf)
     this->formatResponse();
 }
 
+string Response::handleDeleteRequest(Location& loc)
+{
+	(void)loc;
+	string content;
+	string uri = req.getURL();
+	string path = conf.root + uri;
+
+	if (isDirectory(path))
+	{
+		if (path.back() != '/')
+		{
+			data.statusCode = "409";
+			content = loadErrorPages(data.statusCode, "Conflict");
+		}
+		else
+		{
+			if (removeDir(path))
+				data.statusCode = "204";
+			else
+			{
+				data.statusCode = "403";
+				content = loadErrorPages(data.statusCode, "Forbidden");
+			}
+		}
+	}
+	else if (isFileExists(path))
+	{
+		remove(path.c_str());
+		data.statusCode = "204";
+	}
+	else
+	{
+		this->data.statusCode = "404";
+		content = loadErrorPages(this->data.statusCode, "Not Found");
+	}
+	return content;
+}
+
 void Response::formatResponse()
 {
     std::string content;
@@ -150,12 +188,15 @@ void Response::formatResponse()
     {
         if (req.getMethod() == "GET")
             content = handleGetRequest(location);
+		else if (req.getMethod() == "DELETE")
+			content = handleDeleteRequest(location);
     }
 	if (!data.isRedirect)
 	{
 		this->data.headers["Content-Length"] = content.size();
 		this->data.body = content;
 	}
+	data.headers["Content-Length"] = to_string(content.size());
     this->buildResponse();
 }
 /*-------------------- Constructors --------------------*/
@@ -231,6 +272,8 @@ void Response::buildResponse()
 		this->response += it->first + ": " + it->second + "\r\n";
 	this->response += "\r\n";
 	this->response += data.body;
+
+	// cerr << RED << response << RESET << endl;
 }
 
 /*-------------------- Getters --------------------*/

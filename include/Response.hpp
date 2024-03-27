@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Response.hpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+        */
+/*   By: ogorfti <ogorfti@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/19 13:50:27 by hoigag            #+#    #+#             */
-/*   Updated: 2024/03/25 19:57:43 by hoigag           ###   ########.fr       */
+/*   Updated: 2024/03/27 21:39:49 by ogorfti          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,6 +17,7 @@
 #include <iostream>
 #include <unistd.h>
 #include <sys/socket.h>
+#include <dirent.h>
 #include <ostream>
 #include "Request.hpp"
 #include "ServerConf.hpp"
@@ -50,10 +51,11 @@ class Response
 		Response(const Response& other);
 		void buildResponse();
 		std::string handleExistingFile(std::string path, Location& location);
-		std::string handleGetRequest(Location& location);
-		void formatResponse();
-		string	urlErrors();
 		string loadErrorPages(string statusCode, string errorMessage);
+		std::string handleGetRequest(Location& location);
+		string handleDeleteRequest(Location& loc);
+		void formatResponse();
+		string urlErrors();
 		
 		Request req;
 		ConfigData conf;
@@ -71,5 +73,3 @@ std::ostream& operator<<(std::ostream& stream, Response& res);
 string defaultError(string errorCode, string errorMessage);
 
 #endif
-
-
