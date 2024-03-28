@@ -6,7 +6,7 @@
 /*   By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/25 13:25:40 by hoigag            #+#    #+#             */
-/*   Updated: 2024/03/27 19:30:46 by hoigag           ###   ########.fr       */
+/*   Updated: 2024/03/28 16:10:44 by hoigag           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -60,7 +60,7 @@ class ServersMonitor
 		~ServersMonitor();
 		void listenForConnections();
 		Response formResponse(Request& req);
-		HttpServer getServer(int port);
+		HttpServer getServer(Request& req);
 		// std::string directoryListing(std::string& path);
 		bool isServerFd(int fd);
 		void handleNewConnection(int fd);

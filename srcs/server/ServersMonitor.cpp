@@ -6,7 +6,7 @@
 /*   By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/25 13:25:34 by hoigag            #+#    #+#             */
-/*   Updated: 2024/03/28 13:50:57 by hoigag           ###   ########.fr       */
+/*   Updated: 2024/03/28 18:28:52 by hoigag           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,7 +21,7 @@ ServersMonitor::ServersMonitor()
     
 }
 
-HttpServer ServersMonitor::getServer(int port)
+HttpServer ServersMonitor::getServer(Request& req)
 {
     int index = 0;
     for (size_t i = 0; i < this->httpServers.size(); i++)
@@ -29,7 +29,7 @@ HttpServer ServersMonitor::getServer(int port)
         std::vector<int> ports = this->httpServers[i].getConfData().ports;
         for (size_t j = 0; j < ports.size(); j++)
         {
-            if (ports[j] == port && this->httpServers[i].getConfData().host == "localhost")
+            if (ports[j] == req.getPort() && this->httpServers[i].getConfData().host == req.getHostName())
                 index = i;
         }
     }
@@ -143,9 +143,13 @@ void ServersMonitor::handleExistingConnection(int fd)
             // std::cout << RED << this->clients[fd].request << RESET <<std::endl;
             Request req(this->clients[fd].request);
             std::cout << req;
-            // std::cout << this->clients[fd].request << std::endl;
-            ConfigData conf = this->getServer(req.getPort()).getConfData();
+            // std::cout << RED << this->clients[fd].request << RESET << std::endl;
+            // std::cout << "body before cgi == " << req.getBody() << std::endl;
+            ConfigData conf = this->getServer(req).getConfData();
             Response res(req, conf);
+            // std::cout << "bod === <" << req.getBody()<<">" << std::endl;
+            // std::cout << "content length === " << req.getContentLength() << std::endl;
+            // std::cout << "body size === " << req.getBody().size() << std::endl;
             std::cout << res;
             //Response response(reaq, std::vector<Socket>& servers)
             this->clientResponses[fd].response = res.getResponseString();

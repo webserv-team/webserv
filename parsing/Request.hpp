@@ -6,7 +6,7 @@
 /*   By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/08 09:36:38 by ogorfti           #+#    #+#             */
-/*   Updated: 2024/03/19 15:53:48 by hoigag           ###   ########.fr       */
+/*   Updated: 2024/03/28 17:07:23 by hoigag           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -69,6 +69,7 @@ class Request
 		vector<s_tuple >& getMultipart();
 		int getPort();
 		std::string getHostName();
+		bool isChunked();
 };
 
 std::ostream& operator<<(std::ostream& stream, Request& req);

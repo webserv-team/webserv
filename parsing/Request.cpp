@@ -6,7 +6,7 @@
 /*   By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/01 16:18:37 by ogorfti           #+#    #+#             */
-/*   Updated: 2024/03/25 18:15:29 by hoigag           ###   ########.fr       */
+/*   Updated: 2024/03/28 18:26:50 by hoigag           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -142,16 +142,24 @@ void Request::chunkedDecode()
 	size_t pos = 0;
 	string tmp;
 	
+	// cerr << "-------------- BODY before -------------" << endl;
+	// cerr << BLUE << body_ << RESET << endl;
 	while ((pos = body_.find("\r\n")) != string::npos)
 	{
 		string size = body_.substr(0, pos);
 		int len = strtol(size.c_str(), NULL, 16);
 		if (len == 0)
 			break;
-		tmp += body_.substr(pos + 2, len) + "\n";
+		tmp += body_.substr(pos + 2, len);
 		body_ = body_.substr(pos + 2 + len + 2);
 	}
+	
+	// cerr << BLUE << "TMP SIZE--> "<< tmp.size() << RESET << endl;
+	// cerr << BLUE << "body_ SIZE--> "<< body_.size() << RESET << endl;
 	body_ = tmp;
+	// cerr << "-------------- body after -------------" << endl;
+	// cerr << BLUE << body_ << RESET << endl;
+	// cerr << "-------------- END -------------" << endl;
 }
 
 Request::Request(std::string request)
@@ -164,6 +172,8 @@ Request::Request(std::string request)
 	parseFirstLine();
 	parseHeaders();
 	parseBody();
+	if (isChunked())
+		chunkedDecode();
 }
 
 /*-------------------- Getters --------------------*/
@@ -185,9 +195,12 @@ const std::string &Request::getProtocol() const
 
 std::string &Request::getBody()
 {
-	if (!body_.empty() && headers_["Transfer-Encoding"] == "chunked")
-		chunkedDecode();
 	return (body_);
+}
+
+bool Request::isChunked()
+{
+	return (headers_["Transfer-Encoding"] == "chunked");
 }
 
 const std::map<std::string, std::string> &Request::getHeaders() const

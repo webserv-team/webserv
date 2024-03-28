@@ -6,7 +6,7 @@
 /*   By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/25 10:51:02 by hoigag            #+#    #+#             */
-/*   Updated: 2024/03/28 15:14:44 by hoigag           ###   ########.fr       */
+/*   Updated: 2024/03/28 18:29:00 by hoigag           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,6 +21,7 @@ Cgi::Cgi()
 
 Cgi::Cgi(Request& req, Location& location)
 {
+    // std::cout << "body ==== " << req.getBody() << std::endl;
     this->req = req;
     this->cgiPath = location.cgiPath;
     std::string path;
@@ -39,14 +40,24 @@ Cgi::Cgi(Request& req, Location& location)
     this->vars["REDIRECT_STATUS"] = "200";
     if (req.getURL().back() == '/')
         path += location.index;
-    std::cout << "path == " << path << std::endl;
+    // std::cout << "path == " << path << std::endl;
     this->vars["SCRIPT_NAME"] = path.substr(path.find_last_of("/"));
-    std::cout << "inside the constructor" << std::endl;
+    // std::cout << "inside the constructor" << std::endl;
     this->vars["SCRIPT_FILENAME"] = location.root + path;
-    if (req.getContentType() != "")
-        this->vars["CONTENT_TYPE"] = req.getContentType();
-    if (req.getContentLength() > 0)
-        this->vars["CONTENT_LENGTH"] = std::to_string(req.getContentLength());  
+    this->vars["CONTENT_TYPE"] = req.getContentType();
+    // std::cout << "is chunked == " << req.isChunked() << std::endl;
+    this->vars["CONTENT_LENGTH"] = std::to_string(req.getContentLength());  
+        // std::cout << "befoer body == " << req.getBody() << std::endl;
+    if (req.isChunked())
+    {
+        // std::cout << "body == " << req.getBody() << std::endl;
+        
+        this->vars["CONTENT_LENGTH"] = std::to_string(req.getBody().size());
+    }
+        
+    std::cout << "content length cgi == " << this->vars["CONTENT_LENGTH"] << std::endl;
+
+    
     this->vars["SERVER_SOFTWARE"] = "webserv/1.0";
 	this->vars["GATEWAY_INTERFACE"] = "CGI/1.1";
     this->vars["SERVER_PORT"] = req.getPort();
@@ -129,7 +140,7 @@ std::string Cgi::executeCgiScript()
         while (ret == 0)
         {
             time_t now = time(0);
-            if (now - start > 10)
+            if (now - start > 15)
             {
                 kill(pid, SIGKILL);
                 break;
