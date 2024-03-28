@@ -15,6 +15,8 @@ content_length = int(os.environ.get("CONTENT_LENGTH", 0))
 # Print HTTP headers
 print("X-Powered-By: Python/3.8.5")
 print("Content-Type: text/html; charset=UTF-8")
+print(f"Content-Length: ")
+print("Connection: close")
 print("cache-control: no-cache")
 print("\n\r\n\r")
 

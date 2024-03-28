@@ -6,7 +6,7 @@
 /*   By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/25 10:11:55 by hoigag            #+#    #+#             */
-/*   Updated: 2024/03/26 16:21:04 by hoigag           ###   ########.fr       */
+/*   Updated: 2024/03/28 22:47:15 by hoigag           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -42,7 +42,7 @@
 #include <sys/wait.h>
 #include "helpers.hpp"
 #include "ServerConf.hpp"
-
+#include "CgiParser.hpp"
 class Request;
 class Cgi
 {
@@ -55,7 +55,7 @@ class Cgi
 		std::string getRequestUri();
 		std::string getRequestMethod();
 		std::map<std::string, std::string> getVars();
-		std::string executeCgiScript();
+		CgiParser executeCgiScript();
 		
 		void setEnv();
 		// Cgi(const Cgi& other);

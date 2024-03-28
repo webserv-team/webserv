@@ -11,6 +11,7 @@
 /* ************************************************************************** */
 
 #include "Response.hpp"
+#include <CgiParser.hpp>
 
 bool isAllowdCgiExtension(std::string path)
 {
@@ -84,15 +85,17 @@ std::string Response::handleExistingFile(std::string path, Location& location)
 				if (!location.cgiPath.empty() && isAllowdCgiExtension(indexFile))
 				{
 					Cgi cgi(this->req, location);
-					content = cgi.executeCgiScript();
-					std::string header;
-					size_t pos = content.find("\r\n\r\n");
-					if (pos != std::string::npos)
+					CgiParser result = cgi.executeCgiScript();
+					if (!result.getContentType().empty())
 					{
-						content = content.substr(pos + 4);
-						header = content.substr(0, pos);
+						this->data.headers["Content-Type"] = result.getContentType();
+						content = result.getBody();
 					}
-					this->data.headers["Content-Type"] = getContentTypeFromCgiOutput(header);
+					else
+					{
+						this->data.statusCode = "500";
+						content = loadErrorPages(this->data.statusCode, "Internal Server Error");
+					}
 				}
 				else
 				{
@@ -124,17 +127,13 @@ std::string Response::handleExistingFile(std::string path, Location& location)
 		{
 			std::cout << "cgi file" << std::endl;
 			Cgi cgi(this->req, location);
-			content = cgi.executeCgiScript();
-			std::string header;
-			size_t pos = content.find("\r\n\r\n");
-			if (pos != std::string::npos)
+			CgiParser result =  cgi.executeCgiScript();
+			if (!result.getContentType().empty())
 			{
-				header = content.substr(0, pos);
-				content = content.substr(pos + 4);
+				this->data.headers["Content-Type"] = result.getContentType();
+				content = result.getBody();
+				std::cout << "content == " << content << std::endl;
 			}
-			std::string contentType = getContentTypeFromCgiOutput(header);
-			if (!contentType.empty())
-				this->data.headers["Content-Type"] = contentType;
 			else
 			{
 				this->data.statusCode = "500";

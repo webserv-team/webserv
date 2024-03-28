@@ -6,12 +6,13 @@
 /*   By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/25 10:51:02 by hoigag            #+#    #+#             */
-/*   Updated: 2024/03/28 18:29:00 by hoigag           ###   ########.fr       */
+/*   Updated: 2024/03/28 22:42:32 by hoigag           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Cgi.hpp"
 #include <signal.h>
+#include "CgiParser.hpp"
 
 Cgi::Cgi()
 {
@@ -84,9 +85,10 @@ void Cgi::setEnv()
 
 
 
-std::string Cgi::executeCgiScript()
+CgiParser Cgi::executeCgiScript()
 {
     std::string output;
+    
     time_t start = time(0);
     const char *command[3];
     std::cout << "cgi path == " << this->cgiPath << std::endl; 
@@ -153,7 +155,7 @@ std::string Cgi::executeCgiScript()
             output = readfromFd(pipes[0]);
         close(pipes[0]);
     }
-    return output;
+    return CgiParser(output);
 }
 
 Cgi::~Cgi()
