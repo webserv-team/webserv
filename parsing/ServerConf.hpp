@@ -3,19 +3,17 @@
 /*                                                        :::      ::::::::   */
 /*   ServerConf.hpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+        */
+/*   By: ogorfti <ogorfti@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/11 18:08:24 by ogorfti           #+#    #+#             */
-/*   Updated: 2024/03/26 16:09:42 by hoigag           ###   ########.fr       */
+/*   Updated: 2024/03/28 23:30:20 by ogorfti          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
+#include "../include/lib.hpp"
+
 #pragma once
 
-#include "../include/lib.hpp"
-using namespace std;
-#include <algorithm>
-#include <ostream>
 class Location
 {
 	public:
@@ -28,11 +26,6 @@ class Location
 		string cgiPath;
 		map <string, string> redirect;
 		vector<string> methods;
-		//copy constructor
-		// Location();
-		// Location(const Location& location);
-		// //copy assignment operator
-		// Location& operator=(const Location& location);
 };
 
 class ConfigData
@@ -46,12 +39,16 @@ class ConfigData
 		string serverName;
 		map <string, string> errorPages;
 		vector<Location> locations;
+		bool hasDefault;
 };
 
 class ServerConf
 {
 	private:
 		vector<ConfigData> servers;
+		ServerConf();
+		ServerConf(const ServerConf& other);
+		ServerConf& operator=(const ServerConf& other);
 	public:
 		ServerConf(const string& configPath);
 		const vector<ConfigData>& getServers() const;
@@ -62,5 +59,11 @@ void	isFilePath(const string& path);
 int		isNumber(const string& str);
 void	checkValues(const string& value, const string& key);
 void	checkBodyLimit(const string& bodyLimit);
-
+void	overideLocations(ConfigData& server, Location& loc);
+void	nessaryFields(Location& loc);
+string	trim(const string& str);
+vector<string> splitLines(const string& buffer);
+vector<string> splitBuffer(const string& buffer);
+vector<string> split(const string& str, const string& delim);
 ostream& operator<<(ostream& os, const Location& location);
+ostream& operator<<(ostream& os, const vector<ConfigData>& servers);

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Request.hpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+        */
+/*   By: ogorfti <ogorfti@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/08 09:36:38 by ogorfti           #+#    #+#             */
-/*   Updated: 2024/03/28 17:07:23 by hoigag           ###   ########.fr       */
+/*   Updated: 2024/03/28 23:40:51 by ogorfti          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,6 +16,7 @@
 #include <iostream>
 #include <vector>
 #include <map>
+#include <ctime>
 #include <ostream>
 #include <tuple>
 
@@ -23,7 +24,6 @@
 #define RED "\033[1;31m"
 #define BLUE "\033[1;34m"
 #define RESET "\033[0m"
-
 using namespace std;
 struct s_tuple
 {

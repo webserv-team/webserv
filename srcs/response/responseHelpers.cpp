@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   responseHelpers.cpp                                :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+        */
+/*   By: ogorfti <ogorfti@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/25 19:18:19 by hoigag            #+#    #+#             */
-/*   Updated: 2024/03/28 14:43:01 by hoigag           ###   ########.fr       */
+/*   Updated: 2024/03/28 23:38:23 by ogorfti          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -110,7 +110,7 @@ bool transferEncodingChunked(Request& req)
 	map<string, string> headers = req.getHeaders();
 	if (headers.find("Transfer-Encoding") != headers.end() && headers["Transfer-Encoding"] != "chunked")
 	{
-		cerr << RED << "Transfer-Encoding: " << headers["Transfer-Encoding"] << RESET << endl;	
+		// cerr << RED << "Transfer-Encoding: " << headers["Transfer-Encoding"] << RESET << endl;	
 		return true;
 	}
 	return false;
@@ -153,7 +153,7 @@ bool	removeDir(const string& path)
 		}
 		else
 		{
-			cerr << RED << "removing file: " << fullpath << RESET << endl;
+			// cerr << RED << "removing file: " << fullpath << RESET << endl;
 			remove(fullpath.c_str());
 		}
 	}
