@@ -165,13 +165,18 @@ std::string Response::handleRequest(Location& location)
     std::string requestedResource = location.root + uri;
 	std::cout << "requestedResource == " << requestedResource << std::endl;
 	if (this->req.getMethod() == "POST" && this->req.getContentType().find("multipart/form-data") != std::string::npos && !isAllowdCgiExtension(requestedResource))
-		safe = uploadFiles(this->req, location);
-	if (!safe)
 	{
-		std::cout << "upload error" << std::endl;
-		this->data.statusCode = "500";
-		content = loadErrorPages(this->data.statusCode, "Internal Server Error");
-	}
+		safe = uploadFiles(this->req, location);
+		if (!safe)
+		{
+			std::cout << "upload error" << std::endl;
+			this->data.statusCode = "500";
+			content = loadErrorPages(this->data.statusCode, "Internal Server Error");
+		}
+		else
+			this->data.statusCode = "201";
+
+	} 
     else if (isFileExists(requestedResource))
         content = this->handleExistingFile(requestedResource, location);
     else

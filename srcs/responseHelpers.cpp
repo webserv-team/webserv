@@ -6,7 +6,7 @@
 /*   By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/25 19:18:19 by hoigag            #+#    #+#             */
-/*   Updated: 2024/03/27 22:17:26 by hoigag           ###   ########.fr       */
+/*   Updated: 2024/03/28 14:43:01 by hoigag           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,6 +16,8 @@ string getStatusReason(string& status)
 {
 	if (status == "200")
 		return "OK";
+	else if (status == "201")
+		return "Created";
 	else if (status == "400")
 		return "Bad Request";
 	else if (status == "403")

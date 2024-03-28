@@ -6,11 +6,13 @@
 /*   By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/25 10:51:02 by hoigag            #+#    #+#             */
-/*   Updated: 2024/03/26 22:49:52 by hoigag           ###   ########.fr       */
+/*   Updated: 2024/03/28 15:14:44 by hoigag           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Cgi.hpp"
+#include <signal.h>
+
 Cgi::Cgi()
 {
     
@@ -73,7 +75,8 @@ void Cgi::setEnv()
 
 std::string Cgi::executeCgiScript()
 {
-    std::string output = "error";
+    std::string output;
+    time_t start = time(0);
     const char *command[3];
     std::cout << "cgi path == " << this->cgiPath << std::endl; 
     command[0] = this->cgiPath.c_str();
@@ -106,11 +109,6 @@ std::string Cgi::executeCgiScript()
             std::cerr << "error while duppingg" << std::endl;
             exit(1);
         }
-        // if (dup2(pipes[1], 2) < 0)
-        // {
-        //     std::cerr << "error while duppingg" << std::endl;
-        //     exit(1);
-        // }
         if (close(pipes[0]) < 0 || close(pipes[1]) < 0)
         {
             std::cerr << "error while closing pipes" << std::endl;
@@ -125,35 +123,24 @@ std::string Cgi::executeCgiScript()
     else
     {
         if (this->vars["REQUEST_METHOD"] == "POST")
-        {
             write(pipes[1], this->req.getBody().c_str(), this->req.getBody().size());
-            std::cout << "finished sending data in chunks" << std::endl;
-            // send data in chunks
-        //     std::cout << "sending data in chunks" << std::endl; 
-        //     int totalDataSent = 0;
-        //     while (1)
-        //     {
-        //         if (totalDataSent >= this->req.getContentLength())
-        //             break;
-        //         std::cout << "before writing to pipe" << std::endl;
-        //         int dataSent = write(pipes[1], this->req.getBody().c_str() + totalDataSent , this->req.getBody().size() - totalDataSent);
-        //         std::cout << "after writing to pipe" << std::endl;
-        //         std::cout << "dataSent == " << dataSent << std::endl;
-        //         if (dataSent < 0)
-        //         {
-        //             std::cerr << "error while writing to pipe" << std::endl;
-        //             exit(1);
-        //         }
-        //         totalDataSent += dataSent;
-        //     }
-        //     std::cout << "finished sending data in chunks" << std::endl;
-        //     // write(pipes[1], this->req.getBody().c_str(), this->req.getContentLength());
-        }
         close(pipes[1]);
-        waitpid(pid, NULL, 0);
-        output = readfromFd(pipes[0]);
+        int ret = 0;
+        while (ret == 0)
+        {
+            time_t now = time(0);
+            if (now - start > 10)
+            {
+                kill(pid, SIGKILL);
+                break;
+            }
+            ret = waitpid(pid, NULL, WNOHANG);
+        }
+        if (ret == 0)
+            output  = "timeout occured while executing the cgi script";
+        else
+            output = readfromFd(pipes[0]);
         close(pipes[0]);
-        // std::cout << "output from cgi script " << output << std::endl;
     }
     return output;
 }

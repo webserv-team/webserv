@@ -6,7 +6,7 @@
 /*   By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/25 13:25:34 by hoigag            #+#    #+#             */
-/*   Updated: 2024/03/27 22:10:26 by hoigag           ###   ########.fr       */
+/*   Updated: 2024/03/28 13:50:57 by hoigag           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -143,7 +143,7 @@ void ServersMonitor::handleExistingConnection(int fd)
             // std::cout << RED << this->clients[fd].request << RESET <<std::endl;
             Request req(this->clients[fd].request);
             std::cout << req;
-            std::cout << this->clients[fd].request << std::endl;
+            // std::cout << this->clients[fd].request << std::endl;
             ConfigData conf = this->getServer(req.getPort()).getConfData();
             Response res(req, conf);
             std::cout << res;

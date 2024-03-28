@@ -26,6 +26,8 @@ print('<link rel="stylesheet" type="text/css" href="../styles/style.css">')
 print("</head>")
 print("<body>")
 
+while True:
+    pass
 # Check if the request method is POST
 form = cgi.FieldStorage() 
 if "REQUEST_METHOD" in os.environ and os.environ["REQUEST_METHOD"] == "POST":
