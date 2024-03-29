@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   helpers.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+        */
+/*   By: ogorfti <ogorfti@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/27 10:37:31 by hoigag            #+#    #+#             */
-/*   Updated: 2024/03/27 14:21:51 by hoigag           ###   ########.fr       */
+/*   Updated: 2024/03/29 20:26:08 by ogorfti          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -86,7 +86,7 @@ std::string loadFile(const std::string& path)
 
 bool isFileExists(const std::string& path)
 {
-    return access(path.c_str(), F_OK) == 0;
+	return access(path.c_str(), F_OK) == 0;
 }
 
 std::string getContentTypeFromCgiOutput(std::string& content)
@@ -175,30 +175,30 @@ std::string directoryListing(std::string& path)
 
 bool uploadFiles(Request& req, Location& location)
 {
-    vector<s_tuple > data = req.getMultipart();
-    std::string body = "";
-    for (size_t i = 0; i < data.size(); i++)
-    {
-        if (data[i].fileName.empty())
-            body += data[i].name + "=" + data[i].value + "&";
-        else
-            {
+	vector<s_tuple > data = req.getMultipart();
+	std::string body = "";
+	for (size_t i = 0; i < data.size(); i++)
+	{
+		if (data[i].fileName.empty())
+			body += data[i].name + "=" + data[i].value + "&";
+		else
+			{
 				std::string uploadDir = location.root + location.uploadPath;
 				if (!isFileExists(uploadDir))
 					return false;
 				std::string uploadPath = uploadDir + "/" + data[i].fileName;
-                std::ofstream outfile(uploadPath);
-                if (!outfile.is_open())
-                    return false;
-                if (data[i].value.empty())
-                    std::cerr << "the file content is empty" << std::endl;
-                else
-                {
-                    outfile.write(data[i].value.data(), data[i].value.size());
-                    outfile.close();
-                }
-            }
-    }
+				std::ofstream outfile(uploadPath);
+				if (!outfile.is_open())
+					return false;
+				if (data[i].value.empty())
+					std::cerr << "the file content is empty" << std::endl;
+				else
+				{
+					outfile.write(data[i].value.data(), data[i].value.size());
+					outfile.close();
+				}
+			}
+	}
 	return true;
 }
 
@@ -210,4 +210,15 @@ std::string sread(int socket)
 		std::runtime_error("recv error : could not read from socket");
 	dataRead[bytesRead] = '\0';
 	return std::string(dataRead, bytesRead);
+}
+
+string itoa(long long n) 
+{
+	string s;
+	while (n) {
+		s += n % 10 + '0';
+		n /= 10;
+	}
+	reverse(s.begin(), s.end());
+	return s;
 }

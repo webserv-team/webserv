@@ -6,7 +6,7 @@
 /*   By: ogorfti <ogorfti@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/24 14:56:22 by hoigag            #+#    #+#             */
-/*   Updated: 2024/03/28 23:43:25 by ogorfti          ###   ########.fr       */
+/*   Updated: 2024/03/29 16:36:10 by ogorfti          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,19 +22,18 @@
 
 int main(int argc, char **argv)
 {
-	string configFile = "config/default.conf";
 
-	// must be inside try catch
-	if (argc > 1)
-		configFile = argv[1];
-	ServerConf conf(configFile);
-	std::vector<ConfigData> serversConf = conf.getServers();
-
-	std::vector<HttpServer> httpServers;
-	for (size_t i = 0; i < serversConf.size(); i++)
-		httpServers.push_back(HttpServer(serversConf[i]));
 	try
 	{
+		string configFile = "config/default.conf";
+		if (argc > 1)
+			configFile = argv[1];
+		ServerConf conf(configFile);
+		std::vector<ConfigData> serversConf = conf.getServers();
+
+		std::vector<HttpServer> httpServers;
+		for (size_t i = 0; i < serversConf.size(); i++)
+			httpServers.push_back(HttpServer(serversConf[i]));
 		signal(SIGPIPE, SIG_IGN);
 		ServersMonitor entry(httpServers);
 		entry.listenForConnections();

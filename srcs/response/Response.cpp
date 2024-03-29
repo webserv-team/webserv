@@ -41,8 +41,8 @@ string	Response::urlErrors()
 		return loadErrorPages("413", "Request Entity Too Large");
 	else if (url.length() > 2048)
 		return loadErrorPages("414", "Request-URI Too Long");
-	// else if (transferEncodingChunked(req))
-	// 	return loadErrorPages(conf, data, "501", "Not Implemented");
+	else if (transferEncodingChunked(req))
+		return loadErrorPages("501", "Not Implemented");
 	else if (loc.redirect.find(url) != loc.redirect.end())
 	{
 		cerr << RED << "redirecting from " << url << " to " << loc.redirect[url] << RESET << endl;
@@ -263,10 +263,10 @@ void Response::formatResponse()
     }
 	if (!data.isRedirect)
 	{
-		this->data.headers["Content-Length"] = to_string(content.size());
+		this->data.headers["Content-Length"] = itoa(content.size());
 		this->data.body = content;
 	}
-	data.headers["Content-Length"] = to_string(content.size());
+	data.headers["Content-Length"] = itoa(content.size());
     this->buildResponse();
 }
 /*-------------------- Constructors --------------------*/
