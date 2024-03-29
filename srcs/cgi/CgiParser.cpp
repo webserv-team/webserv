@@ -6,7 +6,7 @@
 /*   By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/28 21:59:25 by hoigag            #+#    #+#             */
-/*   Updated: 2024/03/28 22:42:46 by hoigag           ###   ########.fr       */
+/*   Updated: 2024/03/29 12:09:35 by hoigag           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -56,9 +56,11 @@ std::string CgiParser::getLocation()
     return this->getValueOf("Location");
 }
 
-std::string CgiParser::getStatus()
+std::string CgiParser::getStatusCode()
 {
-    return this->getValueOf("Status");
+    std::string statusLine = this->getValueOf("Status");
+    std::string statusCode = statusLine.substr(0, statusLine.find(" "));
+    return statusCode;
 }
 
 std::string CgiParser::getBody()

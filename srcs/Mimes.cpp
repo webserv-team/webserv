@@ -6,7 +6,7 @@
 /*   By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/04 12:35:14 by hoigag            #+#    #+#             */
-/*   Updated: 2024/03/25 18:28:00 by hoigag           ###   ########.fr       */
+/*   Updated: 2024/03/29 11:55:07 by hoigag           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -72,6 +72,19 @@ std::string Mimes::getContentType(std::string& path)
         return extension.substr(0, pos);
     return extension;
 }
+
+bool Mimes::isValidContentType(std::string& contentType)
+{
+    std::map<std::string, std::string>::iterator it = this->extensions.begin();
+    while (it != this->extensions.end())
+    {
+        if (it->second == contentType)
+            return true;
+        it++;
+    }
+    return false;
+}
+
 
 bool Mimes::isMime(std::string& ext)
 {

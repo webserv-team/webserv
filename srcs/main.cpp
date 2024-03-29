@@ -6,7 +6,7 @@
 /*   By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/24 14:56:22 by hoigag            #+#    #+#             */
-/*   Updated: 2024/03/27 18:09:29 by hoigag           ###   ########.fr       */
+/*   Updated: 2024/03/29 14:21:29 by hoigag           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,15 +25,15 @@ int main(int argc, char **argv)
         std::cout << "please provide a config file" << std::endl;
         return 1;
     }
-    std::string configFile = argv[1];
-    ServerConf conf(configFile);
-    std::vector<ConfigData> serversConf = conf.getServers();
-
-    std::vector<HttpServer> httpServers;
-    for (size_t i = 0; i < serversConf.size(); i++)
-        httpServers.push_back(HttpServer(serversConf[i]));
     try
     {
+        std::string configFile = argv[1];
+        ServerConf conf(configFile);
+        std::vector<ConfigData> serversConf = conf.getServers();
+
+        std::vector<HttpServer> httpServers;
+        for (size_t i = 0; i < serversConf.size(); i++)
+            httpServers.push_back(HttpServer(serversConf[i]));
         signal(SIGPIPE, SIG_IGN);
         ServersMonitor entry(httpServers);
         entry.listenForConnections();

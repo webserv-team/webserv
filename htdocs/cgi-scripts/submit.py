@@ -13,20 +13,17 @@ warnings.filterwarnings("ignore", category=DeprecationWarning, module="cgi")
 content_length = int(os.environ.get("CONTENT_LENGTH", 0))
 
 # Print HTTP headers
-print("X-Powered-By: Python/3.8.5")
-print("Content-Type: text/html; charset=UTF-8")
-print(f"Content-Length: ")
-print("Connection: close")
-print("cache-control: no-cache")
-print("\n\r\n\r")
-
+content = """
+<!DOCTYPE html>
+<html>
+<head>
+<title>Login Page</title>
+<link rel="stylesheet" type="text/css" href="../styles/style.css">
+</head>
+<body>
+""";
 # Print the HTML page
-print("<html>")
-print("<head>")
-print("<title>Login Page</title>")
-print('<link rel="stylesheet" type="text/css" href="../styles/style.css">')
-print("</head>")
-print("<body>")
+
 
 # while True:
 #     pass
@@ -41,28 +38,36 @@ if "REQUEST_METHOD" in os.environ and os.environ["REQUEST_METHOD"] == "POST":
         password = form.getvalue("password")
 
         # Display a welcome message
-        print('<div class="welcome-container">')
-        print(f"<h2>Welcome, {username}!</h2>")
-        print(f"<p>Your password is {password}.</p>")
-        print('</div>')
+        content += '<div class="welcome-container">'
+        content += f"<h2>Welcome, {username}!</h2>"
+        content += f"<p>Your password is {password}.</p>"
+        content += '</div>'
     else:
         # Display an error message
-        print('<div class="error-container">')
-        print("<p>Error: Username or password not provided.</p>")
-        print('</div>')
+        content += '<div class="error-container">'
+        content += "<p>Error: Username or password not provided.</p>"
+        content += '</div>'
 else:
-    print('<div class="login-form-container">')
-    print("<h2>This is a get request</h2>")
+    # Display an error message
+    content += "<div class=\"login-form-container\">"
+    content += "<h2>This is a get request</h2>"
     if "username" in form and "password" in form:
         username = form.getvalue("username")
         password = form.getvalue("password")
-        print(f"<p>username : {username} </p>")
-        print(f"<p>password : {password} </p>")
+        content += f"<p>username : {username} </p>"
+        content += f"<p>password : {password} </p>"
     # Display the login form
-    print('<a href="form.html">LOGIN</a>')
-    print('</div>')
+    content += '<a href="form.html">LOGIN</a>'
+    content += "</div>"
 
-print("</body>")
-print("</html>")
+content += "</body>"
+content += "</html>"
+# Print the HTML content
 
+headers = f"""
+Content-Type: text/html\r\n
+Content-Length: {len(content)}\r\n
+Status: 200 OK"""
 
+print(headers, end="\r\n\r\n")
+print(content)

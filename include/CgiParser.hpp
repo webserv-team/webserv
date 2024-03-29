@@ -6,7 +6,7 @@
 /*   By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/28 21:59:20 by hoigag            #+#    #+#             */
-/*   Updated: 2024/03/28 22:35:23 by hoigag           ###   ########.fr       */
+/*   Updated: 2024/03/29 12:08:06 by hoigag           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,7 +29,7 @@ class CgiParser
 		std::string getContentLength();
 		std::string getLocation();
 		std::string getBody();
-		std::string getStatus();
+		std::string getStatusCode();
 	private:
 		std::string body;
 		std::string header;

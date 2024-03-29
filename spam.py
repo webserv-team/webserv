@@ -1,24 +1,33 @@
 import requests
 
 # # The URL of your server
-url = 'http://localhost:3035/images/hassan.jpg'
+url = 'http://localhost:3035/images/salim.jpg'
 
 # The number of requests to send
-num_requests = 1000
+def spam(num_requests=100):
+    for i in range(num_requests):
+        try:
+            response = requests.get(url)
+            # print(f'Request {i+1} response: {response.status_code}')
+        except requests.exceptions.RequestException as e:
+            print(f'Request {i+1} failed: {e}')
 
-for i in range(num_requests):
-    try:
-        response = requests.get(url)
-        # print(f'Request {i+1} response: {response.status_code}')
-    except requests.exceptions.RequestException as e:
-        print(f'Request {i+1} failed: {e}')
+#run the funciton in three different processes
 
-# import requests
+if __name__ == '__main__':
+    import multiprocessing
 
-# url = 'http://localhost:8080'
-# data = {'key1': 'value1', 'key2': 'value2'}
+    # Create three processes that run the spam function
+    p1 = multiprocessing.Process(target=spam)
+    p2 = multiprocessing.Process(target=spam)
+    p3 = multiprocessing.Process(target=spam)
 
-# response = requests.post(url, data=data)
+    # Start the processes
+    p1.start()
+    p2.start()
+    p3.start()
 
-# print(response.status_code)
-# print(response.text)
+    # Wait for the processes to finish
+    p1.join()
+    p2.join()
+    p3.join()

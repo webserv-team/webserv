@@ -6,7 +6,7 @@
 #    By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2023/10/27 11:05:58 by ogorfti           #+#    #+#              #
-#    Updated: 2024/03/28 15:19:38 by hoigag           ###   ########.fr        #
+#    Updated: 2024/03/29 13:26:58 by hoigag           ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -14,7 +14,7 @@ CXX = c++
 
 CXXFLAGS = -Wall -Wextra -Werror   -I./include -I./parsing -std=c++98 -fsanitize=address -g
 
-SRCS = $(wildcard srcs/cgi/*.cpp) $(wildcard srcs/server/*.cpp) $(wildcard srcs/response/*.cpp) $(wildcard srcs/*.cpp) $(wildcard parsing/*.cpp)
+SRCS = $(wildcard srcs/cgi/*.cpp) $(wildcard srcs/server/*.cpp) $(wildcard srcs/response/*.cpp) $(wildcard srcs/*.cpp) $(wildcard srcs/parsing/*.cpp)
 
 HEADERS = $(wildcard include/*.hpp) $(wildcard parsing/*.hpp)
 

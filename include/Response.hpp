@@ -6,7 +6,7 @@
 /*   By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/19 13:50:27 by hoigag            #+#    #+#             */
-/*   Updated: 2024/03/27 22:19:50 by hoigag           ###   ########.fr       */
+/*   Updated: 2024/03/29 11:58:03 by hoigag           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -54,6 +54,7 @@ class Response
 		std::string handleRequest(Location& location);
 		string loadErrorPages(string statusCode, string errorMessage);
 		string handleDeleteRequest(Location& loc);
+		string runCgi(Location& location);
 		void formatResponse();
 		string urlErrors();
 		

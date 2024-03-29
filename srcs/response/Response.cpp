@@ -62,6 +62,46 @@ Response::Response()
 	this->data.statusCode = "200";
 }
 
+std::string Response::runCgi(Location& location)
+{
+	std::string content;
+	std::cout << "cgi file" << std::endl;
+	Cgi cgi(this->req, location);
+	CgiParser result =  cgi.executeCgiScript();
+	std::string contentType = result.getContentType();
+	std::string contentLength = result.getContentLength();
+	std::string statusCode = result.getStatusCode();
+
+	int code = atoi(statusCode.c_str());
+
+		std::cout << "cgi content type == " << contentType << std::endl;
+		std::cout << "content === " << result.getBody() << std::endl;
+	if (!contentType.empty() && this->mimes.isValidContentType(contentType))
+	{
+		this->data.headers["Content-Type"] = contentType;
+		content = result.getBody();
+		if (!contentLength.empty())
+			this->data.headers["Content-Length"] = contentLength;
+		else
+			this->data.headers["Content-Length"] = to_string(content.size());
+		if (code < 100 || code >= 600)
+			this->data.statusCode = "200";
+		else
+			this->data.statusCode = statusCode;
+		if (!result.getLocation().empty())
+		{
+			this->data.headers["Location"] = result.getLocation();
+			this->data.statusCode = "302";
+		}
+	}
+	else
+	{	
+		this->data.statusCode = "500";
+		content = loadErrorPages(this->data.statusCode, "Internal Server Error");
+	}
+	return content;
+}
+
 std::string Response::handleExistingFile(std::string path, Location& location)
 {
     
@@ -78,25 +118,12 @@ std::string Response::handleExistingFile(std::string path, Location& location)
         }
         std::string indexFile = path + "/" + location.index;	
         if (!location.index.empty())
-        {
+        {	
             std::cout << "serving the index file" << std::endl;
 			if (isFileExists(indexFile))
 			{
 				if (!location.cgiPath.empty() && isAllowdCgiExtension(indexFile))
-				{
-					Cgi cgi(this->req, location);
-					CgiParser result = cgi.executeCgiScript();
-					if (!result.getContentType().empty())
-					{
-						this->data.headers["Content-Type"] = result.getContentType();
-						content = result.getBody();
-					}
-					else
-					{
-						this->data.statusCode = "500";
-						content = loadErrorPages(this->data.statusCode, "Internal Server Error");
-					}
-				}
+					content = runCgi(location);
 				else
 				{
 					content = loadFile(indexFile);
@@ -106,7 +133,7 @@ std::string Response::handleExistingFile(std::string path, Location& location)
 			else
 			{
 				this->data.statusCode = "404";
-			   content = loadErrorPages(this->data.statusCode, "Not Found");
+				content = loadErrorPages(this->data.statusCode, "Not Found");
 			}
         }
         else if (location.autoindex == "on")
@@ -124,22 +151,7 @@ std::string Response::handleExistingFile(std::string path, Location& location)
     {
 		std::cout << "a file not a directory" << std::endl;
 		if (!location.cgiPath.empty() && isAllowdCgiExtension(path))
-		{
-			std::cout << "cgi file" << std::endl;
-			Cgi cgi(this->req, location);
-			CgiParser result =  cgi.executeCgiScript();
-			if (!result.getContentType().empty())
-			{
-				this->data.headers["Content-Type"] = result.getContentType();
-				content = result.getBody();
-				std::cout << "content == " << content << std::endl;
-			}
-			else
-			{
-				this->data.statusCode = "500";
-				content = loadErrorPages(this->data.statusCode, "Internal Server Error");
-			}
-		}
+			content = runCgi(location);
 		else
 		{
 			content = loadFile(path);

@@ -6,7 +6,7 @@
 /*   By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/04 12:19:12 by hoigag            #+#    #+#             */
-/*   Updated: 2024/03/27 21:56:26 by hoigag           ###   ########.fr       */
+/*   Updated: 2024/03/29 14:15:18 by hoigag           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -72,10 +72,7 @@ int Socket::acceptNewConnetction(int serverFd)
     socklen_t addr_len = sizeof(addr);
     int connFd = accept(serverFd,  (struct sockaddr *)&addr, (socklen_t *) &addr_len);
     if (connFd < 0)
-    {
-        std::cout << "could not accept the connection" << std::endl;
-        exit(1);
-    }
+        std::runtime_error("could not accept the connection");
     setSocketToNonBlocking(connFd);
     return connFd;
 }

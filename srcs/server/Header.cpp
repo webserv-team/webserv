@@ -6,7 +6,7 @@
 /*   By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/07 10:15:09 by hoigag            #+#    #+#             */
-/*   Updated: 2024/03/07 10:20:31 by hoigag           ###   ########.fr       */
+/*   Updated: 2024/03/29 14:17:44 by hoigag           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,7 +14,8 @@
 
 Header::Header()
 {
-    this->req = "";    
+    this->req = "";
+      
 };
 Header::Header(std::string& req)
 {

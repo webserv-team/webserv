@@ -6,7 +6,7 @@
 /*   By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/25 13:25:34 by hoigag            #+#    #+#             */
-/*   Updated: 2024/03/28 18:28:52 by hoigag           ###   ########.fr       */
+/*   Updated: 2024/03/29 16:00:25 by hoigag           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -83,82 +83,55 @@ void ServersMonitor::handleExistingConnection(int fd)
     std::string dataRead = sread(fd);
     this->clients[fd].request.append(dataRead);
     size_t carr_pos = dataRead.find("\r\n\r\n");
-    // std::cout << "<<data read == " << dataRead << ">>" <<std::endl;
-    // std::cout << "<< size of data read == " << dataRead.length() << ">>" <<std::endl;
 
-        if (!this->clients[fd].isHeaderFinished && carr_pos != std::string::npos)
+    if (!this->clients[fd].isHeaderFinished && carr_pos != std::string::npos)
+    {
+        this->clients[fd].isHeaderFinished = true; 
+        std::string header = this->clients[fd].request.substr(0, carr_pos);
+        this->clients[fd].headerObject = Header(header);
+        std::string content = this->clients[fd].request.substr(carr_pos + 4);
+        this->clients[fd].bytesRead = content.length();
+    }   
+    if (this->clients[fd].isHeaderFinished)
+    {
+        if (this->clients[fd].headerObject.getMethod() == "GET" || this->clients[fd].headerObject.getMethod() == "DELETE")
+            this->clients[fd].isRequestFinished = true;
+        
+        else if (this->clients[fd].headerObject.getMethod() == "POST")
         {
-            // std::cout << GREEN << "header finished" << RESET <<  std::endl;
-            this->clients[fd].isHeaderFinished = true; 
-            std::string header = this->clients[fd].request.substr(0, carr_pos);
-            this->clients[fd].headerObject = Header(header);
-            std::string content = this->clients[fd].request.substr(carr_pos + 4);
-            this->clients[fd].bytesRead = content.length();
-        }   
-        if (this->clients[fd].isHeaderFinished)
-        {
-            if (this->clients[fd].headerObject.getMethod() == "GET" || this->clients[fd].headerObject.getMethod() == "DELETE")
-                this->clients[fd].isRequestFinished = true;
-            
-            else if (this->clients[fd].headerObject.getMethod() == "POST")
+            if (this->clients[fd].headerObject.isChunked())
             {
-                // std::cout << RED << "before content length == " << this->clients[fd].headerObject.getContentLength() << " |||||    bytesread == " << this->clients[fd].bytesRead << RESET << std::endl; 
-                if (this->clients[fd].headerObject.isChunked())
-                {
-                    if (dataRead.find("0\r\n\r\n") != std::string::npos)
-                    {
-                        // std::cout << "request chunked finished" << std::endl;
-                        this->clients[fd].isRequestFinished = true;
-                    }
-                }
-                else
-                {
-                    if (this->clients[fd].isBody)
-                        this->clients[fd].bytesRead += dataRead.length();
-                    else
-                        this->clients[fd].isBody = true;
-                    if (this->clients[fd].bytesRead >= this->clients[fd].headerObject.getContentLength())
-                    {
-                        // std::cout << GREEN <<"request finished" << RESET << std::endl;    
-                        this->clients[fd].isRequestFinished = true;
-                    }
-                    // std::cout << "IS REQUEST FINISHED: " << this->clients[fd].isRequestFinished << std::endl;
-                    std::cout << RED << "content length == " << this->clients[fd].headerObject.getContentLength() << " |||||    bytesread == " << this->clients[fd].bytesRead << RESET << std::endl;        
-                }
+                if (dataRead.find("0\r\n\r\n") != std::string::npos)
+                    this->clients[fd].isRequestFinished = true;
             }
-                
+            else
+            {
+                if (this->clients[fd].isBody)
+                    this->clients[fd].bytesRead += dataRead.length();
+                else
+                    this->clients[fd].isBody = true;
+                if (this->clients[fd].bytesRead >= this->clients[fd].headerObject.getContentLength())
+                    this->clients[fd].isRequestFinished = true;
+                std::cout << RED << "content length == " << this->clients[fd].headerObject.getContentLength() << " |||||    bytesread == " << this->clients[fd].bytesRead << RESET << std::endl;        
+            }
         }
-        // std::cout << "header == " << this->clients[fd].headerObject.getContentLength() << std::endl;
-        // std::cout << "content length == " << this->clients[fd].bytesRead << std::endl;
-        // exit(125);
-        // else
-        //     this->clients[fd].header.append(dataRead);
-        if (this->clients[fd].isRequestFinished)
-        {
-            // std::cout << "request " << this->clients[fd].headerObject.getMethod() << " finished" << std::endl;
-            // std::cout<< this->clients[fd].request;
-            FD_CLR(fd, &read_sockets);
-            // this->clients.erase(fd);
-            FD_SET(fd, &write_sockets);
-            // std::cout << RED << this->clients[fd].request << RESET <<std::endl;
-            Request req(this->clients[fd].request);
-            std::cout << req;
-            // std::cout << RED << this->clients[fd].request << RESET << std::endl;
-            // std::cout << "body before cgi == " << req.getBody() << std::endl;
-            ConfigData conf = this->getServer(req).getConfData();
-            Response res(req, conf);
-            // std::cout << "bod === <" << req.getBody()<<">" << std::endl;
-            // std::cout << "content length === " << req.getContentLength() << std::endl;
-            // std::cout << "body size === " << req.getBody().size() << std::endl;
-            std::cout << res;
-            //Response response(reaq, std::vector<Socket>& servers)
-            this->clientResponses[fd].response = res.getResponseString();
-            this->clientResponses[fd].responseSize = this->clientResponses[fd].response.length();
-            this->clientResponses[fd].totalDataSent = 0;
-            this->clientResponses[fd].isResponseFinished = false;
-        }
-            // std::cout << GREEN << "request finished" << RESET << std::endl;
+            
     }
+    if (this->clients[fd].isRequestFinished)
+    {
+        FD_CLR(fd, &read_sockets);
+        FD_SET(fd, &write_sockets);
+        Request req(this->clients[fd].request);
+        std::cout << req;
+        ConfigData conf = this->getServer(req).getConfData();
+        Response res(req, conf);
+        std::cout << res;
+        this->clientResponses[fd].response = res.getResponseString();
+        this->clientResponses[fd].responseSize = this->clientResponses[fd].response.length();
+        this->clientResponses[fd].totalDataSent = 0;
+        this->clientResponses[fd].isResponseFinished = false;
+    }
+}
 
 int sendChunk(int sock, ClientResponse& cr)
 {
@@ -179,27 +152,35 @@ void ServersMonitor::listenForConnections()
 {
     try
     {
-        struct timeval timeout;
-        timeout.tv_sec = 20;
-        timeout.tv_usec = 0;
-        while (true)
-        {
+        // struct timeval timeout;
+        // timeout.tv_sec = 20;
+        // timeout.tv_usec = 0;
+    while (true)
+    {
+        std::cout << "number of clients ====== " << this->clients.size() << std::endl;
         this->read_copy_sockets = this->read_sockets;
         this->write_copy_sockets = this->write_sockets;
-        int res = select(this->maxFd + 1, &this->read_copy_sockets, &this->write_copy_sockets, NULL, &timeout);
+        int res = select(this->maxFd + 1, &this->read_copy_sockets, &this->write_copy_sockets, NULL, NULL);
         if (res < 0)
         {
             std::cerr << "error occured on select" << std::endl;
             exit(1);
         }
-        else if (res == 0)
-            std::runtime_error("timeout occured");
         for (int i = 0; i <= this->maxFd; i++)
         {
             if (FD_ISSET(i, &this->read_copy_sockets))
             {
                 if (this->isServerFd(i))
-                    this->handleNewConnection(i);
+                {
+                    try
+                    {
+                        this->handleNewConnection(i);
+                    }
+                    catch(const std::exception& e)
+                    {
+                        std::cerr << e.what() << '\n';
+                    }            
+                }
                 else
                 {
                     try
@@ -209,9 +190,9 @@ void ServersMonitor::listenForConnections()
                     catch(const std::exception& e)
                     {
                         std::cerr << e.what() << '\n';
+                        close(i);
+                        this->clients.erase(i);
                     }
-                    
-                    // this->handleExistingConnection(i);
                 }
             }
             if (FD_ISSET(i, &this->write_copy_sockets))
@@ -225,8 +206,6 @@ void ServersMonitor::listenForConnections()
                 if (this->clientResponses[i].isResponseFinished)
                 {
                     FD_CLR(i, &this->write_sockets);
-                    // this->clientResponses.erase(i);
-                    // this->clients.erase(i);
                     close(i);
                 }
             }
@@ -241,7 +220,12 @@ void ServersMonitor::listenForConnections()
 
 ServersMonitor::~ServersMonitor()
 {
-
+    for (size_t i = 0; i < this->httpServers.size(); i++)
+    {
+        std::vector<Socket> sockets = this->httpServers[i].getSockets();
+        for (size_t j = 0; j < sockets.size(); j++)
+            close(sockets[j].getFd());
+    }
 }
 
 
