@@ -6,7 +6,7 @@
 /*   By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/25 10:51:02 by hoigag            #+#    #+#             */
-/*   Updated: 2024/03/28 22:42:32 by hoigag           ###   ########.fr       */
+/*   Updated: 2024/03/29 21:51:02 by hoigag           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -47,13 +47,13 @@ Cgi::Cgi(Request& req, Location& location)
     this->vars["SCRIPT_FILENAME"] = location.root + path;
     this->vars["CONTENT_TYPE"] = req.getContentType();
     // std::cout << "is chunked == " << req.isChunked() << std::endl;
-    this->vars["CONTENT_LENGTH"] = std::to_string(req.getContentLength());  
+    this->vars["CONTENT_LENGTH"] = itoa(req.getContentLength());  
         // std::cout << "befoer body == " << req.getBody() << std::endl;
     if (req.isChunked())
     {
         // std::cout << "body == " << req.getBody() << std::endl;
         
-        this->vars["CONTENT_LENGTH"] = std::to_string(req.getBody().size());
+        this->vars["CONTENT_LENGTH"] = itoa(req.getBody().size());
     }
         
     std::cout << "content length cgi == " << this->vars["CONTENT_LENGTH"] << std::endl;

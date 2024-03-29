@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ServerConf.cpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+        */
+/*   By: ogorfti <ogorfti@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/11 19:01:46 by ogorfti           #+#    #+#             */
-/*   Updated: 2024/03/26 16:09:32 by hoigag           ###   ########.fr       */
+/*   Updated: 2024/03/28 23:29:01 by ogorfti          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,49 +34,6 @@ string readFile(const string& configPath)
 	return buffer.str();
 }
 
-vector<string> splitLines(const string& buffer)
-{
-	vector<string> lines;
-	size_t begin = 0;
-	size_t end = 0;
-
-	do
-	{
-		end = buffer.find('\n', begin);
-		lines.push_back(buffer.substr(begin, end - begin));
-		begin = end + 1;
-	} while (end != string::npos);
-	return lines;
-}
-
-string trim(const string& str)
-{
-	string chars;
-	
-	chars = " \t\n";
-	string trimmed = str;
-	trimmed.erase(0, trimmed.find_first_not_of(chars));
-	trimmed.erase(trimmed.find_last_not_of(chars) + 1);
-	return trimmed;
-}
-
-vector <string> split(const string& str, const string& delim)
-{
-	vector <string> tokens;
-	size_t prev = 0, pos = 0;
-
-	do 
-	{
-		pos = str.find(delim, prev);
-		string token = str.substr(prev, pos - prev);
-
-		// if (!token.empty() && trim(token).size() > 0)
-			tokens.push_back(token);
-		prev = pos + delim.length();
-	} while (pos != string::npos);
-	return tokens;
-}
-
 vector<string> parseMethod(const string& methods)
 {
 	vector<string> tokens = split(methods, ",");
@@ -92,23 +49,6 @@ vector<string> parseMethod(const string& methods)
 	return result;
 }
 
-void	overideLocations(ConfigData& server, Location& loc)
-{
-	// need to verify if overide is needed in some values
-	// if (loc.path.empty())
-	// 	loc.path = "/";
-	// if (loc.root.empty())
-	// 	loc.root = server.root;
-	// if (loc.index.empty())
-	// 	loc.index = "index.html";
-	if (loc.autoindex.empty())
-		loc.autoindex = "off";
-	if (loc.bodyLimit.empty())
-		loc.bodyLimit = server.bodyLimit;
-	if (loc.uploadPath.empty())
-		loc.uploadPath = server.uploadPath;
-}
-
 Location parseLocation(const string& location, ConfigData& server)
 {
 	vector<string> tokens = split(location, "\n");
@@ -121,7 +61,8 @@ Location parseLocation(const string& location, ConfigData& server)
 		{
 			string key = trim(tokens[i].substr(0, equalPos));
 			string value = trim(tokens[i].substr(equalPos + 1));
-			if (key == "path" || key == "root" || key == "index" || key == "uploadPath")
+			if (key == "path" || key == "root" || key == "index"
+				|| key == "uploadPath" || key == "cgiPath")
 				isFilePath(value);
 			if (key == "path")
 				loc.path = value;
@@ -165,6 +106,7 @@ Location parseLocation(const string& location, ConfigData& server)
 		}
 	}
 	overideLocations(server, loc);
+	nessaryFields(loc);
 	return loc;
 }
 
@@ -172,11 +114,16 @@ void	serverLocations(ConfigData& server, const string& locations)
 {
 	vector<string> tokens = split(locations.substr(18), "[server.location]");
 
+	server.hasDefault = false;
 	for (size_t i = 0; i < tokens.size(); i++)
 	{
 		Location loc = parseLocation(tokens[i], server);
+		if (loc.path == "/")
+			server.hasDefault = true;
 		server.locations.push_back(loc);
 	}
+	if (!server.hasDefault)
+		throw runtime_error("Error: Missing default location");
 }
 
 void	serverErrors(ConfigData& server, const string& errors)
@@ -192,7 +139,6 @@ void	serverErrors(ConfigData& server, const string& errors)
 		key = trim(key);
 		value = trim(value);
 
-		// cerr << RED << key << " - " << value << RESET << endl;
 		isFilePath(value);
 		checkStatusCode(key);
 		server.errorPages[key] = value;
@@ -206,7 +152,8 @@ void	serverPorts(ConfigData& server, const string& ports)
 	for (size_t i = 0; i < tmp.size(); i++)
 	{
 		long port = atol(tmp[i].c_str());
-		if (!isNumber(trim(tmp[i])) || tmp[i].empty() || port < 0 || port > 65535)
+		if (!isNumber(trim(tmp[i])) || tmp[i].empty() || port < 0 || port > 65535
+			|| find(server.ports.begin(), server.ports.end(), port) != server.ports.end())
 			throw runtime_error("Error: Invalid port number");
 		server.ports.push_back(atoi(tmp[i].c_str()));
 	}
@@ -214,7 +161,6 @@ void	serverPorts(ConfigData& server, const string& ports)
 
 void	serverParams(ConfigData& server, const vector<string>& settings)
 {
-	// settingsError(settings);
 	size_t equalPos = 0;
 	for (size_t i = 0; i < settings.size(); i++)
 	{
@@ -249,28 +195,8 @@ void	serverParams(ConfigData& server, const vector<string>& settings)
 				throw runtime_error("Error: Invalid server settings key");
 		}
 		else
-		{
-			// cerr<<  << settings[i] << endl;
 			throw runtime_error("Error: Invalid server settings configuration");
-		}
 	}
-}
-
-vector<string> splitBuffer(const string& buffer)
-{
-	string token;
-	vector<string> servers;
-	size_t start = 0;
-	size_t end = 0;
-
-	while ((end = buffer.find("[server]", start + 1)) != string::npos)
-	{
-		token = buffer.substr(start, end - start);
-		servers.push_back(token);
-		start = end;
-	}
-	servers.push_back(buffer.substr(start));
-	return servers;
 }
 
 ServerConf::ServerConf(const string& configPath)
@@ -288,7 +214,6 @@ ServerConf::ServerConf(const string& configPath)
 			string locations = vecBuffer[i].substr(settings.size());
 			
 			settings = trim(settings);
-			// cerr << "<-- settings -->\n" << settings << endl;
 			serverParams(server, splitLines(settings));
 			serverLocations(server, locations);
 			servers.push_back(server);
@@ -300,6 +225,8 @@ ServerConf::ServerConf(const string& configPath)
 	}
 }
 
+/*-------------------- Testing --------------------*/
+
 ostream& operator<<(ostream& os, const Location& location)
 {
 	os << "path: " << location.path << endl;
@@ -309,46 +236,43 @@ ostream& operator<<(ostream& os, const Location& location)
 	os << "bodyLimit: " << location.bodyLimit << endl;
 	os << "uploadPath: " << location.uploadPath << endl;
 	os << "cgiPath: " << location.cgiPath << endl;
+	os << "redirect: " << endl;
+	for (map<string, string>::const_iterator it = location.redirect.begin(); it != location.redirect.end(); it++)
+		os << it->first << "-   -" << it->second << endl;
 	os << "methods: ";
 	for (size_t i = 0; i < location.methods.size(); i++)
 		os << location.methods[i] << " ";
-	os << endl;
-	os << "redirect: ";
-	for (map<string, string>::const_iterator it = location.redirect.begin(); it != location.redirect.end(); it++)
-		os << it->first << " - " << it->second << endl;
 	return os;
 }
 
-//default constructor
-// Location::Location()
-// {
+ostream& operator<<(ostream& os, const vector<ConfigData>& servers)
+{
+	for (size_t i = 0; i < servers.size(); i++)
+	{
+		os << "----------- Ports ------------\n";
+		for (size_t j = 0; j < servers[i].ports.size(); j++)
+		{
+			os << servers[i].ports[j] << endl;
+		}
+		os << "--------- Settings -----------\n";
+		os << "host: " << servers[i].host << endl;
+		os << "root: " << servers[i].root << endl;
+		os << "bodyLimit: " << servers[i].bodyLimit << endl;
+		os << "serverName: " << servers[i].serverName << endl;
+		os << "uploadPath: " << servers[i].uploadPath << endl;
+		os << "errorPages: " << endl;
+		for (map<string, string>::const_iterator it = servers[i].errorPages.begin(); it != servers[i].errorPages.end(); it++)
+			os << it->first << "-   -" << it->second << endl;
+		os << "\n--------- Locations -----------" << servers[i].locations.size() << "\n";
+		for (size_t j = 0; j < servers[i].locations.size(); j++)
+		{
+			os << servers[i].locations[j] << endl;
+			os << "----------------------\n";
+		}
+	}
+	return os;
+}
 
-// }
-
-// //copy constructor
-// Location::Location(const Location& location)
-// {
-// 	*this = location;
-// }
-
-// //copy assignment operator
-// Location& Location::operator=(const Location& location)
-// {
-// 	if (this == &location)
-// 		return *this;
-// 	this->path = location.path;
-// 	this->root = location.root;
-// 	this->index = location.index;
-// 	this->autoindex = location.autoindex;
-// 	this->bodyLimit = location.bodyLimit;
-// 	this->uploadPath = location.uploadPath;
-// 	this->cgiPath = location.cgiPath;
-// 	this->redirect = location.redirect;
-// 	this->methods = location.methods;
-// 	return *this;
-// }
-
-// c++ -std=c++98 -Wall -Wextra -Werror -fsanitize=address -g  ServerConf.cpp ErrUtils.cpp&& ./a.out
 // int main()
 // {
 // 	try
@@ -356,46 +280,7 @@ ostream& operator<<(ostream& os, const Location& location)
 // 		ServerConf test("../default.conf");
 		
 // 		vector<ConfigData> servers = test.getServers();
-
-// 		cerr << "Servers: " << servers.size() << endl;
-// 		for (size_t i = 0; i < servers.size(); i++)
-// 		{
-// 			cerr << "----------- Ports ------------\n";
-// 			for (size_t j = 0; j < servers[i].ports.size(); j++)
-// 			{
-// 				cerr << servers[i].ports[j] << endl;
-// 			}
-// 			cerr << "--------- Settings -----------\n";
-// 			cerr << "host: " << servers[i].host << endl;
-// 			cerr << "root: " << servers[i].root << endl;
-// 			cerr << "bodyLimit: " << servers[i].bodyLimit << endl;
-// 			cerr << "serverName: " << servers[i].serverName << endl;
-// 			cerr << "uploadPath: " << servers[i].uploadPath << endl;
-// 			cerr << "errorPages: " << endl;
-// 			for (map<string, string>::iterator it = servers[i].errorPages.begin(); it != servers[i].errorPages.end(); it++)
-// 				cerr << it->first << "-   -" << it->second << endl;
-// 			cerr << "--------- Locations -----------" << servers[i].locations.size() << "\n";
-// 			for (size_t j = 0; j < servers[i].locations.size(); j++)
-// 			{
-// 				cerr << "path: " << servers[i].locations[j].path << endl;
-// 				cerr << "root: " << servers[i].locations[j].root << endl;
-// 				cerr << "index: " << servers[i].locations[j].index << endl;
-// 				cerr << "autoindex: " << servers[i].locations[j].autoindex << endl;
-// 				cerr << "cgiPath: " << servers[i].locations[j].cgiPath << endl;
-// 				cerr << "uploadPath: " << servers[i].locations[j].uploadPath << endl;
-// 				cerr << "bodyLimit: " << servers[i].locations[j].bodyLimit << endl;
-// 				cerr << "methods: ";
-// 				for (size_t k = 0; k < servers[i].locations[j].methods.size(); k++)
-// 					cerr << servers[i].locations[j].methods[k] << "- -";
-// 				cerr << endl;
-// 				cerr << "redirect: ";
-// 				for (map<string, string>::iterator it = servers[i].locations[j].redirect.begin(); it != servers[i].locations[j].redirect.end(); it++)
-// 					cerr << it->first << "-   -" << it->second << endl;
-// 				cerr << "\n----------------------\n";
-// 			}
-// 			server name, alias, upload path every location, cgi on/off
-// 			if u didnt find cgiPath in location send error 403 forbidden to client
-// 		}		
+// 		cout << servers;
 // 	}
 // 	catch (exception& e)
 // 	{

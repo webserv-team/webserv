@@ -6,7 +6,7 @@
 /*   By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/01 16:18:37 by ogorfti           #+#    #+#             */
-/*   Updated: 2024/03/28 18:26:50 by hoigag           ###   ########.fr       */
+/*   Updated: 2024/03/29 22:10:19 by hoigag           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -96,7 +96,6 @@ void Request::parseBody()
 
 void Request::parseMultipart()
 {
-	// cerr << "body size: " << body_.size() << endl;
 	size_t Bpos = headers_["Content-Type"].find("boundary=");
 	string boundary = headers_["Content-Type"].substr(Bpos + 9);
 	
@@ -110,11 +109,8 @@ void Request::parseMultipart()
 			parts.push_back(part);
 		pos = end + boundary.length() + 4; // 4 for "\r\n--"
 	}
-	// cerr << "size: " << parts.size() << endl;
 	for (size_t i = 0; i < parts.size(); i++)
 	{
-		// cerr << "<--------------------------->" << endl;
-		// cerr << parts[i] << endl;
 		s_tuple tmp;
 		
 		size_t pos1 = parts[i].find("name=\"");
@@ -132,7 +128,6 @@ void Request::parseMultipart()
 		size_t pos5 = parts[i].find("\r\n\r\n");
 		if (pos5 != string::npos)
 			tmp.value = parts[i].substr(pos5 + 4);
-		// cerr << "value size: " << tmp.value.size() << endl;
 		this->multipart_.push_back(tmp);
 	}
 }
@@ -141,9 +136,7 @@ void Request::chunkedDecode()
 {
 	size_t pos = 0;
 	string tmp;
-	
-	// cerr << "-------------- BODY before -------------" << endl;
-	// cerr << BLUE << body_ << RESET << endl;
+
 	while ((pos = body_.find("\r\n")) != string::npos)
 	{
 		string size = body_.substr(0, pos);
@@ -153,13 +146,8 @@ void Request::chunkedDecode()
 		tmp += body_.substr(pos + 2, len);
 		body_ = body_.substr(pos + 2 + len + 2);
 	}
-	
-	// cerr << BLUE << "TMP SIZE--> "<< tmp.size() << RESET << endl;
-	// cerr << BLUE << "body_ SIZE--> "<< body_.size() << RESET << endl;
+
 	body_ = tmp;
-	// cerr << "-------------- body after -------------" << endl;
-	// cerr << BLUE << body_ << RESET << endl;
-	// cerr << "-------------- END -------------" << endl;
 }
 
 Request::Request(std::string request)
@@ -200,7 +188,11 @@ std::string &Request::getBody()
 
 bool Request::isChunked()
 {
-	return (headers_["Transfer-Encoding"] == "chunked");
+	map <string, string>::iterator it = headers_.find("Transfer-Encoding");
+	
+	if (it != headers_.end() && it->second == "chunked")
+		return (true);
+	return (false);
 }
 
 const std::map<std::string, std::string> &Request::getHeaders() const
@@ -260,7 +252,6 @@ void Request::setBody(std::string body)
 	this->body_ = body;
 }
 
-#include <ctime>
 std::ostream &operator<<(std::ostream &stream, Request &req)
 {	
 	std::time_t currentTime;
@@ -314,38 +305,3 @@ void printMultiForm(vector<s_tuple> &multipart)
 		cerr << "value: " << multipart[i].value << endl;
 	}
 }
-
-/*-------------------- Main --------------------*/
-
-// c++ -std=c++98 -Wall -Wextra -Werror Request.cpp && ./a.out
-// int main()
-// {
-// 	std::string httpRequest =
-// 	"POST /test HTTP/1.1\r\n"
-// 	"Host: example.com\r\n"
-// 	"Content-Type: multipart/form-data; boundary=boundary\r\n"
-// 	"Content-Length: 312\r\n"
-// 	"\r\n"
-// 	"--boundary\r\n"
-// 	"Content-Disposition: form-data; name=\"field1\"\r\n"
-// 	"\r\n"
-// 	"value1\r\n"
-// 	"--boundary\r\n"
-// 	"Content-Disposition: form-data; name=\"field2\"\r\n"
-// 	"\r\n"
-// 	"value2\r\n"
-// 	"--boundary\r\n"
-// 	"Content-Disposition: form-data; name=\"file\"; filename=\"example.txt\"\r\n"
-// 	"Content-Type: text/plain\r\n"
-// 	"\r\n"
-// 	"Hello, this is the content of the file.\r\n"
-// 	"--boundary--\r\n";
-// 	Request parser(httpRequest);
-
-// 	vector<s_tuple> data = parser.getMultipart();
-// 	printMultiForm(data);
-// cout << parser << endl;
-
-// 	return 0;
-// }
-

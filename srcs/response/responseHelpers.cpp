@@ -6,7 +6,7 @@
 /*   By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/25 19:18:19 by hoigag            #+#    #+#             */
-/*   Updated: 2024/03/28 14:43:01 by hoigag           ###   ########.fr       */
+/*   Updated: 2024/03/29 22:12:58 by hoigag           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -108,14 +108,11 @@ bool verifyPostReq(Request& req)
 bool transferEncodingChunked(Request& req)
 {
 	map<string, string> headers = req.getHeaders();
+
 	if (headers.find("Transfer-Encoding") != headers.end() && headers["Transfer-Encoding"] != "chunked")
-	{
-		cerr << RED << "Transfer-Encoding: " << headers["Transfer-Encoding"] << RESET << endl;	
 		return true;
-	}
 	return false;
 }
-
 
 Location getMatchingLocation(const string& url, ConfigData& conf)
 {
@@ -153,7 +150,7 @@ bool	removeDir(const string& path)
 		}
 		else
 		{
-			cerr << RED << "removing file: " << fullpath << RESET << endl;
+			// cerr << RED << "removing file: " << fullpath << RESET << endl;
 			remove(fullpath.c_str());
 		}
 	}

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   helpers.hpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+        */
+/*   By: ogorfti <ogorfti@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/27 10:37:00 by hoigag            #+#    #+#             */
-/*   Updated: 2024/03/27 13:05:24 by hoigag           ###   ########.fr       */
+/*   Updated: 2024/03/29 20:26:54 by ogorfti          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -43,6 +43,7 @@ std::string directoryListing(std::string& path);
 bool uploadFiles(Request& req, Location& location);
 std::string sread(int socket);
 bool isFileExists(const std::string& path);
+string itoa(long long n);
 // int sendChunk(int sock, ClientResponse& cr);
 
 #endif
