@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   helpers.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ogorfti <ogorfti@student.42.fr>            +#+  +:+       +#+        */
+/*   By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/27 10:37:31 by hoigag            #+#    #+#             */
-/*   Updated: 2024/03/29 20:26:08 by ogorfti          ###   ########.fr       */
+/*   Updated: 2024/03/29 23:52:00 by hoigag           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -74,10 +74,7 @@ std::string loadFile(const std::string& path)
 	std::ifstream inFile;
 	inFile.open(path.c_str());
 	if (!inFile.is_open())
-	{
 		throw std::runtime_error("could not open file load file function");
-		
-	}
 	std::ostringstream buffer;
 	buffer << inFile.rdbuf();
 	inFile.close();
@@ -143,7 +140,7 @@ std::string directoryListing(std::string& path)
 	struct dirent *stdir;
 	DIR *dir = opendir(path.c_str());
 	if (!dir)
-		return  ("<p>could not open the directory " + path + " </p>");
+		throw std::runtime_error("could not open directory");
 	
 	content += "<li><strong>Directory: " + path + "</strong></li><br>";
 
@@ -184,8 +181,15 @@ bool uploadFiles(Request& req, Location& location)
 		else
 			{
 				std::string uploadDir = location.root + location.uploadPath;
+				std::cout << "uploadDir == " << uploadDir << std::endl;
 				if (!isFileExists(uploadDir))
-					return false;
+				{
+					if (mkdir(uploadDir.c_str(), 0777) < 0)
+					{
+						std::cerr << "could not create directory " << uploadDir << std::endl;
+						return false;
+					}
+				}
 				std::string uploadPath = uploadDir + "/" + data[i].fileName;
 				std::ofstream outfile(uploadPath);
 				if (!outfile.is_open())

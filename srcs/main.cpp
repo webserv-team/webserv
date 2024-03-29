@@ -6,7 +6,7 @@
 /*   By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/24 14:56:22 by hoigag            #+#    #+#             */
-/*   Updated: 2024/03/29 21:50:49 by hoigag           ###   ########.fr       */
+/*   Updated: 2024/03/29 22:29:18 by hoigag           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,7 +30,6 @@ int main(int argc, char **argv)
 			configFile = argv[1];
 		ServerConf conf(configFile);
 		std::vector<ConfigData> serversConf = conf.getServers();
-
 		std::vector<HttpServer> httpServers;
 		for (size_t i = 0; i < serversConf.size(); i++)
 			httpServers.push_back(HttpServer(serversConf[i]));

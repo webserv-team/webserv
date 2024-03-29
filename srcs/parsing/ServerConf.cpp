@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ServerConf.cpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ogorfti <ogorfti@student.42.fr>            +#+  +:+       +#+        */
+/*   By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/11 19:01:46 by ogorfti           #+#    #+#             */
-/*   Updated: 2024/03/28 23:29:01 by ogorfti          ###   ########.fr       */
+/*   Updated: 2024/03/29 22:26:48 by hoigag           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -201,27 +201,20 @@ void	serverParams(ConfigData& server, const vector<string>& settings)
 
 ServerConf::ServerConf(const string& configPath)
 {
-	try
-	{
-		string buffer = readFile(configPath);
-		vector<string> vecBuffer = splitBuffer(trim(buffer));
+	string buffer = readFile(configPath);
+	vector<string> vecBuffer = splitBuffer(trim(buffer));
 
-		for (size_t i = 0; i < vecBuffer.size(); i++)
-		{
-			ConfigData server;
-
-			string settings = vecBuffer[i].substr(0, vecBuffer[i].find("[server.location]"));
-			string locations = vecBuffer[i].substr(settings.size());
-			
-			settings = trim(settings);
-			serverParams(server, splitLines(settings));
-			serverLocations(server, locations);
-			servers.push_back(server);
-		}
-	}
-	catch (exception& e)
+	for (size_t i = 0; i < vecBuffer.size(); i++)
 	{
-		cerr << e.what() << endl;
+		ConfigData server;
+
+		string settings = vecBuffer[i].substr(0, vecBuffer[i].find("[server.location]"));
+		string locations = vecBuffer[i].substr(settings.size());
+		
+		settings = trim(settings);
+		serverParams(server, splitLines(settings));
+		serverLocations(server, locations);
+		servers.push_back(server);
 	}
 }
 

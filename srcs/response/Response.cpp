@@ -139,7 +139,15 @@ std::string Response::handleExistingFile(std::string path, Location& location)
         else if (location.autoindex == "on")
         {
             std::cout << "directory listing" << std::endl;
-            content = directoryListing(path);
+			try
+			{
+            	content = directoryListing(path);
+			}
+			catch(const std::exception& e)
+			{
+				this->data.statusCode = "403";
+				content = loadErrorPages(this->data.statusCode, "Forbidden");
+			}
         }
         else
         {
@@ -154,8 +162,16 @@ std::string Response::handleExistingFile(std::string path, Location& location)
 			content = runCgi(location);
 		else
 		{
-			content = loadFile(path);
-			this->data.headers["Content-Type"] = this->mimes.getContentType(path);
+			try
+			{
+				content = loadFile(path);
+				this->data.headers["Content-Type"] = this->mimes.getContentType(path);
+			}
+			catch(const std::exception& e)
+			{
+				this->data.statusCode = "403";
+				content = loadErrorPages(this->data.statusCode, "Forbidden");
+			}
 		}
     }
     return content;
@@ -185,7 +201,10 @@ std::string Response::handleRequest(Location& location)
 			content = loadErrorPages(this->data.statusCode, "Internal Server Error");
 		}
 		else
+		{
 			this->data.statusCode = "201";
+			content = loadErrorPages(this->data.statusCode, "file uploaded");
+		}
 
 	} 
     else if (isFileExists(requestedResource))

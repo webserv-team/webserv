@@ -6,7 +6,7 @@
 /*   By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/04 12:35:14 by hoigag            #+#    #+#             */
-/*   Updated: 2024/03/29 11:55:07 by hoigag           ###   ########.fr       */
+/*   Updated: 2024/03/29 22:42:00 by hoigag           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,7 +14,7 @@
 
 Mimes::Mimes()
 {
-    this->filename = "mimes.txt";
+    this->filename = "config/mimes.type";
     this->loadFile();
 }
 
