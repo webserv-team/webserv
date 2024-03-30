@@ -132,6 +132,7 @@ std::string Response::handleExistingFile(std::string path, Location& location)
 					content = runCgi(location);
 				else
 				{
+					
 					content = loadFile(indexFile);
 					this->data.headers["Content-Type"] = this->mimes.getContentType(indexFile);
 				}
@@ -183,7 +184,6 @@ std::string Response::handleExistingFile(std::string path, Location& location)
 
 std::string Response::handleRequest(Location& location)
 {
-    std::string uri = this->req.getURL();
     std::string content;
 	bool safe = true;
 	string requestedResource = getFullPath();
@@ -206,8 +206,9 @@ std::string Response::handleRequest(Location& location)
         content = this->handleExistingFile(requestedResource, location);
     else
     {
+
         this->data.statusCode = "404";
-        content = loadFile(conf.errorPages[this->data.statusCode]);
+        content = loadErrorPages(this->data.statusCode, "Not Found");
 		this->data.headers["Content-Type"] = this->mimes.getContentType(requestedResource);
     }
     return content;
@@ -324,7 +325,17 @@ string Response::loadErrorPages(string statusCode, string errorMessage)
 
 	data.statusCode = statusCode;
 	if (it != conf.errorPages.end())
-		content = loadFile(it->second);
+	{
+		if (isFileExists(it->second))
+		{
+			if (access(it->second.c_str(), R_OK) == -1)
+				content = defaultError("403", "Forbidden");
+			else
+				content = loadFile(it->second);
+		}
+		else
+			content = defaultError(statusCode, errorMessage);
+	}
 	else
 		content = defaultError(statusCode, errorMessage);
 	return content;
@@ -344,6 +355,8 @@ void Response::buildResponse()
 
 std::string Response::getResponseString()
 {
+	if (this->response.empty())
+		return loadErrorPages("500", "Internal Server Error");
 	return this->response;
 }
 
