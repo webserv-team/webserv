@@ -185,17 +185,7 @@ std::string Response::handleRequest(Location& location)
 {
     std::string uri = this->req.getURL();
     std::string content;
-    size_t pos = uri.find("?");
-    std::string queryString;
 	bool safe = true;
-    if (pos != std::string::npos)
-    {
-        queryString = uri.substr(pos + 1);
-        uri = uri.substr(0, pos);
-    }
-	// query string !!!
-    // std::string requestedResource = location.root + uri;
-	// cerr << GREEN << "requestedResource == " << requestedResource << RESET << endl;
 	string requestedResource = getFullPath();
 	if (this->req.getMethod() == "POST" && this->req.getContentType().find("multipart/form-data") != std::string::npos && !isAllowdCgiExtension(requestedResource))
 	{
@@ -275,13 +265,7 @@ void Response::formatResponse()
 {
     std::string content;
     std::string url = req.getURL();
-    // std::string resourceFullPath = conf.root;
 	this->resourceFullPath = getFullPath();
-	// cerr << GREEN << "resourceFullPath == " << getFullPath() << RESET << endl;
-
-    size_t pos = url.find("?");
-    if (pos != std::string::npos)
-        url = url.substr(0, pos);
     Location location = getMatchingLocation(url, conf);
 	content = urlErrors();
 	if (content.empty() && data.isRedirect == false)

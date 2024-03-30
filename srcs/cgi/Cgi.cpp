@@ -6,7 +6,7 @@
 /*   By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/25 10:51:02 by hoigag            #+#    #+#             */
-/*   Updated: 2024/03/30 17:38:22 by hoigag           ###   ########.fr       */
+/*   Updated: 2024/03/30 22:05:28 by hoigag           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -46,7 +46,6 @@ Cgi::Cgi(Request& req, Location& location)
         this->vars["CONTENT_LENGTH"] = itoa(req.getBody().size());
     this->vars["SERVER_SOFTWARE"] = "webserv/1.0";
 	this->vars["GATEWAY_INTERFACE"] = "CGI/1.1";
-    this->vars["SERVER_PORT"] = req.getPort();
     this->setEnv();
 }
 
@@ -152,22 +151,7 @@ Cgi::~Cgi()
     }
     delete[] this->env;
 }
-std::string Cgi::getServerPort()
-{
-    return this->SERVER_PORT;
-}
-std::string Cgi::getQueryString()
-{
-    return this->QUERY_STRING;
-}
-std::string Cgi::getRequestUri()
-{
-    return this->REQUEST_URI;
-}
-std::string Cgi::getRequestMethod()
-{
-    return this->REQUEST_METHOD;
-}
+
 
 std::map<std::string, std::string> Cgi::getVars()
 {

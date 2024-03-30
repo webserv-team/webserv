@@ -6,7 +6,7 @@
 /*   By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/04 12:14:45 by hoigag            #+#    #+#             */
-/*   Updated: 2024/03/30 17:24:09 by hoigag           ###   ########.fr       */
+/*   Updated: 2024/03/30 21:59:20 by hoigag           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,10 +29,13 @@ class Socket
 		Socket();
 		Socket(short port, std::string& hostname);
 		int getFd();
+		void setPort(short port);
+		short getPort();
 		static int acceptNewConnetction(int serverFd);
 		~Socket();
 	private:
 		int fd;
+		short port;
 };
 
 #endif

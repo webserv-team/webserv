@@ -6,7 +6,7 @@
 /*   By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/25 10:11:55 by hoigag            #+#    #+#             */
-/*   Updated: 2024/03/30 17:39:10 by hoigag           ###   ########.fr       */
+/*   Updated: 2024/03/30 22:05:00 by hoigag           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -43,10 +43,6 @@ class Cgi
 		Request req;
 		std::string cgiPath;
 		std::map<std::string, std::string> vars;
-		std::string SERVER_PORT;
-		std::string QUERY_STRING;
-		std::string REQUEST_URI;
-		std::string REQUEST_METHOD;
 		char **env;
 };
 

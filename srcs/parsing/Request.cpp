@@ -6,7 +6,7 @@
 /*   By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/01 16:18:37 by ogorfti           #+#    #+#             */
-/*   Updated: 2024/03/29 22:10:19 by hoigag           ###   ########.fr       */
+/*   Updated: 2024/03/30 20:30:54 by hoigag           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -225,7 +225,7 @@ std::string Request::getHostName()
 	size_t pos = host.find(":");
 	if (pos != std::string::npos)
 		return host.substr(0, pos);
-	return "localhost";
+	return host;
 }
 
 vector<s_tuple> &Request::getMultipart()
@@ -259,7 +259,11 @@ std::ostream &operator<<(std::ostream &stream, Request &req)
 	char buffer[80];
 	std::strftime(buffer, sizeof(buffer), "%Y-%m-%d %H:%M:%S", std::localtime(&currentTime));
 
-	stream << BLUE << "[REQUEST " << buffer << "] " << RESET << GREEN << req.getHostName() << ":" << req.getPort() << " " << req.getMethod() << " " << req.getURL() << RESET << std::endl;	
+	stream << BLUE << "[REQUEST " << buffer << "] " << RESET << GREEN;
+	if (req.getHostName().find(":") != std::string::npos)
+		stream << req.getHostName() << ":" << req.getPort() << " " << req.getMethod() << " " << req.getURL() << RESET << std::endl;	
+	else
+		stream << req.getHostName() << " " << req.getMethod() << " " << req.getURL() << RESET << std::endl;
 	// Convert the time to a string representation
 	// stream << "----------------------- Request start --------------------------------------" << std::endl;
 	// stream << "method        : " << req.getMethod() << std::endl;

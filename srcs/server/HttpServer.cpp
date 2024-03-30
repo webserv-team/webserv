@@ -6,7 +6,7 @@
 /*   By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/27 17:54:34 by hoigag            #+#    #+#             */
-/*   Updated: 2024/03/27 22:01:18 by hoigag           ###   ########.fr       */
+/*   Updated: 2024/03/30 22:00:16 by hoigag           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,9 +26,11 @@ void HttpServer::start(fd_set& read_sockets, int& maxFd)
 {
     std::cout << PURPLE << "server " << this->conf.serverName << ": "<< this->conf.host << " listening on ports: ";
     std::vector<int> ports = this->conf.ports;
+    
     for (size_t i = 0; i < ports.size(); i++)
     {
         Socket socket(ports[i], this->conf.host);
+        socket.setPort(ports[i]);
         int portFd = socket.getFd();
         std::cout << ports[i] << " ";
         if (portFd > maxFd)

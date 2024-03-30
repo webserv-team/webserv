@@ -6,7 +6,7 @@
 /*   By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/04 12:19:12 by hoigag            #+#    #+#             */
-/*   Updated: 2024/03/30 17:30:47 by hoigag           ###   ########.fr       */
+/*   Updated: 2024/03/30 22:00:02 by hoigag           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,6 +28,15 @@ unsigned int convertIpToInt(std::string ip)
         ip = ip.substr(pos + 1);
     }
     return result;
+}
+short Socket::getPort()
+{
+    return this->port;
+}
+
+void Socket::setPort(short port)
+{
+    this->port = port;
 }
 
 Socket::Socket()

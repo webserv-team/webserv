@@ -6,7 +6,7 @@
 /*   By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/25 13:25:40 by hoigag            #+#    #+#             */
-/*   Updated: 2024/03/30 17:36:25 by hoigag           ###   ########.fr       */
+/*   Updated: 2024/03/30 21:23:30 by hoigag           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -43,6 +43,7 @@ struct Client
 	int contentlength;
 	bool isBody;
 	int isHeaderFinished;
+	short port;
 	Header headerObject;
 };
 
@@ -62,7 +63,7 @@ class ServersMonitor
 		~ServersMonitor();
 		void listenForConnections();
 		Response formResponse(Request& req);
-		HttpServer getServer(Request& req);
+		HttpServer getServer(Request& req, short port);
 		// std::string directoryListing(std::string& path);
 		bool isServerFd(int fd);
 		void handleNewConnection(int fd);

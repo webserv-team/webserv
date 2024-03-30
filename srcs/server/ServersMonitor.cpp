@@ -6,7 +6,7 @@
 /*   By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/25 13:25:34 by hoigag            #+#    #+#             */
-/*   Updated: 2024/03/30 18:32:44 by hoigag           ###   ########.fr       */
+/*   Updated: 2024/03/30 21:56:06 by hoigag           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,18 +17,28 @@ ServersMonitor::ServersMonitor()
     
 }
 
-HttpServer ServersMonitor::getServer(Request& req)
+
+
+HttpServer ServersMonitor::getServer(Request& req, short port)
 {
-    int index = 0;
+    int index = -1;
     for (size_t i = 0; i < this->httpServers.size(); i++)
     {
-        std::vector<int> ports = this->httpServers[i].getConfData().ports;
-        for (size_t j = 0; j < ports.size(); j++)
+        if (this->httpServers[i].getConfData().host == req.getHostName() || this->httpServers[i].getConfData().serverName == req.getHostName())
         {
-            if (ports[j] == req.getPort() && this->httpServers[i].getConfData().host == req.getHostName())
-                index = i;
+            std::vector<int> ports = this->httpServers[i].getConfData().ports;
+            for (size_t j = 0; j < ports.size(); j++)
+            {
+                if (ports[j] == port)
+                {
+                    index = i;
+                    break;
+                }
+            }
         }
     }
+    if (index == -1)
+        throw std::runtime_error("server not found");
     return this->httpServers[index];
 }
 
@@ -73,6 +83,18 @@ void ServersMonitor::handleNewConnection(int serverFd)
     if (connFd > this->maxFd)
         this->maxFd = connFd;
     Client newClient;
+    for (size_t i = 0; i < this->httpServers.size(); i++)
+    {
+        std::vector<Socket> sockets = this->httpServers[i].getSockets();
+        for (size_t j = 0; j < sockets.size(); j++)
+        {
+            if (sockets[j].getFd() == serverFd)
+            {
+                newClient.port = sockets[j].getPort();
+                break;
+            }
+        }
+    }
     initClientStruct(newClient);
     this->clients[connFd] = newClient;
 }
@@ -114,6 +136,8 @@ void ServersMonitor::handleExistingConnection(int fd)
                 // std::cout << RED << "content length == " << this->clients[fd].headerObject.getContentLength() << " |||||    bytesread == " << this->clients[fd].bytesRead << RESET << std::endl;        
             }
         }
+        else
+            this->clients[fd].isRequestFinished = true;
             
     }
     if (this->clients[fd].isRequestFinished)
@@ -121,15 +145,23 @@ void ServersMonitor::handleExistingConnection(int fd)
         FD_CLR(fd, &read_sockets);
         FD_SET(fd, &write_sockets);
         Request req(this->clients[fd].request);
-        initClientStruct(this->clients[fd]);
         std::cout << req;
-        ConfigData conf = this->getServer(req).getConfData();
-        Response res(req, conf);
-        std::cout << res;
-        this->clientResponses[fd].response = res.getResponseString();
-        this->clientResponses[fd].responseSize = this->clientResponses[fd].response.length();
-        this->clientResponses[fd].totalDataSent = 0;
-        this->clientResponses[fd].isResponseFinished = false;
+        try
+        {
+            ConfigData conf = this->getServer(req, this->clients[fd].port).getConfData();
+            initClientStruct(this->clients[fd]);
+            Response res(req, conf);
+            std::cout << res;
+            this->clientResponses[fd].response = res.getResponseString();
+            this->clientResponses[fd].responseSize = this->clientResponses[fd].response.length();
+            this->clientResponses[fd].totalDataSent = 0;
+            this->clientResponses[fd].isResponseFinished = false;
+        }
+        catch(const std::exception& e)
+        {
+            std::cerr << e.what() << '\n';
+        }
+        
     }
 }
 
