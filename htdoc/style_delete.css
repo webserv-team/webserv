@@ -42,3 +42,12 @@ body{
     height: 100vh;
     margin: 0;
 }
+
+#urlToDelete{
+    width: 50%;
+    padding: 12px 20px;
+    margin: 8px 0;
+    box-sizing: border-box;
+    border: 2px solid #ff7b00;
+    border-radius: 4px;
+}

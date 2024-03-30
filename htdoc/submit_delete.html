@@ -5,7 +5,8 @@
     <link rel="stylesheet" type="text/css" href="style_delete.css">
     <script>
         function sendDeleteRequest() {
-            fetch(window.location.href, {
+            var urlToDelete = document.getElementById('urlToDelete').value;
+            fetch(urlToDelete, {
                 method: 'DELETE',
             })
             .then(response => response.text())
@@ -18,6 +19,7 @@
 </head>
 <body>
     <h1>Delete Request</h1>
+    <input type="text" id="urlToDelete" placeholder="Enter URL to delete">
     <button onclick="sendDeleteRequest()">Send</button>
 </body>
 </html>
