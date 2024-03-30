@@ -6,7 +6,7 @@
 /*   By: ogorfti <ogorfti@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/12 14:00:49 by ogorfti           #+#    #+#             */
-/*   Updated: 2024/03/28 23:29:21 by ogorfti          ###   ########.fr       */
+/*   Updated: 2024/03/30 17:27:59 by ogorfti          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -101,8 +101,6 @@ vector<string> splitBuffer(const string& buffer)
 
 void	overideLocations(ConfigData& server, Location& loc)
 {
-	if (loc.root.empty())
-		loc.root = server.root;
 	if (loc.bodyLimit.empty())
 		loc.bodyLimit = server.bodyLimit;
 	if (loc.uploadPath.empty())
@@ -117,6 +115,10 @@ void nessaryFields(Location& loc)
 		throw runtime_error("Error: Missing path in location");
 	else if (loc.methods.empty())
 		throw runtime_error("Error: Missing methods in location");
+	else if (loc.root.empty() && loc.alias.empty())
+		throw runtime_error("Error: Missing root or alias in location");
+	else if (!loc.root.empty() && !loc.alias.empty())
+		throw runtime_error("Error: Both root and alias are specified in location");
 }
 
 vector<string> splitLines(const string& buffer)

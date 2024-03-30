@@ -6,7 +6,7 @@
 /*   By: ogorfti <ogorfti@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/11 18:08:24 by ogorfti           #+#    #+#             */
-/*   Updated: 2024/03/28 23:30:20 by ogorfti          ###   ########.fr       */
+/*   Updated: 2024/03/30 17:28:36 by ogorfti          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,6 +26,7 @@ class Location
 		string cgiPath;
 		map <string, string> redirect;
 		vector<string> methods;
+		string alias;
 };
 
 class ConfigData

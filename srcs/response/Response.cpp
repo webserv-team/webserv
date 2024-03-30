@@ -12,6 +12,29 @@
 
 #include "Response.hpp"
 
+string Response::getFullPath()
+{
+	string path;
+	string url = req.getURL();
+	Location loc = getMatchingLocation(url, conf);
+	
+	if (loc.alias.empty())
+	{
+		if (loc.root.empty())
+			path = conf.root + url;
+		else
+			path = loc.root + url;
+	}
+	else
+	{
+		string alias = loc.alias;
+		path = alias + url.substr(loc.path.size());
+		if (path.back() != '/')
+			path += "/";
+	}
+	return path;
+}
+
 string	Response::urlErrors()
 {
 	Location loc = getMatchingLocation(req.getURL(), conf);
@@ -170,7 +193,10 @@ std::string Response::handleRequest(Location& location)
         queryString = uri.substr(pos + 1);
         uri = uri.substr(0, pos);
     }
-    std::string requestedResource = location.root + uri;
+	// query string !!!
+    // std::string requestedResource = location.root + uri;
+	// cerr << GREEN << "requestedResource == " << requestedResource << RESET << endl;
+	string requestedResource = getFullPath();
 	if (this->req.getMethod() == "POST" && this->req.getContentType().find("multipart/form-data") != std::string::npos && !isAllowdCgiExtension(requestedResource))
 	{
 		safe = uploadFiles(this->req, location);
@@ -210,23 +236,20 @@ Response::Response(Request &req, ConfigData &conf)
     this->formatResponse();
 }
 
-string Response::handleDeleteRequest(Location& loc)
+string Response::handleDeleteRequest()
 {
-	(void)loc;
 	string content;
-	string uri = req.getURL();
-	string path = conf.root + uri;
 
-	if (isDirectory(path))
+	if (isDirectory(resourceFullPath))
 	{
-		if (path.back() != '/')
+		if (resourceFullPath.back() != '/')
 		{
 			data.statusCode = "409";
 			content = loadErrorPages(data.statusCode, "Conflict");
 		}
 		else
 		{
-			if (removeDir(path))
+			if (removeDir(resourceFullPath))
 				data.statusCode = "204";
 			else
 			{
@@ -235,9 +258,9 @@ string Response::handleDeleteRequest(Location& loc)
 			}
 		}
 	}
-	else if (isFileExists(path))
+	else if (isFileExists(resourceFullPath))
 	{
-		remove(path.c_str());
+		remove(resourceFullPath.c_str());
 		data.statusCode = "204";
 	}
 	else
@@ -252,7 +275,10 @@ void Response::formatResponse()
 {
     std::string content;
     std::string url = req.getURL();
-    std::string resourceFullPath = conf.root;
+    // std::string resourceFullPath = conf.root;
+	this->resourceFullPath = getFullPath();
+	// cerr << GREEN << "resourceFullPath == " << getFullPath() << RESET << endl;
+
     size_t pos = url.find("?");
     if (pos != std::string::npos)
         url = url.substr(0, pos);
@@ -263,7 +289,7 @@ void Response::formatResponse()
         if (req.getMethod() == "GET" || req.getMethod() == "POST")
         	content = handleRequest(location);
 		else if (req.getMethod() == "DELETE")
-			content = handleDeleteRequest(location);
+			content = handleDeleteRequest();
     }
 	if (!data.isRedirect)
 	{
