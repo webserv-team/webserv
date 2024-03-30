@@ -1,0 +1,41 @@
+body {
+    background: linear-gradient(to bottom, #000000, #ff8c00);
+    color: orange;
+    font-family: Arial, sans-serif;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+}
+
+h1 {
+    width: 100%;
+    text-align: center;
+    text-shadow: 0 0 10px orange;
+}
+form {
+    width: 300px;
+    padding: 20px;
+    border: 1px solid rgb(0, 0, 0);
+    box-shadow: 0px 0px 60px rgba(0, 0, 0, 0.5);
+}
+
+label, input {
+    display: block;
+    margin-bottom: 10px;
+}
+
+input[type="submit"] {
+    background-color: orange;
+    color: black;
+    border: none;
+    padding: 10px 20px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+input[type="submit"]:hover {
+    background-color: #ff8c00;
+}
