@@ -6,20 +6,19 @@
 /*   By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/27 10:37:31 by hoigag            #+#    #+#             */
-/*   Updated: 2024/03/29 23:52:00 by hoigag           ###   ########.fr       */
+/*   Updated: 2024/03/30 17:34:05 by hoigag           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "helpers.hpp"
-
 
 void setSocketToBeReusable(int sock)
 {
 	int opt = 1;
 	if (setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) == -1)
 	{
-		std::cerr << "Setsockopt error: " << sock << std::endl;
-		exit (1);
+		std::string err = "Setsockopt error: " + itoa(sock);
+		throw std::runtime_error(err);
 	}
 }
 
@@ -28,8 +27,8 @@ void setSocketToNonBlocking(int socket)
 	int status = fcntl(socket, F_SETFL, O_NONBLOCK, FD_CLOEXEC);
 	if (status < 0)
 	{
-		std::cout << "could not set socket " << socket << "to non blocking" << std::endl;
-		exit(1);
+		std::string err = "could not set socket " + itoa(socket) + " to non blocking";
+		throw std::runtime_error(err);
 	}
 }
 
@@ -181,7 +180,6 @@ bool uploadFiles(Request& req, Location& location)
 		else
 			{
 				std::string uploadDir = location.root + location.uploadPath;
-				std::cout << "uploadDir == " << uploadDir << std::endl;
 				if (!isFileExists(uploadDir))
 				{
 					if (mkdir(uploadDir.c_str(), 0777) < 0)
@@ -219,10 +217,20 @@ std::string sread(int socket)
 string itoa(long long n) 
 {
 	string s;
+	if (n == 0)
+		return "0";
 	while (n) {
 		s += n % 10 + '0';
 		n /= 10;
 	}
 	reverse(s.begin(), s.end());
 	return s;
+}
+
+bool isAllowdCgiExtension(std::string path)
+{
+	std::string extension = path.substr(path.find_last_of(".") + 1);
+	if (extension == "py")
+		return true;
+	return false;
 }

@@ -6,7 +6,7 @@
 /*   By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/04 12:32:37 by hoigag            #+#    #+#             */
-/*   Updated: 2024/03/29 11:54:29 by hoigag           ###   ########.fr       */
+/*   Updated: 2024/03/30 17:33:39 by hoigag           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,8 +26,6 @@ class Mimes
 		std::string getContentType(std::string& ext);
 		bool isMime(std::string& ext);
 		bool isValidContentType(std::string& contentType);
-		// Mimes(const Mimes& other);
-		// Mimes& operator=(const Mimes& other);
 	private:
 		void loadFile();
 		void parseLine(std::string& line);

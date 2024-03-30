@@ -6,7 +6,7 @@
 /*   By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/04 12:19:12 by hoigag            #+#    #+#             */
-/*   Updated: 2024/03/29 14:15:18 by hoigag           ###   ########.fr       */
+/*   Updated: 2024/03/30 17:30:47 by hoigag           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,18 +33,12 @@ unsigned int convertIpToInt(std::string ip)
 Socket::Socket()
 {
 }
-/// @brief 
-/// @param port 
-/// @param hostname 
+
 Socket::Socket(short port, std::string& hostname)
 {
-    // std::cout << "address == " << convertIpToInt(hostname) << std::endl; 
     int sock = socket(AF_INET, SOCK_STREAM, 0);
     if (sock < 0)
-    {
-        std::cerr << "could not create server socket" << std::endl;
-        exit(1);
-    }
+        std::runtime_error("could not create socket");
     setSocketToNonBlocking(sock);
     setSocketToBeReusable(sock);
     struct sockaddr_in servaddr;
@@ -55,14 +49,11 @@ Socket::Socket(short port, std::string& hostname)
     servaddr.sin_port = htons(port);
     if(bind(sock, (struct sockaddr *) &servaddr, sizeof(servaddr)) < 0)
     {
-        std::cerr << "could not bind socket " << sock << std::endl; 
-        exit(1);
+        std::string error =  "could not bind socket " + itoa(sock);
+        throw std::runtime_error(error);
     }
     if ((listen(sock, SOMAXCONN)) < 0)
-    {
-        std::cerr << "error happened during listening for requests" << std::endl;
-        exit(1);
-    }
+        throw std::runtime_error("could not listen on socket");
     this->fd = sock;
 }
 
@@ -84,16 +75,5 @@ int Socket::getFd()
 
 Socket::~Socket()
 {
-    // close();
+
 }
-
-// Socket::Socket(const Socket& other)
-// {
-
-// }
-
-// Socket& Socket::operator=(const Socket& other)
-// {
-
-// }
-

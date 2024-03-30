@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 import os
 import cgi
+import warnings
+warnings.filterwarnings("ignore", category=DeprecationWarning)
 
 def printHeader():
     print("Content-Type: text/html\r\n\r\n", end="")

@@ -6,7 +6,7 @@
 /*   By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/19 13:50:27 by hoigag            #+#    #+#             */
-/*   Updated: 2024/03/29 11:58:03 by hoigag           ###   ########.fr       */
+/*   Updated: 2024/03/30 17:37:56 by hoigag           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,6 +26,7 @@
 #include "Mimes.hpp"
 #include "Request.hpp"
 #include "responseHelpers.hpp"
+#include "CgiParser.hpp"
 
 #define GREEN "\033[1;32m"
 #define RED "\033[1;31m"

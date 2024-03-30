@@ -6,33 +6,35 @@
 /*   By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/25 13:25:40 by hoigag            #+#    #+#             */
-/*   Updated: 2024/03/28 16:10:44 by hoigag           ###   ########.fr       */
+/*   Updated: 2024/03/30 17:36:25 by hoigag           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef SERVERSMONITOR_HPP
 #define SERVERSMONITOR_HPP
 
+#include <iostream>
 #include <cstring>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <string>
 #include <unistd.h>
-#include "Cgi.hpp"
+#include <fstream>
 #include <sys/stat.h>
+#include <map>
 #include "ServerConf.hpp"
 #include "Mimes.hpp"
-#include "Response.hpp"
 #include "HttpServer.hpp"
 #include "Header.hpp"
-
+#include "helpers.hpp"
+#include "Cgi.hpp"
+#include "Response.hpp"
 
 #define GREEN "\033[1;32m"
 #define RED "\033[1;31m"
 #define RESET "\033[0m"
 
-#include <map>
 struct Client
 {
     std::string request;

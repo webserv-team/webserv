@@ -6,13 +6,12 @@
 /*   By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/25 10:51:02 by hoigag            #+#    #+#             */
-/*   Updated: 2024/03/29 21:51:02 by hoigag           ###   ########.fr       */
+/*   Updated: 2024/03/30 17:38:22 by hoigag           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Cgi.hpp"
-#include <signal.h>
-#include "CgiParser.hpp"
+
 
 Cgi::Cgi()
 {
@@ -22,7 +21,6 @@ Cgi::Cgi()
 
 Cgi::Cgi(Request& req, Location& location)
 {
-    // std::cout << "body ==== " << req.getBody() << std::endl;
     this->req = req;
     this->cgiPath = location.cgiPath;
     std::string path;
@@ -35,30 +33,17 @@ Cgi::Cgi(Request& req, Location& location)
     }
     else
         path = req.getURL();
-    
     this->vars["DOCUMENT_ROOT"] = location.root;
     this->vars["REQUEST_URI"] = req.getURL();
     this->vars["REDIRECT_STATUS"] = "200";
     if (req.getURL().back() == '/')
         path += location.index;
-    // std::cout << "path == " << path << std::endl;
     this->vars["SCRIPT_NAME"] = path.substr(path.find_last_of("/"));
-    // std::cout << "inside the constructor" << std::endl;
     this->vars["SCRIPT_FILENAME"] = location.root + path;
     this->vars["CONTENT_TYPE"] = req.getContentType();
-    // std::cout << "is chunked == " << req.isChunked() << std::endl;
     this->vars["CONTENT_LENGTH"] = itoa(req.getContentLength());  
-        // std::cout << "befoer body == " << req.getBody() << std::endl;
     if (req.isChunked())
-    {
-        // std::cout << "body == " << req.getBody() << std::endl;
-        
         this->vars["CONTENT_LENGTH"] = itoa(req.getBody().size());
-    }
-        
-    std::cout << "content length cgi == " << this->vars["CONTENT_LENGTH"] << std::endl;
-
-    
     this->vars["SERVER_SOFTWARE"] = "webserv/1.0";
 	this->vars["GATEWAY_INTERFACE"] = "CGI/1.1";
     this->vars["SERVER_PORT"] = req.getPort();
@@ -91,10 +76,8 @@ CgiParser Cgi::executeCgiScript()
     
     time_t start = time(0);
     const char *command[3];
-    std::cout << "cgi path == " << this->cgiPath << std::endl; 
     command[0] = this->cgiPath.c_str();
     command[1] = this->vars["SCRIPT_FILENAME"].c_str();
-    std::cout << "the file being exectuted " << command[1] << std::endl;
     command[2] = NULL;
     int pipes[2];
     if (pipe(pipes) < 0)

@@ -11,15 +11,6 @@
 /* ************************************************************************** */
 
 #include "Response.hpp"
-#include <CgiParser.hpp>
-
-bool isAllowdCgiExtension(std::string path)
-{
-	std::string extension = path.substr(path.find_last_of(".") + 1);
-	if (extension == "php" || extension == "py")
-		return true;
-	return false;
-}
 
 string	Response::urlErrors()
 {
@@ -46,7 +37,6 @@ string	Response::urlErrors()
 		return loadErrorPages("501", "Not Implemented");
 	else if (loc.redirect.find(url) != loc.redirect.end())
 	{
-		cerr << RED << "redirecting from " << url << " to " << loc.redirect[url] << RESET << endl;
 		data.isRedirect = true;
 		data.statusCode = "301";
 		data.headers["Location"] = loc.redirect[url];
@@ -65,17 +55,12 @@ Response::Response()
 std::string Response::runCgi(Location& location)
 {
 	std::string content;
-	std::cout << "cgi file" << std::endl;
 	Cgi cgi(this->req, location);
 	CgiParser result =  cgi.executeCgiScript();
 	std::string contentType = result.getContentType();
 	std::string contentLength = result.getContentLength();
 	std::string statusCode = result.getStatusCode();
-
 	int code = atoi(statusCode.c_str());
-
-		std::cout << "cgi content type == " << contentType << std::endl;
-		std::cout << "content === " << result.getBody() << std::endl;
 	if (!contentType.empty() && this->mimes.isValidContentType(contentType))
 	{
 		this->data.headers["Content-Type"] = contentType;
@@ -83,7 +68,7 @@ std::string Response::runCgi(Location& location)
 		if (!contentLength.empty())
 			this->data.headers["Content-Length"] = contentLength;
 		else
-			this->data.headers["Content-Length"] = to_string(content.size());
+			this->data.headers["Content-Length"] = itoa(content.size());
 		if (code < 100 || code >= 600)
 			this->data.statusCode = "200";
 		else
@@ -110,7 +95,6 @@ std::string Response::handleExistingFile(std::string path, Location& location)
     {
         if (path.back() != '/')
         {
-			std::cout << "redirecting to the directory" << std::endl;
 			this->data.isRedirect = true;
             this->data.statusCode = "301";	
 			this->data.headers["Location"] = this->req.getURL() + "/";
@@ -119,7 +103,6 @@ std::string Response::handleExistingFile(std::string path, Location& location)
         std::string indexFile = path + "/" + location.index;	
         if (!location.index.empty())
         {	
-            std::cout << "serving the index file" << std::endl;
 			if (isFileExists(indexFile))
 			{
 				if (!location.cgiPath.empty() && isAllowdCgiExtension(indexFile))
@@ -138,7 +121,6 @@ std::string Response::handleExistingFile(std::string path, Location& location)
         }
         else if (location.autoindex == "on")
         {
-            std::cout << "directory listing" << std::endl;
 			try
 			{
             	content = directoryListing(path);
@@ -157,7 +139,6 @@ std::string Response::handleExistingFile(std::string path, Location& location)
     }
     else
     {
-		std::cout << "a file not a directory" << std::endl;
 		if (!location.cgiPath.empty() && isAllowdCgiExtension(path))
 			content = runCgi(location);
 		else
@@ -190,13 +171,11 @@ std::string Response::handleRequest(Location& location)
         uri = uri.substr(0, pos);
     }
     std::string requestedResource = location.root + uri;
-	std::cout << "requestedResource == " << requestedResource << std::endl;
 	if (this->req.getMethod() == "POST" && this->req.getContentType().find("multipart/form-data") != std::string::npos && !isAllowdCgiExtension(requestedResource))
 	{
 		safe = uploadFiles(this->req, location);
 		if (!safe)
 		{
-			std::cout << "upload error" << std::endl;
 			this->data.statusCode = "500";
 			content = loadErrorPages(this->data.statusCode, "Internal Server Error");
 		}
@@ -272,16 +251,11 @@ string Response::handleDeleteRequest(Location& loc)
 void Response::formatResponse()
 {
     std::string content;
-    std::string header;
-    std::string queryString;
     std::string url = req.getURL();
     std::string resourceFullPath = conf.root;
     size_t pos = url.find("?");
     if (pos != std::string::npos)
-    {
-        queryString = url.substr(pos + 1);
         url = url.substr(0, pos);
-    }
     Location location = getMatchingLocation(url, conf);
 	content = urlErrors();
 	if (content.empty() && data.isRedirect == false)
@@ -299,16 +273,8 @@ void Response::formatResponse()
 	data.headers["Content-Length"] = itoa(content.size());
     this->buildResponse();
 }
-/*-------------------- Constructors --------------------*/
-
 
 Response::~Response(){}
-
-// Response::Response(const Response& other){}
-
-// Response& Response::operator=(const Response& other){}
-
-/*-------------------- Tmp functions --------------------*/
 
 ostream& operator<<(ostream& os, Location& loc)
 {
@@ -337,18 +303,8 @@ std::ostream& operator<<(std::ostream& stream, Response& res)
 	std::string color = (data.statusCode == "200") ? GREEN : RED;
 	stream << BLUE << "[RESPONSE " << buffer << "] " << RESET << color << 
 	data.httpVersion << " " << data.statusCode << " " << getStatusReason(data.statusCode) << RESET << std::endl;
-	// stream << "++++++++++++++++++ Response +++++++++++++++++++++++++\n";
-	// stream << res.getStatusLine() << std::endl;
-	// stream << res.getContentType() << std::endl;
-	// stream << res.getContentLength() << std::endl;
-	// stream  << std::endl;
-	// stream  << res.getBody() << std::endl;
-	// stream << "++++++++++++++++++++++++++++++++++++++++++++++++++++\n";
 	return stream;
 }
-
-/*-------------------- Member functions --------------------*/
-
 
 
 string Response::loadErrorPages(string statusCode, string errorMessage)
@@ -372,8 +328,6 @@ void Response::buildResponse()
 		this->response += it->first + ": " + it->second + "\r\n";
 	this->response += "\r\n";
 	this->response += data.body;
-
-	// cerr << RED << response << RESET << endl;
 }
 
 /*-------------------- Getters --------------------*/

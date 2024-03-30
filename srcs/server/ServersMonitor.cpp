@@ -6,16 +6,12 @@
 /*   By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/25 13:25:34 by hoigag            #+#    #+#             */
-/*   Updated: 2024/03/29 23:35:04 by hoigag           ###   ########.fr       */
+/*   Updated: 2024/03/30 18:32:44 by hoigag           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "ServersMonitor.hpp"
-#include <iostream>
-#include <fstream>
-#include "helpers.hpp"
-#include "Cgi.hpp"
-#include "Response.hpp"
+
 ServersMonitor::ServersMonitor()
 {
     
@@ -59,7 +55,16 @@ bool ServersMonitor::isServerFd(int fd)
     }
     return false;
 }
-
+void initClientStruct(Client& client)
+{
+    client.request = "";
+    client.bytesRead = 0;
+    client.headerObject = Header();
+    client.isBody = false;
+    client.isHeaderFinished = false;
+    client.isRequestFinished = false;
+    client.contentlength = 0;
+}
 void ServersMonitor::handleNewConnection(int serverFd)
 {
     int connFd = Socket::acceptNewConnetction(serverFd);
@@ -68,13 +73,7 @@ void ServersMonitor::handleNewConnection(int serverFd)
     if (connFd > this->maxFd)
         this->maxFd = connFd;
     Client newClient;
-    newClient.request = "";
-    newClient.bytesRead = 0;
-    newClient.headerObject = Header();
-    newClient.isBody = false;
-    newClient.isHeaderFinished = false;
-    newClient.isRequestFinished = false;
-    newClient.contentlength = 0;
+    initClientStruct(newClient);
     this->clients[connFd] = newClient;
 }
 
@@ -112,7 +111,7 @@ void ServersMonitor::handleExistingConnection(int fd)
                     this->clients[fd].isBody = true;
                 if (this->clients[fd].bytesRead >= this->clients[fd].headerObject.getContentLength())
                     this->clients[fd].isRequestFinished = true;
-                std::cout << RED << "content length == " << this->clients[fd].headerObject.getContentLength() << " |||||    bytesread == " << this->clients[fd].bytesRead << RESET << std::endl;        
+                // std::cout << RED << "content length == " << this->clients[fd].headerObject.getContentLength() << " |||||    bytesread == " << this->clients[fd].bytesRead << RESET << std::endl;        
             }
         }
             
@@ -122,6 +121,7 @@ void ServersMonitor::handleExistingConnection(int fd)
         FD_CLR(fd, &read_sockets);
         FD_SET(fd, &write_sockets);
         Request req(this->clients[fd].request);
+        initClientStruct(this->clients[fd]);
         std::cout << req;
         ConfigData conf = this->getServer(req).getConfData();
         Response res(req, conf);
@@ -152,66 +152,60 @@ void ServersMonitor::listenForConnections()
 {
     try
     {
-        // struct timeval timeout;
-        // timeout.tv_sec = 20;
-        // timeout.tv_usec = 0;
-    while (true)
-    {
-        std::cout << "number of clients ====== " << this->clients.size() << std::endl;
-        this->read_copy_sockets = this->read_sockets;
-        this->write_copy_sockets = this->write_sockets;
-        int res = select(this->maxFd + 1, &this->read_copy_sockets, &this->write_copy_sockets, NULL, NULL);
-        if (res < 0)
+        while (true)
         {
-            std::cerr << "error occured on select" << std::endl;
-            exit(1);
-        }
-        for (int i = 0; i <= this->maxFd; i++)
-        {
-            if (FD_ISSET(i, &this->read_copy_sockets))
+            this->read_copy_sockets = this->read_sockets;
+            this->write_copy_sockets = this->write_sockets;
+            int res = select(this->maxFd + 1, &this->read_copy_sockets, &this->write_copy_sockets, NULL, NULL);
+            if (res < 0)
+                throw std::runtime_error("select error");
+            for (int i = 0; i <= this->maxFd; i++)
             {
-                if (this->isServerFd(i))
+                if (FD_ISSET(i, &this->read_copy_sockets))
                 {
-                    try
+                    if (this->isServerFd(i))
                     {
-                        this->handleNewConnection(i);
+                        try
+                        {
+                            this->handleNewConnection(i);
+                        }
+                        catch(const std::exception& e)
+                        {
+                            std::cerr << e.what() << '\n';
+                        }            
                     }
-                    catch(const std::exception& e)
+                    else
                     {
-                        std::cerr << e.what() << '\n';
-                    }            
+                        try
+                        {
+                            this->handleExistingConnection(i);
+                        }
+                        catch(const std::exception& e)
+                        {
+                            std::cerr << e.what() << '\n';
+                            close(i);
+                            this->clients.erase(i);
+                        }
+                    }
                 }
-                else
+                if (FD_ISSET(i, &this->write_copy_sockets))
                 {
-                    try
+                    int success = sendChunk(i, this->clientResponses[i]);
+                    if (!success)
                     {
-                        this->handleExistingConnection(i);
-                    }
-                    catch(const std::exception& e)
-                    {
-                        std::cerr << e.what() << '\n';
+                        FD_CLR(i, &this->write_sockets);
                         close(i);
-                        this->clients.erase(i);
                     }
-                }
-            }
-            if (FD_ISSET(i, &this->write_copy_sockets))
-            {
-                int success = sendChunk(i, this->clientResponses[i]);
-                if (!success)
-                {
-                    FD_CLR(i, &this->write_sockets);
-                    close(i);
-                }
-                if (this->clientResponses[i].isResponseFinished)
-                {
-                    FD_CLR(i, &this->write_sockets);
-                    close(i);
+                    if (this->clientResponses[i].isResponseFinished)
+                    {
+                        FD_CLR(i, &this->write_sockets);
+                        close(i);
+                        clientResponses.erase(i);
+                    }
                 }
             }
         }
     }
-        }
     catch(const std::exception& e)
     {
         std::cerr << e.what() << '\n';

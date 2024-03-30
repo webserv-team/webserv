@@ -6,7 +6,7 @@
 #    By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2023/10/27 11:05:58 by ogorfti           #+#    #+#              #
-#    Updated: 2024/03/29 22:46:13 by hoigag           ###   ########.fr        #
+#    Updated: 2024/03/30 11:27:03 by hoigag           ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -22,7 +22,7 @@ OBJ_DIR = obj
 
 OBJS = $(patsubst %.cpp, $(OBJ_DIR)/%.o, $(SRCS))
 
-NAME = server
+NAME = webserv
 
 $(OBJ_DIR)/%.o: %.cpp
 	@mkdir -p $(@D)

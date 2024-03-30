@@ -6,7 +6,7 @@
 /*   By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/04 12:14:45 by hoigag            #+#    #+#             */
-/*   Updated: 2024/03/27 18:03:13 by hoigag           ###   ########.fr       */
+/*   Updated: 2024/03/30 17:24:09 by hoigag           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,8 +31,6 @@ class Socket
 		int getFd();
 		static int acceptNewConnetction(int serverFd);
 		~Socket();
-		// Socket(const Socket& other);
-		// Socket& operator=(const Socket& other);
 	private:
 		int fd;
 };

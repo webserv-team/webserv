@@ -6,7 +6,7 @@
 /*   By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/04 12:35:14 by hoigag            #+#    #+#             */
-/*   Updated: 2024/03/29 22:42:00 by hoigag           ###   ########.fr       */
+/*   Updated: 2024/03/30 17:33:23 by hoigag           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,7 +44,6 @@ void Mimes::parseLine(std::string& line)
     {
         this->extensions[extension] = contentType;
     }
-    // std::cout << extension << std::endl;
 }
 
 void Mimes::loadFile()
@@ -94,14 +93,3 @@ Mimes::~Mimes()
 {
 
 }
-
-// Mimes::Mimes(const Mimes& other)
-// {
-
-// }
-
-// Mimes& Mimes::operator=(const Mimes& other)
-// {
-
-// }
-

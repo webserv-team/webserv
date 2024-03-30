@@ -6,7 +6,7 @@
 /*   By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/25 10:11:55 by hoigag            #+#    #+#             */
-/*   Updated: 2024/03/28 22:47:15 by hoigag           ###   ########.fr       */
+/*   Updated: 2024/03/30 17:39:10 by hoigag           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,35 +14,16 @@
 #define CGI_HPP
 
 #include <string>
-// DOCUMENT_ROOT	The root directory of your server
-// HTTP_COOKIE	The visitor's cookie, if one is set
-// HTTP_HOST	The hostname of the page being attempted
-// HTTP_REFERER	The URL of the page that called your program
-// HTTP_USER_AGENT	The browser type of the visitor
-// HTTPS	"on" if the program is being called through a secure server
-// PATH	The system path your server is running under
-// QUERY_STRING	The query string (see GET, below)
-// REMOTE_ADDR	The IP address of the visitor
-// REMOTE_HOST	The hostname of the visitor (if your server has reverse-name-lookups on; otherwise this is the IP address again)
-// REMOTE_PORT	The port the visitor is connected to on the web server
-// REMOTE_USER	The visitor's username (for .htaccess-protected pages)
-// REQUEST_METHOD	GET or POST
-// REQUEST_URI	The interpreted pathname of the requested document or CGI (relative to the document root)
-// SCRIPT_FILENAME	The full pathname of the current CGI
-// SCRIPT_NAME	The interpreted pathname of the current CGI (relative to the document root)
-// SERVER_ADMIN	The email address for your server's webmaster
-// SERVER_NAME	Your server's fully qualified domain name (e.g. www.cgi101.com)
-// SERVER_PORT	The port number your server is listening on
-// SERVER_SOFTWARE	The server software you're using (e.g. Apache 1.3)
-
-#include "Request.hpp"
 #include <ostream>
 #include <map>
 #include <string.h>
 #include <sys/wait.h>
+#include <signal.h>
+#include "Request.hpp"
 #include "helpers.hpp"
 #include "ServerConf.hpp"
 #include "CgiParser.hpp"
+
 class Request;
 class Cgi
 {
@@ -58,8 +39,6 @@ class Cgi
 		CgiParser executeCgiScript();
 		
 		void setEnv();
-		// Cgi(const Cgi& other);
-		// Cgi& operator=(const Cgi& other);
 	private:
 		Request req;
 		std::string cgiPath;
