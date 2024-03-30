@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Delete Request</title>
+    <link rel="stylesheet" type="text/css" href="style_delete.css">
+    <script>
+        function sendDeleteRequest() {
+            fetch(window.location.href, {
+                method: 'DELETE',
+            })
+            .then(response => response.text())
+            .then(data => console.log(data))
+            .catch((error) => {
+                console.error('Error:', error);
+            });
+        }
+    </script>
+</head>
+<body>
+    <h1>Delete Request</h1>
+    <button onclick="sendDeleteRequest()">Send</button>
+</body>
+</html>
