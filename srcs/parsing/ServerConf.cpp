@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ServerConf.cpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+        */
+/*   By: ogorfti <ogorfti@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/11 19:01:46 by ogorfti           #+#    #+#             */
-/*   Updated: 2024/03/29 22:26:48 by hoigag           ###   ########.fr       */
+/*   Updated: 2024/03/30 17:30:59 by ogorfti          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -62,7 +62,7 @@ Location parseLocation(const string& location, ConfigData& server)
 			string key = trim(tokens[i].substr(0, equalPos));
 			string value = trim(tokens[i].substr(equalPos + 1));
 			if (key == "path" || key == "root" || key == "index"
-				|| key == "uploadPath" || key == "cgiPath")
+				|| key == "uploadPath" || key == "cgiPath" || key == "alias")
 				isFilePath(value);
 			if (key == "path")
 				loc.path = value;
@@ -74,6 +74,8 @@ Location parseLocation(const string& location, ConfigData& server)
 				loc.uploadPath = value;
 			else if (key == "cgiPath")
 				loc.cgiPath = value;
+			else if (key == "alias")
+				loc.alias = value;
 			else if (key == "autoindex")
 			{
 				if (value != "on" && value != "off")
@@ -229,6 +231,7 @@ ostream& operator<<(ostream& os, const Location& location)
 	os << "bodyLimit: " << location.bodyLimit << endl;
 	os << "uploadPath: " << location.uploadPath << endl;
 	os << "cgiPath: " << location.cgiPath << endl;
+	os << "alias: " << location.alias << endl;
 	os << "redirect: " << endl;
 	for (map<string, string>::const_iterator it = location.redirect.begin(); it != location.redirect.end(); it++)
 		os << it->first << "-   -" << it->second << endl;
@@ -270,7 +273,7 @@ ostream& operator<<(ostream& os, const vector<ConfigData>& servers)
 // {
 // 	try
 // 	{
-// 		ServerConf test("../default.conf");
+// 		ServerConf test("../config/ogorfti.conf");
 		
 // 		vector<ConfigData> servers = test.getServers();
 // 		cout << servers;

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Response.hpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+        */
+/*   By: ogorfti <ogorfti@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/19 13:50:27 by hoigag            #+#    #+#             */
-/*   Updated: 2024/03/29 11:58:03 by hoigag           ###   ########.fr       */
+/*   Updated: 2024/03/30 17:49:26 by ogorfti          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -53,16 +53,18 @@ class Response
 		std::string handleExistingFile(std::string path, Location& location);
 		std::string handleRequest(Location& location);
 		string loadErrorPages(string statusCode, string errorMessage);
-		string handleDeleteRequest(Location& loc);
+		string handleDeleteRequest();
 		string runCgi(Location& location);
 		void formatResponse();
 		string urlErrors();
+		string getFullPath();
 		
 		Request req;
 		ConfigData conf;
 		Mimes mimes;
 		string response;
 		t_data data;
+		string resourceFullPath;
 	public:
 		Response(Request &req, ConfigData &conf);
 		~Response();
