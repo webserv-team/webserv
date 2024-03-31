@@ -6,7 +6,7 @@
 /*   By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/25 13:25:34 by hoigag            #+#    #+#             */
-/*   Updated: 2024/03/30 21:56:06 by hoigag           ###   ########.fr       */
+/*   Updated: 2024/03/31 01:00:34 by hoigag           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,7 +24,8 @@ HttpServer ServersMonitor::getServer(Request& req, short port)
     int index = -1;
     for (size_t i = 0; i < this->httpServers.size(); i++)
     {
-        if (this->httpServers[i].getConfData().host == req.getHostName() || this->httpServers[i].getConfData().serverName == req.getHostName())
+        std::string reqHost = req.getHostName() == "localhost" ? "127.0.0.1" : req.getHostName();
+        if (this->httpServers[i].getConfData().host == reqHost || this->httpServers[i].getConfData().serverName == reqHost)
         {
             std::vector<int> ports = this->httpServers[i].getConfData().ports;
             for (size_t j = 0; j < ports.size(); j++)

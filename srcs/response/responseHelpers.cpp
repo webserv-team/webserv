@@ -6,7 +6,7 @@
 /*   By: hoigag <hoigag@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/25 19:18:19 by hoigag            #+#    #+#             */
-/*   Updated: 2024/03/29 22:12:58 by hoigag           ###   ########.fr       */
+/*   Updated: 2024/03/31 00:19:01 by hoigag           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -85,7 +85,7 @@ bool bodyLimitExceeded(Request& req, Location& loc)
 
 bool chrURL(string& url)
 {
-	string str = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz-./?:;=@[]!&'*+,%";
+	string str = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz-._~:/?#[]@!$&'()*+,;=%";
 
 	for (size_t i = 0; i < url.size(); i++)	
 	{

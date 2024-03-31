@@ -16,6 +16,8 @@ string Response::getFullPath()
 {
 	string path;
 	string url = req.getURL();
+	if (url.find("?") != string::npos)
+		url = url.substr(0, url.find("?"));
 	Location loc = getMatchingLocation(url, conf);
 	
 	if (loc.alias.empty())
@@ -184,15 +186,18 @@ std::string Response::handleExistingFile(std::string path, Location& location)
 
 std::string Response::handleRequest(Location& location)
 {
+	// cerr << "handleRequest" << endl;
     std::string content;
 	bool safe = true;
 	string requestedResource = getFullPath();
+	// std::cout << isAllowdCgiExtension(requestedResource) << std::endl;
 	if (this->req.getMethod() == "POST" && this->req.getContentType().find("multipart/form-data") != std::string::npos && !isAllowdCgiExtension(requestedResource))
 	{
 		safe = uploadFiles(this->req, location);
 		if (!safe)
 		{
 			this->data.statusCode = "500";
+			std::cout << "Error uploading file" << std::endl;
 			content = loadErrorPages(this->data.statusCode, "Internal Server Error");
 		}
 		else
